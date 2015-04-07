@@ -33,6 +33,7 @@ if(isset($_SESSION['isadmin'])){
 		echo $mysqli->error;
 		exit();
 	}
+	updateDates();
 	$mysqli->close();
 }
 header('Location: ' . $_SERVER['HTTP_REFERER']);

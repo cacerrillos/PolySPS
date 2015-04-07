@@ -26,6 +26,7 @@ if(isset($_SESSION['isadmin'])){
 		} else {
 			echo $mysqli->error;
 		}
+		updateDates();
 		$mysqli -> close();
 	}
 } else {	

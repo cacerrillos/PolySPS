@@ -160,6 +160,41 @@ function setSiteEnabled($int){
 	}
 	
 }
+function updateDates(){
+	global $db_host, $db_user, $db_pass, $db_name;
+	$mysqli = new mysqli($db_host, $db_user, $db_pass);
+	$mysqli -> select_db($db_name);
+	if(mysqli_connect_errno()) {
+		echo "Connection Failed: " . mysqli_connect_errno();
+		exit();
+	}
+	if($stmt = $mysqli->prepare("TRUNCATE `dates`;")){
+		$stmt->execute();
+		$stmt->close();
+		if($stmt = $mysqli->prepare("SELECT `date` FROM `presentations`;")){
+			$stmt->execute();
+			$stmt->bind_result($thisdate);
+			$stmt->store_result();
+			$dates = array();
+			while($stmt->fetch()){
+				array_push($dates, $thisdate);
+			}
+			$stmt->close();
+			array_unique($dates);
+			foreach($dates as $val){
+				if($stmt = $mysqli->prepare("INSERT INTO `dates` (`date`) VALUES (?);")){
+					$stmt->bind_param("s", $val);
+					$stmt->execute();
+					$stmt->close();
+				} else {
+					echo $mysqli->error;
+				}
+			}
+		}
+	} else {
+		echo $mysqli->error;
+	}
+}
 function lines(){
 $string = shell_exec("find . -name '*.php' -not -path './securimage/*' -not -path './phpmyadmin/*' | xargs wc -l");
 preg_match_all('/[0-9]+/',$string,$matches);

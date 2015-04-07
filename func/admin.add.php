@@ -38,6 +38,7 @@ firstname,lastname,house,topic,date,block,location,juniors,seniors) VALUES (?,?,
 			$stmt -> execute();
 			$stmt ->close();
 		}
+		updateDates();
 		$mysqli -> close();
 	}
 } else {	
