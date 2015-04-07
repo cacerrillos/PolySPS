@@ -118,7 +118,7 @@ if((isset($_GET['by']) && ($_GET['by']=="location" || $_GET['by']=="presentation
 			for($x =0; $x <count($uuidArray); $x++){
 				?>
                 
-    <h3><? echo jddayofweek(cal_to_jd(CAL_GREGORIAN, substr($dArray[$x], 4, 2), substr($dArray[$x], 6, 2), substr($dArray[$x], 2, 2)), 1); ?> <? echo jdmonthname(cal_to_jd(CAL_GREGORIAN, substr($dArray[$x], 4, 2), substr($dArray[$x], 6, 2), substr($dArray[$x], 2, 2)), 1); ?> <? echo substr($dArray[$x], 6, 2)." ".substr($dArray[$x], 0, 4); ?><? echo " | Block ".$bArray[$x]." ".$lArray[$x]." ".$lnArray[$x].", ".$fnArray[$x]." | ".$tArray[$x]."<br>"; ?></h3>
+    <h3><? echo date("l F", strtotime($dArray[$x])); ?> <? echo substr($dArray[$x], 6, 2)." ".substr($dArray[$x], 0, 4); ?><? echo " | Block ".$bArray[$x]." in ".$lArray[$x]." | ".$lnArray[$x].", ".$fnArray[$x]." | ".$tArray[$x]."<br>"; ?></h3>
                 <table>
                 	<tr>
                     	<td>Student</td>
@@ -200,7 +200,7 @@ if((isset($_GET['by']) && ($_GET['by']=="location" || $_GET['by']=="presentation
 			for($x =0; $x <count($uuidArray); $x++){
 				?>
                 <? if($x!=0){ ?><div class="page-break"></div><? } ?>
-                <h3><? echo jddayofweek(cal_to_jd(CAL_GREGORIAN, substr($dArray[$x], 4, 2), substr($dArray[$x], 6, 2), substr($dArray[$x], 2, 2)), 1); ?> <? echo jdmonthname(cal_to_jd(CAL_GREGORIAN, substr($dArray[$x], 4, 2), substr($dArray[$x], 6, 2), substr($dArray[$x], 2, 2)), 1); ?> <? echo substr($dArray[$x], 6, 2)." ".substr($dArray[$x], 0, 4); ?><? echo " | Block ".$bArray[$x]." ".$lArray[$x]." ".$lnArray[$x].", ".$fnArray[$x]." | ".$tArray[$x]."<br>"; ?></h3>
+                <h3><? echo date("l F", strtotime($dArray[$x])); ?> <? echo substr($dArray[$x], 6, 2)." ".substr($dArray[$x], 0, 4); ?><? echo " | Block ".$bArray[$x]." in ".$lArray[$x]." | ".$lnArray[$x].", ".$fnArray[$x]." | ".$tArray[$x]."<br>"; ?></h3>
                 <table>
                 	<tr>
                     	<td>Student</td>
