@@ -45,7 +45,7 @@
                         <option value="W" <? if($house=="W"){ echo "selected"; } ?>>West</option>
                     </select><br />
                     Topic:<input type="text" name="topic" autocomplete="off" value="<? echo $topic; ?>" autocomplete="off"><br>
-                    Date:<input type="text" name="date" value="<? echo $date; ?>" autocomplete="off"><br>
+                    Date:<input type="date" name="date" value="<? echo date("Y-m-d", strtotime($date)); ?>" autocomplete="off"><br>
                     Block:
                     <select name="block">
                         <option value=""></option>
