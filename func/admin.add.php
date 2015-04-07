@@ -28,7 +28,7 @@ firstname,lastname,house,topic,date,block,location,juniors,seniors) VALUES (?,?,
 			echo $mysqli->error;
 		}
 		$q = "
-		CREATE TABLE `dalehunz_sps`.`pres_".$uuid."` (
+		CREATE TABLE `".$db_name."`.`pres_".$uuid."` (
 			`uuid` VARCHAR(64) NOT NULL,
 			`timestamp` TEXT NULL,
 			PRIMARY KEY (`uuid`)
