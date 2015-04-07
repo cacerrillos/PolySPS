@@ -112,7 +112,7 @@
 						while($stmt->fetch()){
 							?>
 								<tr>
-									<td><? echo substr($pres['date'], 6, 2)."-".substr($pres['date'], 4, 2)."-".substr($pres['date'], 2, 2); ?> - Block <? echo $pres['block']; ?></td>
+									<td><? echo substr($pres['date'], 4, 2)."/".substr($pres['date'], 6, 2)."-".$pres['block']; ?></td>
 									<td><? echo $pres['lastname'].", ".$pres['firstname']; ?></td>
 									<td><a href="?p=pres&uuid=<? echo $pres['uuid']; ?>"><? echo $pres['topic']; ?></a></td>
 									<td><? echo $pres['location']; ?></td>

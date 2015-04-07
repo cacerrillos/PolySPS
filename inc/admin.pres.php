@@ -28,7 +28,7 @@
 				?>
     <h3>Presentation: <? echo $lastname.", ".$firstname." ".$house." | ".$topic; ?></h3>
     <h4 style="margin-bottom:0">Location: <? echo $pres['location']; ?></h4>
-    <h4>Date: <? echo jddayofweek(cal_to_jd(CAL_GREGORIAN, substr($pres['date'], 4, 2), substr($pres['date'], 6, 2), substr($pres['date'], 2, 2)), 1); ?> <? echo jdmonthname(cal_to_jd(CAL_GREGORIAN, substr($pres['date'], 4, 2), substr($pres['date'], 6, 2), substr($pres['date'], 2, 2)), 1); ?> <? echo substr($pres['date'], 6, 2)." ".substr($pres['date'], 0, 4)." | Block ".$pres['block']; ?></h4>
+    <h4>Date: <? echo date("l F j Y", strtotime($pres['date']))." | Block ".$pres['block']; ?></h4>
         <div id="quizz" style="margin-left:20px">
         <?
 		if(isset($_SESSION['isadmin'])){
