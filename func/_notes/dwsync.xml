@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <dwsync>
-<file name="config.func.php" server="ipolyhs.org//sps/" local="130415503210000000" remote="130415503200000000" Dst="2" />
-<file name="admin.logout.php" server="ipolyhs.org//sps/" local="130413713062223593" remote="130413712800000000" Dst="2" />
-<file name="admin.login.php" server="ipolyhs.org//sps/" local="130413718708807574" remote="130413718200000000" Dst="2" />
-<file name="admin.add.php" server="ipolyhs.org//sps/" local="130415049655672907" remote="130415049600000000" Dst="2" />
-<file name="submit.func.php" server="ipolyhs.org//sps/" local="130416201816076812" remote="130416237600000000" Dst="2" />
+<file name="config.func.php" server="ipolyhs.org//sps/" local="130417396729677568" remote="130417432200000000" Dst="2" />
+<file name="admin.logout.php" server="ipolyhs.org//sps/" local="130418368114159784" remote="130418403600000000" Dst="2" />
+<file name="admin.login.php" server="ipolyhs.org//sps/" local="130426184791134088" remote="130426220400000000" Dst="2" />
+<file name="admin.add.php" server="ipolyhs.org//sps/" local="130417418825081171" remote="130417454400000000" Dst="2" />
+<file name="submit.func.php" server="ipolyhs.org//sps/" local="130432777963976050" remote="130432813800000000" Dst="2" />
 <file name="clearallviewers.func.php" server="ipolyhs.org//sps/" local="130415509747872628" remote="130415509800000000" Dst="2" />
+<file name="pres.delete.php" server="ipolyhs.org//sps/" local="130417383802307352" remote="130417419600000000" Dst="2" />
+<file name="admin.sitetoggle.php" server="ipolyhs.org//sps/" local="130417391647523690" remote="130417427400000000" Dst="2" />
+<file name="funcs.func.php" server="ipolyhs.org//sps/" local="130429313199768815" remote="130429349400000000" Dst="2" />
+<file name="pres.edit.php" server="ipolyhs.org//sps/" local="130417413053154722" remote="130417449000000000" Dst="2" />
+<file name="removeviewer.func.php" server="ipolyhs.org//sps/" local="130418430141408675" remote="130418466000000000" Dst="2" />
+<file name="admin.addtopres.php" server="ipolyhs.org//sps/" local="130418476247497634" remote="130418512200000000" Dst="2" />
+<file name="print.func.php" server="ipolyhs.org//sps/" local="130432770477271294" remote="130432806600000000" Dst="2" />
+<file name="pwchange.func.php" server="ipolyhs.org//sps/" local="130426188812546038" remote="130426224600000000" Dst="2" />
+<file name="fixer.php" server="ipolyhs.org//sps/" local="130432778101167091" remote="130432813800000000" Dst="2" />
 </dwsync>

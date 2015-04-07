@@ -7,6 +7,7 @@ if(isset($_SESSION['isadmin'])){
 		$lastname = $_POST['lastname'];
 		$house = $_POST['house'];
 		$topic = $_POST['topic'];
+		$uuid = $_POST['uuid'];
 		$juniors = intval($_POST['juniors']);
 		$seniors = intval($_POST['seniors']);
 		$date = str_replace("-","",$_POST['date']);
@@ -14,29 +15,16 @@ if(isset($_SESSION['isadmin'])){
 		$location = $_POST['location'];
 		$mysqli = new mysqli($db_host, $db_user, $db_pass);
 		$mysqli -> select_db($db_name);
-		$uuid = md5($firstname.$lastname.$topic.time());
 		if(mysqli_connect_errno()) {
 			echo "Connection Failed: " . mysqli_connect_errno();
 			exit();
 		}
-		if($stmt = $mysqli -> prepare("INSERT INTO presentations (uuid, 
-firstname,lastname,house,topic,date,block,location,juniors,seniors) VALUES (?,?,?,?,?,?,?,?,?,?)")){
-			$stmt -> bind_param("ssssssisii", $uuid, $firstname, $lastname, $house, $topic, $date, $block, $location, $juniors, $seniors);
+		if($stmt = $mysqli -> prepare("UPDATE presentations SET firstname = ?,lastname = ?,house = ?,topic = ?,date = ?,block = ?,location = ?,juniors = ?,seniors = ? WHERE uuid=?")){
+			$stmt -> bind_param("sssssisiis", $firstname, $lastname, $house, $topic, $date, $block, $location, $juniors, $seniors, $uuid);
 			$stmt -> execute();
 			$stmt -> close();
 		} else {
 			echo $mysqli->error;
-		}
-		$q = "
-		CREATE TABLE `dalehunz_sps`.`pres_".$uuid."` (
-			`uuid` VARCHAR(64) NOT NULL,
-			`timestamp` TEXT NULL,
-			PRIMARY KEY (`uuid`)
-		);";
-		if($stmt = $mysqli ->prepare($q)){
-			//
-			$stmt -> execute();
-			$stmt ->close();
 		}
 		$mysqli -> close();
 	}

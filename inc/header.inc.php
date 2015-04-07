@@ -19,7 +19,21 @@ ul.nav a { zoom: 1; }  /* the zoom property gives IE the hasLayout trigger it ne
   <div class="sidebar1">
     <ul class="nav">
       <li><a href="?p=home">Home</a></li>
+      <li><a href="?p=presentations">Presentations</a></li>
+      <li><a href="?p=viewers">Viewers</a></li>
+      <? //<li><a href="?p=print">Printing</a></li> ?>
       <li><a href="?p=admin">Admin</a></li>
     </ul>
-    <p></p>
+    <p>
+    Admin Login Only
+    <? if(!isset($_SESSION['isadmin'])){ ?>
+    <form action="func/admin.login.php" method="post">
+    	Username:<input type="text" name="username"><br>
+        Password:<input type="password" name="password"><br>
+        <input type="submit" name="submit" value="Login">
+    </form>
+    <? } else { ?>
+    	<a href="func/admin.logout.php">Logout!</a>
+    <? } ?>
+    </p>
     <!-- end .sidebar1 --></div>

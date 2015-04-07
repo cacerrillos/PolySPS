@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 include_once("func/config.func.php");
+$siteEnabled = siteEnabled();
 if(isset($_GET['p'])){
 	$page = $_GET['p'];
 } else {
@@ -21,6 +22,12 @@ if($page=="admin"){
 	include("inc/success.inc.php");
 } else if($page=="viewers"){
 	include("inc/admin.viewers.php");
+} else if($page=="presentations"){
+	include("inc/admin.presentations.php");
+} else if($page=="viewer"){
+	include("inc/admin.viewer.php");
+} else if($page=="print"){
+	include("inc/print.inc.php");
 } else {
 	include("inc/home.inc.php");
 }
