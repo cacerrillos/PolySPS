@@ -26,7 +26,7 @@ if($_POST['submit']=="Change" && isset($_SESSION['isadmin'])){
 		} else {
 			echo $mysqli->error;
 		}
-		header('Location: ' . $_SERVER['HTTP_REFERER']);
+		header('Location: ' . "admin.logout.php");
 	}
 	$mysqli -> close();
 }
