@@ -144,6 +144,7 @@ ul.nav a:hover, ul.nav a:active, ul.nav a:focus { /* this changes the background
 @media print {
 	.page-break	{ display: block; page-break-before: always; }
 	.sidebar1 { display:none; }
+	.dontprint { display:none; }
 	.footer {display:none; }
 	.content{ font-size:12px }
 }

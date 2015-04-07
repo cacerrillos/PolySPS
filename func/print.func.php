@@ -10,10 +10,13 @@ if((isset($_GET['by']) && ($_GET['by']=="location" || $_GET['by']=="presentation
 
 @media print {
 	.page-break	{ display: block; page-break-before: always; }
+	.dontprint { display:none; }
 }
 	</style>
     </head>
+   	<div class="dontprint">
     <input type="button" onClick="window.print()" value="Print"/>
+    </div>
     <?
 	if(isset($_GET['pres'])){
 		$mysqli = new mysqli($db_host, $db_user, $db_pass);

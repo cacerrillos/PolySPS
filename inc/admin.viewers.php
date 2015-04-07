@@ -54,7 +54,9 @@
 	}
 	?>
     <div id="quizz" style="margin-left:20px">
+    <div class="dontprint">
     <input type="button" onClick="window.print()" value="Print This Page"/><br />
+    </div>
     <?
 	if(isset($_GET['vis'])){
 		if($_GET['vis']=="11"){

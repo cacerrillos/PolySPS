@@ -33,6 +33,7 @@
         <?
 		if(isset($_SESSION['isadmin'])){
 			?>
+		<div class="dontprint">
                 <form action="func/pres.edit.php" method="post">
                 	<input type="hidden" name="uuid" value="<? echo $pres['uuid']; ?>" />
                     Firstname:<input type="text" name="firstname" value="<? echo $firstname; ?>"  autocomplete="off"/><br />
@@ -114,12 +115,15 @@
                     </select>
                     <input type="submit" name="submit" value="Add" />
 		</form>
+		</div>
                 <?
 		}
 			}
 			?>
             <h3>Viewers</h3>
+	<div class="dontprint">
             <input type="button" onClick="window.print()" value="Print This Page"/>
+</div>
             <table>
             <tr>
             <td>Name</td>

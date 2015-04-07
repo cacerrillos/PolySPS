@@ -36,6 +36,7 @@
 			?>
             </h3>
             <div id="quizz" style="margin-left:20px">
+            <div class="dontprint">
             <input type="button" onClick="window.print()" value="Print This Page"/>
     
     <? if(isset($_SESSION['isadmin'])){ ?>
@@ -60,6 +61,7 @@
         <input type="submit" name="submit" value="Add" />
     </form>
     <? } ?>
+    </div>
 			<?
 			$presViewArray = array();
 			if($stmt = $mysqli->prepare("SELECT uuid FROM presentations;")){

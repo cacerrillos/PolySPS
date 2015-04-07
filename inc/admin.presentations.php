@@ -1,6 +1,7 @@
 <div class="content">
     <h1>All Presentations</h1>
     <div id="quizz" style="margin-left:20px">
+    <div class="dontprint">
     <input type="button" onClick="window.print()" value="Print This Page"/>
     <input type="button" onClick="window.location = 'func/print.func.php?by=presentation'" value="Print all Presentations (With Viewers)"/>
     <? if(isset($_SESSION['isadmin'])){?>
@@ -64,6 +65,7 @@ for($x = 1; $x <= 20; $x++){
     </form>
     <br />
     <? }?>
+    </div>
     <table>
     	<tr>
         	<td>Date/Block</td>
