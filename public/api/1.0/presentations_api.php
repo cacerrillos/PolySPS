@@ -86,6 +86,75 @@ $app->get('/presentations/', function (Request $request, Response $response) {
   return $response;
 });
 
+$app->post('/presentations/', function(Request $request, Response $response) {
+  $status = array();
+  $status['status'] = false;
+  $post_data = $request->getParsedBody();
+  var_dump($post_data);
+  if(isset($post_data['first_name']) &&
+     isset($post_data['last_name']) &&
+     isset($post_data['presentation_text']) &&
+     isset($post_data['house_id']) &&
+     isset($post_data['location_id']) &&
+     isset($post_data['date']) &&
+     isset($post_data['block_id']) &&
+     isset($post_data['grades'])
+     ) {
+    $official_gl = GetGradeLevels();
+    $all_gl = true;
+    foreach ($official_gl as $key => $value) {
+      if(isset($post_data['grades'][$value->grade_id])) {
+        if($post_data['grades'][$value->grade_id]['grade_id'] == $value->grade_id) {
+          //good
+        } else {
+          $all_gl = false;
+        }
+      } else {
+        $all_gl = false;
+      }
+    }
+    var_dump($all_gl);
+    global $db_host, $db_user, $db_pass, $db_name;
+    $mysqli = new mysqli($db_host, $db_user, $db_pass);
+    $mysqli -> select_db($db_name);
+    //create pres entry
+    //create text entry
+    //create limits entries
+    $presentation_id = -1;
+    if($stmt = $mysqli->prepare("INSERT INTO `presentations` (`presentation_id`, `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id`) VALUES (NULL, ?,?,?,?,?,?);")) {
+      $stmt->bind_param("ssiiii", $post_data['first_name'], $post_data['last_name'],
+                        intval($post_data['house_id']), intval($post_data['date']), intval($post_data['block_id']), intval($post_data['location_id']) );
+      $stmt->execute();
+      $presentation_id = $stmt->insert_id;
+      $stmt->close();
+      if($stmt = $mysqli->prepare("INSERT INTO `presentation_text` (`presentation_id`, `presentation_text`) VALUES (?, ?);")) {
+        $stmt->bind_param("is", $presentation_id, $post_data['presentation_text']);
+        $stmt->execute();
+        $stmt->close();
+        foreach ($official_gl as $key => $value) {
+          if($stmt = $mysqli->prepare("INSERT INTO `presentation_limits` (`id`, `grade_level`, `amount`) VALUES (?, ?, ?);")) {
+            $stmt->bind_param("iii", $presentation_id, $value->grade_id, intval($post_data['grades'][$value->grade_id]['amount']));
+            $stmt->execute();
+            $stmt->close();
+          } else {
+            echo $mysqli->error;
+          }
+        }
+      } else {
+        echo $mysqli->error;
+      }
+    } else {
+      echo $mysqli->error;
+    }
+
+
+    $status['status'] = true;
+  }
+
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 $app->put('/presentations/', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
