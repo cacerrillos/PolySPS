@@ -28,7 +28,7 @@ Example:
     <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>
     <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
     <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
-      <paper-datatable data="{{_objectArrayToArray(presentations)}}" selectable multi-selection>
+      <paper-datatable data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection>
         <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
         <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
         <paper-datatable-column header="House" property="house_id">
@@ -76,6 +76,12 @@ Example:
           type: Object
         }
       },
+      _presentationsDataTable: function(pres, houses, locations, grades, limits) {
+        //console.log(pres);
+        var pres_arr = this._objectArrayToArray(pres);
+        //console.log(pres_arr);
+        return pres_arr;
+      },
       _objectArrayToArray: function(arr) {
         var v = $.map(arr, function(value, index) { return [value]; });
         //console.log(v);
@@ -111,7 +117,10 @@ Example:
         return total_max;
       },
       ready: function(e) {
-
+        var self = this;
+        setInterval(function() {
+          self.$.limitsData.generateRequest();
+        }, 3000);
       }
     });
   </script>
