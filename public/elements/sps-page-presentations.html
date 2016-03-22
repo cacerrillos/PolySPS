@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="sps-page-presentations">
+  <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
+    <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
+    <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>
+    <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
+    <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
+      <paper-datatable data="{{_objectArrayToArray(presentations)}}" selectable multi-selection>
+        <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
+        <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
+        <paper-datatable-column header="House" property="house_id">
+          <template>
+            <div>{{_computedFromObject(houses, value, 'house_name')}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
+        <paper-datatable-column header="Location" property="location_id">
+          <template>
+            <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
+          </template>
+        </paper-datatable-column>
+        <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
+          <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
+            <template>
+              <div><b>{{_computedFromLimits(limits, value, grades.grade_id)}}</b>/{{_computedFromLimitsMax(limits, value, grades.grade_id)}}</div>
+            </template>
+          </paper-datatable-column>
+        </template>
+        <paper-datatable-column header="Total" property="presentation_id">
+          <template>
+            <div><b>{{_computedFromLimitsTotal(limits, value)}}</b>/{{_computedFromLimitsTotalMax(limits, value)}}</div>
+          </template>
+        </paper-datatable-column>
+      </paper-datatable>
+  </template>
+  <script>
+    Polymer({
+      is: 'sps-page-presentations',
+      properties: {
+        presentations: {
+          type: Object
+        },
+        houses: {
+          type: Object
+        },
+        locations: {
+          type: Object
+        },
+        gradeLevels: {
+          type: Object
+        },
+        limits: {
+          type: Object
+        }
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _computedFromObject: function(obj_arr, e, attr) {
+        return obj_arr[e][attr];
+      },
+      _computedFromLimits: function(limits, pres, grade) {
+        return limits[pres][grade].total;
+      },
+      _computedFromLimitsMax: function(limits, pres, grade) {
+        return limits[pres][grade].amount;
+      },
+      _computedFromLimitsTotal: function(limits, pres) {
+        var total = 0;
+        var p = limits[pres];
+        for (var key in p) {
+          if (!p.hasOwnProperty(key)) continue;
+          var obj = p[key];
+          total += obj.total;
+        }
+        return total;
+      },
+      _computedFromLimitsTotalMax: function(limits, pres) {
+        var total_max = 0;
+        var p = limits[pres];
+        for (var key in p) {
+          if (!p.hasOwnProperty(key)) continue;
+          var obj = p[key];
+          total_max += obj.amount;
+        }
+        return total_max;
+      },
+      ready: function(e) {
+
+      }
+    });
+  </script>
+</dom-module>

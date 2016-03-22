@@ -48,6 +48,7 @@ Example:
   <link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
   <link rel="import" href="sps-login.html">
+  <link rel="import" href="sps-page-presentations.html">
 
   <template>
     <style>
@@ -107,6 +108,7 @@ Example:
           <div class="flex"></div>
         </div>
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
+          <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
           <polyquiz-page-home data-page="home"></polyquiz-page-home>
           <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
           <polyquiz-page-admin data-page="admin" ctx="[[ctx]]"></polyquiz-page-admin>
@@ -127,6 +129,7 @@ Example:
            url="../api/1.0/grade_levels/"
            handle-as="json"
            last-response="{{grade_levels}}"></iron-ajax>
+           <!--
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
             <paper-datatable data="{{_objectArrayToArray(item)}}" selectable multi-selection>
@@ -139,7 +142,7 @@ Example:
               </template>
               <paper-datatable-column header="Total" property="total"></paper-datatable-column>
             </paper-datatable>
-          </template>
+          </template>-->
       </paper-scroll-header-panel>
       
     </paper-drawer-panel>
