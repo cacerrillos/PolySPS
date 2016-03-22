@@ -18,11 +18,14 @@ Example:
 <dom-module id="sps-page-presentations">
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
   <template>
+  <style include="iron-flex"></style>
     <style>
       :host {
         display: block;
       }
     </style>
+    <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="POST" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
+
     <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
     <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
     <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>
@@ -36,7 +39,15 @@ Example:
             <div>{{_computedFromObject(houses, value, 'house_name')}}</div>
           </template>
         </paper-datatable-column>
-        <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
+        <paper-datatable-column header="Topic" property="topic_edit" editable dialog>
+          <template>
+            <div class="layout horizontal flex">
+              <paper-input class="flex" value="{{value}}" no-label-float maxlength="255" char-counter on-keydown="_topicCheckEnter"></paper-input>
+              <paper-icon-button icon="icons:save" on-click="_saveTopic"></paper-icon-button>
+              <paper-icon-button icon="icons:close" on-click="_resetTopic"></paper-icon-button>
+            </div>
+          </template>
+        </paper-datatable-column>
         <paper-datatable-column header="Location" property="location_id">
           <template>
             <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
@@ -61,7 +72,8 @@ Example:
       is: 'sps-page-presentations',
       properties: {
         presentations: {
-          type: Object
+          type: Object,
+          observer: 'log'
         },
         houses: {
           type: Object
@@ -76,9 +88,43 @@ Example:
           type: Object
         }
       },
+      log: function(e) {
+        console.log(e);
+      },
+      _topicAjaxResponse: function(e) {
+        console.log(e);
+        if(e.detail.response) {
+          if(e.detail.response['status']) {
+            this.$.presentationData.generateRequest();
+            this.fire('firetoast', { message: "Topic saved!"});
+          } else {
+            this.fire('firetoast', { message: "Failed to save topic!"});
+          }
+        }
+      },
+      _topicCheckEnter: function(e) {
+        if(e.keyCode === 13) {
+          this._saveTopicManual(e.model.get('item.presentation_id'), e.model.get('item.topic_edit'));
+        }
+      },
+      _saveTopic: function(e) {
+        this._saveTopicManual(e.model.get('item.presentation_id'), e.model.get('item.topic_edit'));
+      },
+      _saveTopicManual: function(p_id, n_t) {
+        this.$.editTopicAjax.body = JSON.stringify({ "presentation_id": p_id, "presentation_text": n_t });
+        this.$.editTopicAjax.generateRequest();
+      },
+      _resetTopic: function(e) {
+        e.model.set('item.topic_edit', e.model.get('item.presentation_text'));
+      },
       _presentationsDataTable: function(pres, houses, locations, grades, limits) {
         //console.log(pres);
         var pres_arr = this._objectArrayToArray(pres);
+        for (var key in pres_arr) {
+          if (!pres_arr.hasOwnProperty(key)) continue;
+          var obj = pres_arr[key];
+          obj['topic_edit'] = obj['presentation_text'];
+        }
         //console.log(pres_arr);
         return pres_arr;
       },
