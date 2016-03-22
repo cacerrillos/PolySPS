@@ -1,52 +1,104 @@
 <!DOCTYPE html>
-<!--
-A comment describing this element
 
-Example:
+<dom-module id="sps-select-house-overlay">
+<link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <paper-dialog id="dialog">
+      <h2>Change House</h2>
+      <ctech-dropdown-selector
+              id="houseSelector"
+              default-text="Houses"
+              items="{{houses}}" selected="{{item.house_id}}"
+              attr-for-selected="house_id" attr-for-text="house_name"></ctech-dropdown-selector>
+    </paper-dialog>
+    
+  </template>
+  <script>
+    Polymer({
+      is: 'sps-select-house-overlay',
+      properties:  {
+        houses: {
+          type: Object
+        },
+        presentationData: {
+          type: Object
+        }
+      },
+      open: function() {
+        this.$.dialog.open();
+      },
+      close: function() {
 
-    <my-elem></my-elem>
+      },
+      ready: function() {
 
-Example:
-
-    <my-elem>
-      <h2>Hello my-elem</h2>
-    </my-elem>
-
-@demo demo/index.html
--->
-
+      }
+    });
+  </script>
+</dom-module>
 <dom-module id="sps-page-presentations">
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
+  <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
   <template>
   <style include="iron-flex"></style>
     <style>
       :host {
         display: block;
       }
+      paper-fab.add {
+        --paper-fab-background: var(--paper-green-600);
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+      }
+      paper-fab.edit {
+        --paper-fab-background: var(--paper-blue-800);
+        position: fixed;
+        bottom: 24px;
+        right: 92px;
+      }
+      paper-fab.remove {
+        --paper-fab-background: var(--paper-red-800);
+        position: fixed;
+        bottom: 24px;
+        right: 160px;
+      }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="POST" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
 
     <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
+    <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>
     <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
     <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>
     <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
     <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
-      <paper-datatable data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection>
-        <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
-        <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
-        <paper-datatable-column header="House" property="house_id">
+    <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
+    <div class="content container">
+      <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+        <paper-datatable-column header="Date" property="block_id">
           <template>
-            <div>{{_computedFromObject(houses, value, 'house_name')}}</div>
+            <div>{{_trimDate(item.date)}}-{{_computedFromObject(blocks, value, 'block_name')}}</div>
           </template>
         </paper-datatable-column>
-        <paper-datatable-column header="Topic" property="topic_edit" editable dialog>
+        <paper-datatable-column header="Name" property="last_name">
           <template>
+            <div>{{item.last_name}}, {{item.first_name}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
+        <paper-datatable-column header="Topic" property="presentation_text">
+          <!--<template>
             <div class="layout horizontal flex">
               <paper-input class="flex" value="{{value}}" no-label-float maxlength="255" char-counter on-keydown="_topicCheckEnter"></paper-input>
               <paper-icon-button icon="icons:save" on-click="_saveTopic"></paper-icon-button>
               <paper-icon-button icon="icons:close" on-click="_resetTopic"></paper-icon-button>
             </div>
-          </template>
+          </template>-->
         </paper-datatable-column>
         <paper-datatable-column header="Location" property="location_id">
           <template>
@@ -60,12 +112,16 @@ Example:
             </template>
           </paper-datatable-column>
         </template>
-        <paper-datatable-column header="Total" property="presentation_id">
+        <paper-datatable-column header="Total" property="presentation_id" class="only-large">
           <template>
             <div><b>{{_computedFromLimitsTotal(limits, value)}}</b>/{{_computedFromLimitsTotalMax(limits, value)}}</div>
           </template>
         </paper-datatable-column>
       </paper-datatable>
+    </div>
+    <paper-fab id="addButton" icon="add" class="add"></paper-fab>
+    <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
+    <paper-fab id="deleteButton" icon="delete" class="remove"></paper-fab>
   </template>
   <script>
     Polymer({
@@ -84,11 +140,54 @@ Example:
         gradeLevels: {
           type: Object
         },
+        blocks: {
+          type: Object
+        },
         limits: {
           type: Object
+        },
+        selectedPres: {
+          type: Object,
+          value: {}
         }
       },
+      _selectionChanged: function(e) {
+        if(e.detail.selected) {
+          var o_s = e.detail.selected;
+          for (var x = 0; x < o_s.length; x++) {
+            var presentation_id = this.$.dt.get('data.' + o_s[x] + '.presentation_id');
+            this.selectedPres[presentation_id] = "";
+          }
+        }
+        if(e.detail.deselected) {
+          var o_ds = e.detail.deselected;
+          for (var x = 0; x < o_ds.length; x++) {
+            var presentation_id = this.$.dt.get('data.' + o_ds[x] + '.presentation_id');
+            delete this.selectedPres[presentation_id];
+          }
+        }
+        
+        this._refreshActionButtons();
+      },
+      _refreshActionButtons: function() {
+        var count = 0;
+        for (var k in this.selectedPres) {
+          if (this.selectedPres.hasOwnProperty(k)) count++;
+        }
+        this.$.deleteButton.disabled = count > 0 ? false : true;
+        this.$.editButton.disabled = count == 1 ? false : true;
+      },
+      _trimDate: function(d) {
+        return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
+      },
+      _getHousesFormatted: function(e) {
+        console.log(e);
+        return e;
+      },
       log: function(e) {
+        console.log(e);
+      },
+      _getHouseId: function(e) {
         console.log(e);
       },
       _topicAjaxResponse: function(e) {
@@ -124,6 +223,7 @@ Example:
           if (!pres_arr.hasOwnProperty(key)) continue;
           var obj = pres_arr[key];
           obj['topic_edit'] = obj['presentation_text'];
+          obj['house_name'] = houses[obj['house_id']].house_name;
         }
         //console.log(pres_arr);
         return pres_arr;
@@ -167,6 +267,7 @@ Example:
         setInterval(function() {
           self.$.limitsData.generateRequest();
         }, 3000);
+        this._refreshActionButtons();
       }
     });
   </script>
