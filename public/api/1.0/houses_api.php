@@ -12,6 +12,29 @@ class House {
   }
 }
 
+$app->get('/houses/', function (Request $request, Response $response) {
+  $data = array();
+  global $db_host, $db_user, $db_pass, $db_name;
+  $mysqli = new mysqli($db_host, $db_user, $db_pass);
+  $mysqli -> select_db($db_name);
+  if(mysqli_connect_errno()) {
+    echo "Connection Failed: " . mysqli_connect_errno();
+    exit();
+  }
+  if($stmt = $mysqli -> prepare("SELECT `house_id`, `house_name` FROM `houses`;")) {
+    $stmt->execute();
+    $stmt->bind_result($house_id, $house_name);
+    while($stmt->fetch()) {
+      $data[$house_id] = new House($house_id, $house_name);
+    }
+    $stmt->close();
+  } else {
+    $response->getBody()->write($mysqli->error);
+  }
+  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 $app->get('/houses/{house_id}', function (Request $request, Response $response) {
   global $db_host, $db_user, $db_pass, $db_name;
   $mysqli = new mysqli($db_host, $db_user, $db_pass);
@@ -32,9 +55,6 @@ $app->get('/houses/{house_id}', function (Request $request, Response $response) 
   } else {
     $response->getBody()->write($mysqli->error);
   }
-    
-    
-
   return $response;
 });
 
