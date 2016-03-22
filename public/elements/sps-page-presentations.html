@@ -69,7 +69,7 @@
         right: 160px;
       }
     </style>
-    <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="POST" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
+    <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
 
     <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
     <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>

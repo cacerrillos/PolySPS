@@ -86,7 +86,7 @@ $app->get('/presentations/', function (Request $request, Response $response) {
   return $response;
 });
 
-$app->post('/presentations/', function(Request $request, Response $response) {
+$app->put('/presentations/', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
   $post_data = $request->getParsedBody();
