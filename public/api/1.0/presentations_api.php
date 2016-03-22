@@ -179,6 +179,21 @@ $app->put('/presentations/', function(Request $request, Response $response) {
   return $response;
 });
 
+$app->delete('/presentations/', function (Request $request, Response $response) {
+  $post_data = $request->getParsedBody();
+  global $db_host, $db_user, $db_pass, $db_name;
+    $mysqli = new mysqli($db_host, $db_user, $db_pass);
+    $mysqli -> select_db($db_name);
+  foreach ($post_data as $key => $value) {
+    if($stmt = $mysqli->prepare("DELETE FROM `presentation_text` WHERE `presentation_text`.`presentation_id` = ?;")) {
+      $stmt->bind_param("i", $value['presentation_id']);
+      $stmt->execute();
+    } else {
+      echo $mysqli->error;
+    }
+  }
+  return $response;
+});
 
 $app->get('/presentations/{presentation_id}', function (Request $request, Response $response) {
   $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']));
