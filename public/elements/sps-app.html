@@ -281,21 +281,29 @@ Example:
           <polyquiz-page-quiz data-page="quiz" ctx="[[ctx]]"></polyquiz-page-quiz>
           <polyquiz-page-quiz-edit data-page="quizedit" ctx="[[ctx]]"></polyquiz-page-quiz-edit>
         </neon-animated-pages>
-        
+
         <iron-ajax
         id="getLimits"
            auto
            url="../api/1.0/limits/?totals"
            handle-as="json"
            last-response="{{limits}}"></iron-ajax>
-          
+        <iron-ajax
+           auto
+           url="../api/1.0/grade_levels/"
+           handle-as="json"
+           last-response="{{grade_levels}}"></iron-ajax>
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
             <paper-datatable data="{{_objectArrayToArray(item)}}" selectable multi-selection>
               <paper-datatable-column header="Presentation" property="presentation_id"></paper-datatable-column>
               <paper-datatable-column header="Grade Level" property="grade_level"></paper-datatable-column>
-              <paper-datatable-column header="Total" property="total"></paper-datatable-column>
+              
               <paper-datatable-column header="Limit" property="amount"></paper-datatable-column>
+              <template is="dom-repeat" items="{{_objectArrayToArray(grade_levels)}}" as="grades">
+                <paper-datatable-column header="{{grades.grade_name}}" property="amount"></paper-datatable-column>
+              </template>
+              <paper-datatable-column header="Total" property="total"></paper-datatable-column>
             </paper-datatable>
           </template>
       </paper-scroll-header-panel>
@@ -312,6 +320,9 @@ Example:
           value: "Home"
         },
         limits: {
+          type: Object
+        },
+        grade_levels: {
           type: Object
         },
         adminStatus: {
