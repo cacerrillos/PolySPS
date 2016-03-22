@@ -62,25 +62,25 @@ Example:
           <div style="color:#FFFFFF"></div>
         </paper-toolbar>
         <paper-menu id="sidebarMenu" class="flex" attr-for-selected="data-page">
-          <paper-icon-item on-click="goToPageOnClick" data-page="signup" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="signup" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="icons:event-seat" item-icon></iron-icon><span>Sign-Up</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="dashboard" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="dashboard">
             <iron-icon icon="icons:dashboard" item-icon></iron-icon><span>Dashboard</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="presentations" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="presentations">
             <iron-icon icon="social:people" item-icon></iron-icon><span>Presentations</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="viewers" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="viewers">
             <iron-icon icon="social:people-outline" item-icon></iron-icon><span>Viewers</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:date-range" item-icon></iron-icon><span>Dates</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:view-list" item-icon></iron-icon><span>Blocks</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{computeHiddenIsAdmin(page.adminOnly, isAdmin)}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="maps:place" item-icon></iron-icon><span>Locations</span>
           </paper-icon-item>
         </paper-menu>
