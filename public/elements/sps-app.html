@@ -149,6 +149,9 @@ Example:
     Polymer({
       is: 'sps-app',
       properties: {
+        page: {
+          type: String
+        },
         pageTitle: {
           type: String,
           value: "Home"
@@ -161,6 +164,10 @@ Example:
         },
         adminStatus: {
           type: Object
+        },
+        ctx: {
+          type: Object,
+          observer: '_onContextChanged'
         }
       },
       listeners: {
@@ -186,6 +193,10 @@ Example:
       },
       _onResize: function() {
         this.fire('polyquiz-resize');
+      },
+      _onContextChanged: function(e) {
+        console.log(this.page);
+        this.$.pageSelector.select(this.page);
       },
       goToPageOnClick: function(e) {
         var pageId = "";

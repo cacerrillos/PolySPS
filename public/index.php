@@ -127,25 +127,40 @@ page('/', function(ctx, next) {
 	page.redirect('/signup');
 });
 page('/signup', function(ctx, next) {
+	mainapp.page = "signup";
 	mainapp.pageTitle = "Sign Up";
+	mainapp.ctx = ctx;
 });
 page('/dashboard', function(ctx, next) {
+	mainapp.page = "dashboard";
 	mainapp.pageTitle = "Dashboard";
+	mainapp.ctx = ctx;
 });
 page('/presentations', function(ctx, next) {
+	mainapp.page = "presentations";
 	mainapp.pageTitle = "Presentations";
+	mainapp.ctx = ctx;
 });
 page('/viewers', function(ctx, next) {
+	mainapp.page = "viewers";
 	mainapp.pageTitle = "Viewers";
+	mainapp.ctx = ctx;
+
 });
 page('/dates', function(ctx, next) {
+	mainapp.page = "dates";
 	mainapp.pageTitle = "Dates";
+	mainapp.ctx = ctx;
 });
 page('/blocks', function(ctx, next) {
+	mainapp.page = "blocks";
 	mainapp.pageTitle = "Blocks";
+	mainapp.ctx = ctx;
 });
 page('/locations', function(ctx, next) {
+	mainapp.page = "locations";
 	mainapp.pageTitle = "Locations";
+	mainapp.ctx = ctx;
 });
 
 
