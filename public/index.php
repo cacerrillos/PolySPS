@@ -129,6 +129,24 @@ page('/', function(ctx, next) {
 page('/signup', function(ctx, next) {
 	mainapp.pageTitle = "Sign Up";
 });
+page('/dashboard', function(ctx, next) {
+	mainapp.pageTitle = "Dashboard";
+});
+page('/presentations', function(ctx, next) {
+	mainapp.pageTitle = "Presentations";
+});
+page('/viewers', function(ctx, next) {
+	mainapp.pageTitle = "Viewers";
+});
+page('/dates', function(ctx, next) {
+	mainapp.pageTitle = "Dates";
+});
+page('/blocks', function(ctx, next) {
+	mainapp.pageTitle = "Blocks";
+});
+page('/locations', function(ctx, next) {
+	mainapp.pageTitle = "Locations";
+});
 
 
 //page('*', handleSimplePage);
