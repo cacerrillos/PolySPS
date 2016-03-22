@@ -22,16 +22,17 @@ $settings = require __DIR__ . '/../src/settings.php';
 $app = new \Slim\App();
 
 // Set up dependencies
-require __DIR__ . '/../src/dependencies.php';
+//require __DIR__ . '/../src/dependencies.php';
 
 // Register middleware
-require __DIR__ . '/../src/middleware.php';
+//require __DIR__ . '/../src/middleware.php';
 
 // Register routes
-require __DIR__ . '/../src/routes.php';
+//require __DIR__ . '/../src/routes.php';
 
 // Run app
 include("../../../config.php");
+
 
 include("houses_api.php");
 
@@ -47,17 +48,85 @@ include("presentations_api.php");
 
 include("limits_api.php");
 
-$app->get('/hello/{name}', function (Request $request, Response $response) {
-    $name = $request->getAttribute('name');
-    $response->getBody()->write("Hello, $name");
+$app->post('/admin/login', function(Request $request, Response $response) {
+  global $mysqli;
+  session_destroy();
+  session_start();
 
-    return $response;
+  global $_POST_JSON;
+
+  $result = array();
+  $result['status'] = false;
+  $result['user'] = $_POST_JSON['user'];
+  if(count($_POST_JSON) > 0){
+    if(mysqli_connect_errno()) {
+      $result['status_details'] = "Connection Failed: " . mysqli_connect_errno();
+    } else {
+      if($stmt = $mysqli -> prepare("SELECT `user_id`, `email` FROM `admin` WHERE email = ? AND password = ? LIMIT 1;")){
+        $stmt -> bind_param("ss", $_POST_JSON['user'], md5($_POST_JSON['pass']));
+        $stmt -> execute();
+        $stmt -> bind_result($data['id'], $data['email']);
+        $stmt -> store_result();
+        $stmt -> fetch();
+        $num = $stmt -> num_rows;
+        $stmt -> close();
+      } else {
+        $result['status_details'] = $mysqli->error;
+      }
+      if($num==1){
+        $_SESSION['is_admin'] = "set";
+        $_SESSION['email'] = $data['email'];
+        //$_SESSION['name'] = $data['name'];
+        $_SESSION['dbext'] = $data['id'];
+        $_SESSION['admin_id_num'] = $data['id'];
+        $_SESSION['permsid'] = $data['permsid'];
+        $result['status'] = true;
+      }
+    }
+  }
+  $response->getBody()->write(json_encode($result, JSON_PRETTY_PRINT));
+  return $response;
 });
-/*
+
+$app->post('/admin/logout', function(Request $request, Response $response) {
+  session_destroy();
+  $status = array();
+  $status['status'] = true;
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+
+$app->get('/admin/', function(Request $request, Response $response) {
+  $data = array();
+  if(isset($_SESSION["is_admin"])) {
+    $data['is_admin'] = true;
+  } else {
+    $data['is_admin'] = false;
+  }
+  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->get('/admin/login', function(Request $request, Response $response) {
+
+  return $response;
+});
+
+$app->get('/admin/logout', function(Request $request, Response $response) {
+
+  return $response;
+});
+
+
 $app->get('/', function (Request $request, Response $response) {
+
     $response->getBody()->write(json_encode(true, JSON_PRETTY_PRINT));
 
     return $response;
 });
+
+/*
+
 */
 $app->run();
