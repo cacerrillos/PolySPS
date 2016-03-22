@@ -1,0 +1,41 @@
+<?php
+
+use \Psr\Http\Message\ServerRequestInterface as Request;
+use \Psr\Http\Message\ResponseInterface as Response;
+
+class House {
+  public $house_id;
+  public $house_name;
+  public function __construct($house_id, $house_name) {
+    $this->house_id = $house_id;
+    $this->house_name = $house_name;
+  }
+}
+
+$app->get('/houses/{house_id}', function (Request $request, Response $response) {
+  global $db_host, $db_user, $db_pass, $db_name;
+  $mysqli = new mysqli($db_host, $db_user, $db_pass);
+  $mysqli -> select_db($db_name);
+  if(mysqli_connect_errno()) {
+    echo "Connection Failed: " . mysqli_connect_errno();
+    exit();
+  }
+  $house_id = $request->getAttribute('house_id');
+  if($stmt = $mysqli -> prepare("SELECT `house_name` FROM `houses` WHERE `house_id` = ? LIMIT 1;")) {
+    $stmt->bind_param("i", intval($house_id));
+    $stmt->execute();
+    $stmt->bind_result($house_name);
+    while($stmt->fetch()) {
+      $response->getBody()->write(json_encode(new House($house_id, $house_name), JSON_PRETTY_PRINT));
+    }
+
+  } else {
+    $response->getBody()->write($mysqli->error);
+  }
+    
+    
+
+  return $response;
+});
+
+?>
