@@ -213,6 +213,7 @@ Example:
   <link rel="import" href="../bower_components/iron-icons/maps-icons.html">
   <link rel="import" href="../bower_components/paper-input/paper-input.html">
   <link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+  <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
 
   <template>
     <style>
@@ -281,6 +282,22 @@ Example:
           <polyquiz-page-quiz-edit data-page="quizedit" ctx="[[ctx]]"></polyquiz-page-quiz-edit>
         </neon-animated-pages>
         
+        <iron-ajax
+        id="getLimits"
+           auto
+           url="../api/1.0/limits/?totals"
+           handle-as="json"
+           last-response="{{limits}}"></iron-ajax>
+          
+          <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
+          
+            <paper-datatable data="{{_objectArrayToArray(item)}}" selectable multi-selection>
+              <paper-datatable-column header="Presentation" property="presentation_id"></paper-datatable-column>
+              <paper-datatable-column header="Grade Level" property="grade_level"></paper-datatable-column>
+              <paper-datatable-column header="Total" property="total"></paper-datatable-column>
+              <paper-datatable-column header="Limit" property="amount"></paper-datatable-column>
+            </paper-datatable>
+          </template>
       </paper-scroll-header-panel>
       
     </paper-drawer-panel>
@@ -294,6 +311,9 @@ Example:
           type: String,
           value: "Home"
         },
+        limits: {
+          type: Object
+        },
         adminStatus: {
           type: Object
         }
@@ -303,6 +323,11 @@ Example:
         'polyquiz-admin-check-status': 'checkAdminStatus',
         'polyquiz-admin-do-logout': 'doLogout',
         'polyquiz-admin-status': 'onAdminStatusChanged'
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
       },
       fireToast: function(details) {
         this.fireToastNonEvent(details.detail.message);
@@ -329,6 +354,10 @@ Example:
       ready: function() {
         //this.$.adminStatusAjax.generateRequest();
         this.$.mainPanel.responsiveWidth = "768px";
+        var self = this;
+        setInterval(function() {
+          self.$.getLimits.generateRequest();
+        }, 3000);
       }
     });
   </script>
