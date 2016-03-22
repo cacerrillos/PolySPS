@@ -1,0 +1,37 @@
+{
+  "name": "SeniorPresentationScheduler",
+  "homepage": "https://github.com/PolySDE/SeniorPresentationScheduler",
+  "authors": [
+    "Carlos Cerrillos <carlos@cerrillostech.com>"
+  ],
+  "description": "Helps schedule presentation times and allows students to pick and choose",
+  "main": "index.html",
+  "moduleType": [],
+  "keywords": [
+    "Polymer"
+  ],
+  "license": "GPL-3",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~1.4.0",
+    "jquery": "~2.2.2",
+    "tinymce": "~4.3.8",
+    "tinymce-decorator": "*",
+    "ctech-tinymce": "~1.1.0",
+    "skel": "~3.0.0",
+    "page": "page.js#~1.7.1",
+    "paper-elements": "~1.0.7",
+    "iron-elements": "~1.0.9",
+    "paper-datatable": "~0.9.8"
+  },
+  "resolutions": {
+    "polymer": "~1.4.0",
+    "paper-styles": "^1.1.0"
+  }
+}
