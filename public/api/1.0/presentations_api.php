@@ -86,6 +86,30 @@ $app->get('/presentations/', function (Request $request, Response $response) {
   return $response;
 });
 
+$app->post('/presentations/', function(Request $request, Response $response) {
+  $status = array();
+  $status['status'] = false;
+  $post_data = $request->getParsedBody();
+  //try to save data
+  if(isset($post_data['presentation_id']) && isset($post_data['presentation_text'])) {
+    global $db_host, $db_user, $db_pass, $db_name;
+    $mysqli = new mysqli($db_host, $db_user, $db_pass);
+    $mysqli -> select_db($db_name);
+    if($stmt = $mysqli->prepare("UPDATE `presentation_text` SET `presentation_text` = ? WHERE `presentation_text`.`presentation_id` = ? LIMIT 1;")) {
+      $stmt->bind_param("si", $post_data['presentation_text'], $post_data['presentation_id']);
+      $stmt->execute();
+      if($stmt->affected_rows == 1) {
+        $status['status'] = true;
+      }
+      $stmt->close();
+    } else {
+      echo $mysqli->error;
+    }
+  }
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 
 $app->get('/presentations/{presentation_id}', function (Request $request, Response $response) {
   $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']));
