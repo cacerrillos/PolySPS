@@ -12,6 +12,28 @@ class GradeLevel {
   }
 }
 
+function GetGradeLevels() {
+  $data = array();
+  global $db_host, $db_user, $db_pass, $db_name;
+  $mysqli = new mysqli($db_host, $db_user, $db_pass);
+  $mysqli -> select_db($db_name);
+  if(mysqli_connect_errno()) {
+    echo "Connection Failed: " . mysqli_connect_errno();
+    exit();
+  }
+  if($stmt = $mysqli -> prepare("SELECT `grade_id`,  `grade_name` FROM `grade_levels`;")) {
+    $stmt->execute();
+    $stmt->bind_result($grade_id, $grade_name);
+    while($stmt->fetch()) {
+      $data[$grade_id] = new GradeLevel($grade_id, $grade_name);
+    }
+  } else {
+    echo $mysqli->error;
+  }
+
+  return $data;
+}
+
 $app->get('/grade_levels/', function (Request $request, Response $response) {
   $data = array();
   global $db_host, $db_user, $db_pass, $db_name;
