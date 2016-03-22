@@ -1,4 +1,164 @@
 <!DOCTYPE html>
+<dom-module id="sps-presentations-add-dialog">
+  <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
+  <link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+  <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
+  <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+
+  <style is="custom-style">
+    .nomargins { 
+      margin: 0px;
+    }
+    paper-dialog {
+      background-color: white;
+    }
+    .validButton {
+      background-color: #4285f4;
+      color: rgba(255,255,255,1.00);
+    }
+    paper-button {
+      margin-top: 8px;
+    }
+  </style>
+<template>
+  <iron-ajax method="POST" id="createAjax" url="../api/1.0/presentations/" handle-as="json" on-response="createResp" content-type="application/json"></iron-ajax>
+  
+  <ctech-confirm-dialog id="mainDialog" on-ctech-dialog-confirm="reqSubmit" on-ctech-dialog-dismiss="resetForm" confirm-text="Create" valid-color="#8BC34A" modal>
+    <div class="layout horizontal">
+      <div class="flex"></div>
+      <h2>New Presentation</h2>
+      <div class="flex"></div>
+    </div>
+    <div class="layout vertical">
+      <paper-input name="firstname" label="First Name" on-input="_validateForm" id="firstname" maxlength="255" char-counter></paper-input>
+      <paper-input name="lastname" label="Last Name" on-input="_validateForm" id="lastname" maxlength="255" char-counter></paper-input>
+      <paper-input name="topic" label="Topic" on-input="_validateForm" id="topic" maxlength="255" char-counter></paper-input>
+      <ctech-dropdown-selector id="houseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+
+
+      <ctech-dropdown-selector id="dateSelector" default-text="Select a Date" items="[[dates]]" attr-for-selected="date" attr-for-text="date" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+      <ctech-dropdown-selector id="blockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+      <ctech-dropdown-selector id="locationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+      <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
+        <paper-input label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.amount}}"></paper-input>
+      </template>
+      
+    </div>
+  </ctech-confirm-dialog>
+</template>
+<script>
+Polymer({
+  is: "sps-presentations-add-dialog",
+  properties: {
+    quizData: {
+      type: Object
+    },
+    houses: {
+      type: Object
+    },
+    grades: {
+      type: Object,
+      observer: '_onGradesChanged'
+    },
+    gradesN: {
+      type: Object
+    },
+    sessionname: String
+    
+  },
+  _onGradesChanged: function(e) {
+    this.gradesN = this.grades;
+    for (var key in this.grades) {
+      if (!this.grades.hasOwnProperty(key)) continue;
+      var obj = this.grades[key];
+      obj['amount'] = 17;
+    }
+    console.log(e);
+  },
+  _objectArrayToArray: function(arr) {
+    var v = $.map(arr, function(value, index) { return [value]; });
+    //console.log(v);
+    return $.map(arr, function(value, index) { return [value]; });
+  },
+  open: function() {
+    this.$.mainDialog.open();
+  },
+  test: function(e) {
+    console.log(e);
+  },
+  reqSubmit: function(e){
+    var gr_ar = {};
+    for (var key in this.grades) {
+      if (!this.grades.hasOwnProperty(key)) continue;
+      var obj = this.grades[key];
+      gr_ar[obj.grade_id] = { 'grade_id': obj.grade_id, 'amount': obj.amount };
+    }
+
+    this.$.createAjax.body =
+      JSON.stringify({
+        'first_name': this.$.firstname.value,
+        'last_name': this.$.lastname.value,
+        'presentation_text': this.$.topic.value,
+        'house_id': this.$.houseSelector.selected.house_id,
+        'location_id': this.$.locationSelector.selected.location_id,
+        'date': this.$.dateSelector.selected.date,
+        'block_id': this.$.blockSelector.selected.block_id,
+        'grades': gr_ar
+      });
+      console.log(this.$.createAjax.body);
+    this.$.createAjax.generateRequest();
+  },
+  createResp: function(e){
+    if(e.detail.response.status === true){
+      this.resetForm();
+      this.fire('firetoast', { message: "Created a new Session!"});
+      this.fire("reload-sessions", { });
+    } else {
+      var det = "NO_DETAILS";
+      if(e.detail.response.status_details) {
+        det = e.detail.response.status_details;
+        switch(det) {
+          case 1062:
+            det = "Duplicate House Name";
+            break;
+          default:
+            break;
+        }
+      }
+      this.fire('firetoast', { message: "FAILED to create a new Session! [" + det + "]"});
+    }
+    
+    console.log(e);
+  },
+  resetForm: function(e){
+    this.$.firstname.value = "";
+    this.$.lastname.value = "";
+    this.$.topic.value = "";
+    this.$.houseSelector.select();
+    this.$.dateSelector.select();
+    this.$.blockSelector.select();
+    this.$.locationSelector.select();
+    this.$.mainDialog.invalid = true;
+  },
+  _validateForm: function(e){
+    if(this.$.houseSelector.selected
+       && this.$.dateSelector.selected
+       && this.$.blockSelector.selected
+       && this.$.locationSelector.selected
+       && this.$.firstname.value.length > 0
+       && this.$.lastname.value.length > 0
+       && this.$.topic.value.length > 0) {
+      this.$.mainDialog.invalid = false;
+    } else {
+      this.$.mainDialog.invalid = true;
+    }
+  },
+  ready: function(){
+    this._validateForm();
+  }
+});
+</script>
+</dom-module>
 
 <dom-module id="sps-select-house-overlay">
 <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
@@ -72,12 +232,16 @@
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
 
     <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
+    <iron-ajax id="dateData" auto url="../api/1.0/dates/" handle-as="json" last-response="{{dates}}"></iron-ajax>
     <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>
     <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
     <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>
     <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
     <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
+
+    <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
+
     <div class="content container">
       <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
         <paper-datatable-column header="Date" property="block_id">
@@ -119,7 +283,7 @@
         </paper-datatable-column>
       </paper-datatable>
     </div>
-    <paper-fab id="addButton" icon="add" class="add"></paper-fab>
+    <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
     <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove"></paper-fab>
   </template>
@@ -132,6 +296,9 @@
           observer: 'log'
         },
         houses: {
+          type: Object
+        },
+        dates: {
           type: Object
         },
         locations: {
@@ -150,6 +317,9 @@
           type: Object,
           value: {}
         }
+      },
+      _doAddDialog: function(e) {
+        this.$.presAddDialog.open();
       },
       _selectionChanged: function(e) {
         if(e.detail.selected) {
