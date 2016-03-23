@@ -126,6 +126,12 @@
           value: {}
         }
       },
+      listeners: {
+        'reload-presentations': '_doReloadPresentations'
+      },
+      _doReloadPresentations: function(e) {
+        this.$.presentationData.generateRequest();
+      },
       _doAddDialog: function(e) {
         this.$.presAddDialog.open();
       },
