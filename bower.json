@@ -28,7 +28,8 @@
     "page": "page.js#~1.7.1",
     "paper-elements": "~1.0.7",
     "iron-elements": "~1.0.9",
-    "paper-datatable": "~0.9.8"
+    "paper-datatable": "~0.9.8",
+    "ctech-elements": "~1.0.5"
   },
   "resolutions": {
     "polymer": "~1.4.0",
