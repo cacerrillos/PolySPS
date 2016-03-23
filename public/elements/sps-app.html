@@ -49,6 +49,7 @@ Example:
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
   <link rel="import" href="sps-login.html">
   <link rel="import" href="sps-page-presentations.html">
+  <link rel="import" href="sps-page-viewers.html">
 
   <style include="iron-flex"></style>
   <template>
@@ -110,6 +111,7 @@ Example:
         </div>
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
           <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
+          <sps-page-viewers data-page="viewers" ctx="{{ctx}}"></sps-page-viewers>
           <polyquiz-page-home data-page="home"></polyquiz-page-home>
           <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
           <polyquiz-page-admin data-page="admin" ctx="[[ctx]]"></polyquiz-page-admin>

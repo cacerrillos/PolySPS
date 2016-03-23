@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<dom-module id="sps-page-viewers">
+  <link rel="import" href="sps-presentations-elements.html">
+  <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
+  <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
+  <link rel="import" href="../bower_components/iron-icons/image-icons.html">
+  <template>
+  <style include="iron-flex"></style>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-fab.add {
+        --paper-fab-background: var(--paper-green-600);
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+      }
+      paper-fab.edit {
+        --paper-fab-background: var(--paper-blue-800);
+        position: fixed;
+        bottom: 24px;
+        right: 92px;
+      }
+      paper-fab.details {
+        --paper-fab-background: var(--paper-blue-800);
+        position: fixed;
+        bottom: 24px;
+        right: 160px;
+      }
+      paper-fab.remove {
+        --paper-fab-background: var(--paper-red-800);
+        position: fixed;
+        bottom: 24px;
+        right: 228px;
+      }
+    </style>
+    <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
+    <iron-ajax id="presentationData" auto url="../api/1.0/viewers/" handle-as="json" last-response="{{viewers}}"></iron-ajax>
+    <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
+    <!--<iron-ajax id="dateData" auto url="../api/1.0/dates/" handle-as="json" last-response="{{dates}}"></iron-ajax>
+    <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>
+    <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
+    <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
+    <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>-->
+    <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
+    
+    <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
+
+    <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
+    <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedPres}}"></sps-presentations-delete-dialog>
+
+    <div class="content container">
+      <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+        <paper-datatable-column header="Date" property="block_id">
+          <template>
+            <div>{{_trimDate(item.date)}}-{{_computedFromObject(blocks, value, 'block_name')}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="Name" property="last_name">
+          <template>
+            <div>{{item.last_name}}, {{item.first_name}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
+        <paper-datatable-column header="Topic" property="presentation_text">
+          <!--<template>
+            <div class="layout horizontal flex">
+              <paper-input class="flex" value="{{value}}" no-label-float maxlength="255" char-counter on-keydown="_topicCheckEnter"></paper-input>
+              <paper-icon-button icon="icons:save" on-click="_saveTopic"></paper-icon-button>
+              <paper-icon-button icon="icons:close" on-click="_resetTopic"></paper-icon-button>
+            </div>
+          </template>-->
+        </paper-datatable-column>
+        <paper-datatable-column header="Location" property="location_id">
+          <template>
+            <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
+          </template>
+        </paper-datatable-column>
+        <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
+          <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
+            <template>
+              <div><b>{{_computedFromLimits(limits, value, grades.grade_id)}}</b>/{{_computedFromLimitsMax(limits, value, grades.grade_id)}}</div>
+            </template>
+          </paper-datatable-column>
+        </template>
+        <paper-datatable-column header="Total" property="presentation_id" class="only-large">
+          <template>
+            <div><b>{{_computedFromLimitsTotal(limits, value)}}</b>/{{_computedFromLimitsTotalMax(limits, value)}}</div>
+          </template>
+        </paper-datatable-column>
+      </paper-datatable>
+    </div>
+    <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
+    <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
+    <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details"></paper-fab>
+    <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
+  </template>
+  <script>
+    Polymer({
+      is: 'sps-page-viewers',
+      properties: {
+        viewers: {
+          type: Object,
+          observer: 'log'
+        },
+        houses: {
+          type: Object
+        },
+        dates: {
+          type: Object
+        },
+        locations: {
+          type: Object
+        },
+        gradeLevels: {
+          type: Object
+        },
+        blocks: {
+          type: Object
+        },
+        limits: {
+          type: Object
+        },
+        selectedPres: {
+          type: Object,
+          value: {}
+        }
+      },
+      _doAddDialog: function(e) {
+        this.$.presAddDialog.open();
+      },
+      _doDeleteDialog: function(e) {
+        this.$.presDeleteDialog.open();
+      },
+      _selectionChanged: function(e) {
+        if(e.detail.selected) {
+          var o_s = e.detail.selected;
+          for (var x = 0; x < o_s.length; x++) {
+            var presentation_id = this.$.dt.get('data.' + o_s[x] + '.presentation_id');
+            this.selectedPres[presentation_id] = "";
+          }
+        }
+        if(e.detail.deselected) {
+          var o_ds = e.detail.deselected;
+          for (var x = 0; x < o_ds.length; x++) {
+            var presentation_id = this.$.dt.get('data.' + o_ds[x] + '.presentation_id');
+            delete this.selectedPres[presentation_id];
+          }
+        }
+        
+        this._refreshActionButtons();
+      },
+      _refreshActionButtons: function() {
+        var count = 0;
+        for (var k in this.selectedPres) {
+          if (this.selectedPres.hasOwnProperty(k)) count++;
+        }
+        this.$.deleteButton.disabled = count > 0 ? false : true;
+        this.$.detailsButton.disabled = count > 0 ? false : true;
+        this.$.editButton.disabled = count == 1 ? false : true;
+      },
+      _trimDate: function(d) {
+        return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
+      },
+      _getHousesFormatted: function(e) {
+        console.log(e);
+        return e;
+      },
+      log: function(e) {
+        console.log(e);
+      },
+      _getHouseId: function(e) {
+        console.log(e);
+      },
+      _topicAjaxResponse: function(e) {
+        console.log(e);
+        if(e.detail.response) {
+          if(e.detail.response['status']) {
+            this.$.presentationData.generateRequest();
+            this.fire('firetoast', { message: "Topic saved!"});
+          } else {
+            this.fire('firetoast', { message: "Failed to save topic!"});
+          }
+        }
+      },
+      _topicCheckEnter: function(e) {
+        if(e.keyCode === 13) {
+          this._saveTopicManual(e.model.get('item.presentation_id'), e.model.get('item.topic_edit'));
+        }
+      },
+      _saveTopic: function(e) {
+        this._saveTopicManual(e.model.get('item.presentation_id'), e.model.get('item.topic_edit'));
+      },
+      _saveTopicManual: function(p_id, n_t) {
+        this.$.editTopicAjax.body = JSON.stringify({ "presentation_id": p_id, "presentation_text": n_t });
+        this.$.editTopicAjax.generateRequest();
+      },
+      _resetTopic: function(e) {
+        e.model.set('item.topic_edit', e.model.get('item.presentation_text'));
+      },
+      _viewersDataTable: function(pres, houses, grades) {
+        //console.log(pres);
+        var pres_arr = this._objectArrayToArray(pres);
+        for (var key in pres_arr) {
+          if (!pres_arr.hasOwnProperty(key)) continue;
+          var obj = pres_arr[key];
+          obj['topic_edit'] = obj['presentation_text'];
+          obj['house_name'] = houses[obj['house_id']].house_name;
+        }
+        //console.log(pres_arr);
+        return pres_arr;
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _computedFromObject: function(obj_arr, e, attr) {
+        return obj_arr[e][attr];
+      },
+      _computedFromLimits: function(limits, pres, grade) {
+        return limits[pres][grade].total;
+      },
+      _computedFromLimitsMax: function(limits, pres, grade) {
+        return limits[pres][grade].amount;
+      },
+      _computedFromLimitsTotal: function(limits, pres) {
+        var total = 0;
+        var p = limits[pres];
+        for (var key in p) {
+          if (!p.hasOwnProperty(key)) continue;
+          var obj = p[key];
+          total += obj.total;
+        }
+        return total;
+      },
+      _computedFromLimitsTotalMax: function(limits, pres) {
+        var total_max = 0;
+        var p = limits[pres];
+        for (var key in p) {
+          if (!p.hasOwnProperty(key)) continue;
+          var obj = p[key];
+          total_max += obj.amount;
+        }
+        return total_max;
+      },
+      ready: function(e) {
+        var self = this;
+        setInterval(function() {
+          self.$.limitsData.generateRequest();
+        }, 3000);
+        this._refreshActionButtons();
+      }
+    });
+  </script>
+</dom-module>
