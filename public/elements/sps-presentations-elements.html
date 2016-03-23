@@ -67,15 +67,15 @@
       },
       onDeleteResp: function(e){
         if(e.detail.response.status == true){
-          this.fire('firetoast', { message: "Deleted session!"});
-          this.fire('reload-sessions');
+          this.fire('firetoast', { message: "Deleted presentation!"});
+          this.fire('reload-presentations');
         } else {
           if(e.detail.response.error){
             if(e.detail.response.error == 1451){
-              this.fire('firetoast', { message: "Failed to delete session! Still contains results!"});
+              this.fire('firetoast', { message: "Failed to delete presentation! FK error!"});
             }
           } else {
-            this.fire('firetoast', { message: "Failed to delete session!"});
+            this.fire('firetoast', { message: "Failed to delete presentation!"});
           }
         }
       },
@@ -213,8 +213,8 @@ Polymer({
   createResp: function(e){
     if(e.detail.response.status === true){
       this.resetForm();
-      this.fire('firetoast', { message: "Created a new Session!"});
-      this.fire("reload-sessions", { });
+      this.fire('firetoast', { message: "Created a new Presentation!"});
+      this.fire("reload-presentations", { });
     } else {
       var det = "NO_DETAILS";
       if(e.detail.response.status_details) {
@@ -227,7 +227,7 @@ Polymer({
             break;
         }
       }
-      this.fire('firetoast', { message: "FAILED to create a new Session! [" + det + "]"});
+      this.fire('firetoast', { message: "FAILED to create a new Presentation! [" + det + "]"});
     }
     
     console.log(e);
