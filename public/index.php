@@ -136,11 +136,6 @@ page('/dashboard', function(ctx, next) {
 	mainapp.pageTitle = "Dashboard";
 	mainapp.ctx = ctx;
 });
-page('/presentations', function(ctx, next) {
-	mainapp.page = "presentations";
-	mainapp.pageTitle = "Presentations";
-	mainapp.ctx = ctx;
-});
 page('/presentations/details/:ids', function(ctx, next) {
 	mainapp.page = "presentation_details";
 	mainapp.pageTitle = "Presentation Details";
@@ -148,6 +143,13 @@ page('/presentations/details/:ids', function(ctx, next) {
 	mainapp.presentationsToView = ctx.params.ids.split(",");
 	console.log(ctx.params.ids.split(","));
 });
+
+page('/presentations', function(ctx, next) {
+	mainapp.page = "presentations";
+	mainapp.pageTitle = "Presentations";
+	mainapp.ctx = ctx;
+});
+
 page('/viewers', function(ctx, next) {
 	mainapp.page = "viewers";
 	mainapp.pageTitle = "Viewers";
