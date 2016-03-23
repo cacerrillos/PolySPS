@@ -21,26 +21,58 @@ Example:
       :host {
         display: block;
       }
+      paper-material {
+        padding: 10px;
+        margin-bottom: 64px;
+      }
     </style>
-    <template is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
-      <b>[[presentation_id]]</b>
+    
+    <iron-ajax id="presAjax" url="../api/1.0/presentations/" handle-as="json" last-response="{{presentations}}"></iron-ajax>
+    <div class="container content">
+    <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
+      <paper-material elevation="1">
+        <h3>[[_computedFromObject(presentations, presentation_id, 'last_name')]], [[_computedFromObject(presentations, presentation_id, 'first_name')]] - [[_computedFromObject(presentations, presentation_id, 'presentation_text')]]</3>
+        <paper-datatable id="dt" data="{{_pDT(presentations)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+
+        </paper-datatable>
+
+      </paper-material>
     </template>
-    HELLOP
+    </div>
   </template>
   <script>
     Polymer({
       is: 'sps-page-presentation-details',
       properties: {
+        presentations: {
+          type: Object,
+          value: {},
+          observer: '_onPresentationsChanged'
+        },
         presentationsToView: {
           type: Array,
           value: [],
-          observer: '_log'
+          observer: '_onPresentationsToViewChanged'
         }
       },
-      _log: function(e) {
+      _onPresentationsToViewChanged: function(e) {
+        console.log("CHANGEd");
+        console.log(e);
+        this._doAjax();
+        this.$.tmp.render();
+      },
+      _computedFromObject: function(obj_arr, id, attr) {
+        return obj_arr[id][attr];
+      },
+      _onPresentationsChanged: function(e) {
         console.log(e);
       },
+      _doAjax: function() {
+        this.$.presAjax.url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "?text";
+        this.$.presAjax.generateRequest();
+      },
       ready: function() {
+        this._doAjax();
       }
     });
   </script>
