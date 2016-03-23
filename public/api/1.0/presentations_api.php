@@ -185,7 +185,7 @@ $app->delete('/presentations/', function (Request $request, Response $response) 
     $mysqli = new mysqli($db_host, $db_user, $db_pass);
     $mysqli -> select_db($db_name);
   foreach ($post_data as $key => $value) {
-    if($stmt = $mysqli->prepare("DELETE FROM `presentation_text` WHERE `presentation_text`.`presentation_id` = ?;")) {
+    if($stmt = $mysqli->prepare("DELETE FROM `presentations` WHERE `presentation_id` = ?;")) {
       $stmt->bind_param("i", $value['presentation_id']);
       $stmt->execute();
     } else {
