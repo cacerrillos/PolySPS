@@ -53,7 +53,7 @@
       <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
         <paper-datatable-column header="Date" property="block_id">
           <template>
-            <div>{{_trimDate(item.date)}}-{{_computedFromObject(blocks, value, 'block_name')}}</div>
+            <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
           </template>
         </paper-datatable-column>
         <paper-datatable-column header="Name" property="last_name">
