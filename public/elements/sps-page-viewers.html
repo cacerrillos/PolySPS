@@ -48,47 +48,20 @@
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
     <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
-    <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedPres}}"></sps-presentations-delete-dialog>
+    <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedViewers}}"></sps-presentations-delete-dialog>
 
     <div class="content container">
       <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
-        <paper-datatable-column header="Date" property="block_id">
-          <template>
-            <div>{{_trimDate(item.date)}}-{{_computedFromObject(blocks, value, 'block_name')}}</div>
-          </template>
-        </paper-datatable-column>
+
         <paper-datatable-column header="Name" property="last_name">
           <template>
             <div>{{item.last_name}}, {{item.first_name}}</div>
           </template>
         </paper-datatable-column>
         <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
-        <paper-datatable-column header="Topic" property="presentation_text">
-          <!--<template>
-            <div class="layout horizontal flex">
-              <paper-input class="flex" value="{{value}}" no-label-float maxlength="255" char-counter on-keydown="_topicCheckEnter"></paper-input>
-              <paper-icon-button icon="icons:save" on-click="_saveTopic"></paper-icon-button>
-              <paper-icon-button icon="icons:close" on-click="_resetTopic"></paper-icon-button>
-            </div>
-          </template>-->
-        </paper-datatable-column>
-        <paper-datatable-column header="Location" property="location_id">
-          <template>
-            <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
-          </template>
-        </paper-datatable-column>
-        <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
-          <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
-            <template>
-              <div><b>{{_computedFromLimits(limits, value, grades.grade_id)}}</b>/{{_computedFromLimitsMax(limits, value, grades.grade_id)}}</div>
-            </template>
-          </paper-datatable-column>
-        </template>
-        <paper-datatable-column header="Total" property="presentation_id" class="only-large">
-          <template>
-            <div><b>{{_computedFromLimitsTotal(limits, value)}}</b>/{{_computedFromLimitsTotalMax(limits, value)}}</div>
-          </template>
-        </paper-datatable-column>
+
+        <paper-datatable-column header="Grade" property="grade_name"></paper-datatable-column>
+
       </paper-datatable>
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
@@ -122,7 +95,7 @@
         limits: {
           type: Object
         },
-        selectedPres: {
+        selectedViewers: {
           type: Object,
           value: {}
         }
@@ -137,15 +110,15 @@
         if(e.detail.selected) {
           var o_s = e.detail.selected;
           for (var x = 0; x < o_s.length; x++) {
-            var presentation_id = this.$.dt.get('data.' + o_s[x] + '.presentation_id');
-            this.selectedPres[presentation_id] = "";
+            var viewer_id = this.$.dt.get('data.' + o_s[x] + '.viewer_id');
+            this.selectedViewers[viewer_id] = "";
           }
         }
         if(e.detail.deselected) {
           var o_ds = e.detail.deselected;
           for (var x = 0; x < o_ds.length; x++) {
-            var presentation_id = this.$.dt.get('data.' + o_ds[x] + '.presentation_id');
-            delete this.selectedPres[presentation_id];
+            var viewer_id = this.$.dt.get('data.' + o_ds[x] + '.viewer_id');
+            delete this.selectedViewers[viewer_id];
           }
         }
         
@@ -153,8 +126,8 @@
       },
       _refreshActionButtons: function() {
         var count = 0;
-        for (var k in this.selectedPres) {
-          if (this.selectedPres.hasOwnProperty(k)) count++;
+        for (var k in this.selectedViewers) {
+          if (this.selectedViewers.hasOwnProperty(k)) count++;
         }
         this.$.deleteButton.disabled = count > 0 ? false : true;
         this.$.detailsButton.disabled = count > 0 ? false : true;
@@ -207,6 +180,7 @@
           var obj = pres_arr[key];
           obj['topic_edit'] = obj['presentation_text'];
           obj['house_name'] = houses[obj['house_id']].house_name;
+          obj['grade_name'] = grades[obj['grade_id']].grade_name;
         }
         //console.log(pres_arr);
         return pres_arr;
@@ -247,9 +221,11 @@
       },
       ready: function(e) {
         var self = this;
+        /*
         setInterval(function() {
           self.$.limitsData.generateRequest();
         }, 3000);
+        */
         this._refreshActionButtons();
       }
     });
