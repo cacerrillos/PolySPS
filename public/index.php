@@ -141,6 +141,13 @@ page('/presentations', function(ctx, next) {
 	mainapp.pageTitle = "Presentations";
 	mainapp.ctx = ctx;
 });
+page('/presentations/details/:ids', function(ctx, next) {
+	mainapp.page = "presentation_details";
+	mainapp.pageTitle = "Presentation Details";
+	mainapp.ctx = ctx;
+	mainapp.presentationsToView = ctx.params.ids.split(",");
+	console.log(ctx.params.ids.split(","));
+});
 page('/viewers', function(ctx, next) {
 	mainapp.page = "viewers";
 	mainapp.pageTitle = "Viewers";
