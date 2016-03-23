@@ -203,7 +203,16 @@ $app->delete('/presentations/', function (Request $request, Response $response) 
 });
 
 $app->get('/presentations/{presentation_id}', function (Request $request, Response $response) {
-  $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']));
+  $raw_str = $request->getAttribute('presentation_id');
+  if(strpos($raw_str, ',') !== false) {
+    $pres_id_arr = explode(",", $raw_str);
+    for($x = 0; $x < count($pres_id_arr); $x++) {
+      $data[$pres_id_arr[$x]] = GetPresentation($pres_id_arr[$x], isset($request->getQueryParams()['text']));
+    }
+    
+  } else {
+    $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']));
+  }
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
 
   return $response;
