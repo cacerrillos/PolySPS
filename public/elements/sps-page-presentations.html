@@ -3,6 +3,7 @@
   <link rel="import" href="sps-presentations-elements.html">
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
   <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
+  <link rel="import" href="../bower_components/iron-icons/image-icons.html">
   <template>
   <style include="iron-flex"></style>
     <style>
@@ -21,11 +22,17 @@
         bottom: 24px;
         right: 92px;
       }
+      paper-fab.details {
+        --paper-fab-background: var(--paper-blue-800);
+        position: fixed;
+        bottom: 24px;
+        right: 160px;
+      }
       paper-fab.remove {
         --paper-fab-background: var(--paper-red-800);
         position: fixed;
         bottom: 24px;
-        right: 160px;
+        right: 228px;
       }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
@@ -85,6 +92,7 @@
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
     <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
+    <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
   </template>
   <script>
@@ -148,6 +156,7 @@
           if (this.selectedPres.hasOwnProperty(k)) count++;
         }
         this.$.deleteButton.disabled = count > 0 ? false : true;
+        this.$.detailsButton.disabled = count > 0 ? false : true;
         this.$.editButton.disabled = count == 1 ? false : true;
       },
       _trimDate: function(d) {
