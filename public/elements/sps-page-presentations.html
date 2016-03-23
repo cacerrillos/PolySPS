@@ -1,4 +1,106 @@
 <!DOCTYPE html>
+<dom-module id="sps-presentations-delete-dialog">
+<link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
+  <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
+  <style is="custom-style">
+
+  </style>
+
+  <template>
+    <iron-ajax method="DELETE" id="deleteAjax" url="../api/1.0/presentations/" handle-as="json" on-response="onDeleteResp" content-type="application/json"></iron-ajax>
+    <ctech-confirm-dialog id="dialog" on-ctech-dialog-confirm="_onConfirm" on-ctech-dialog-dismiss="_onDismiss" confirm-text="Delete" valid-color="#c62828" modal>
+      <h2>Delete The Presentation(s)?</h2>
+
+      <paper-datatable id="dt" data="{{_objectArrayToArray(presentations)}}" filter="{{_myFilter}}">
+        <paper-datatable-column header="Name" property="last_name">
+          <template>
+            <div>{{item.last_name}}, {{item.first_name}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
+      </paper-datatable>
+    </ctech-confirm-dialog>
+  </template>
+
+  <script>
+    var selectedExt = {};
+    var _myFilter = function(item, key, items) {
+      var show = false;
+        for (var key in selectedExt) {
+          if (!selectedExt.hasOwnProperty(key)) continue;
+          if(item.presentation_id == key) {
+            show = true;
+            break;
+          }
+        }
+        return show;
+      };
+    Polymer({
+      is: "sps-presentations-delete-dialog",
+      properties: {
+        presentations: {
+          type: Object,
+          observer: '_onPresentationsChanged'
+        },
+        selected: {
+          type: Object,
+          observer: '_onSelectedChanged'
+        }
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _onConfirm: function() {
+        var o_out = {};
+        for (var key in this.selected) {
+          if (!this.selected.hasOwnProperty(key)) continue;
+          //key
+          o_out[key] = { presentation_id: key };
+        }
+        this.$.deleteAjax.body = JSON.stringify(o_out);
+        this.$.deleteAjax.generateRequest();
+      },
+      _onDismiss: function(e) {
+        
+      },
+      onDeleteResp: function(e){
+        if(e.detail.response.status == true){
+          this.fire('firetoast', { message: "Deleted session!"});
+          this.fire('reload-sessions');
+        } else {
+          if(e.detail.response.error){
+            if(e.detail.response.error == 1451){
+              this.fire('firetoast', { message: "Failed to delete session! Still contains results!"});
+            }
+          } else {
+            this.fire('firetoast', { message: "Failed to delete session!"});
+          }
+        }
+      },
+      _onPresentationsChanged: function(e) {
+        this.$.dt.reload();
+      },
+      _onSelectedChanged: function(e) {
+        selectedExt = this.selected;
+        if(this.presentations) {
+          this.$.dt.reload();
+        }
+        
+      },
+      open: function(sessionObject){
+        this.sessionObject = sessionObject;
+        this.$.dt.reload();
+        this.$.dialog.open();
+
+      },
+      ready: function(){
+        this.$.dt.filter = _myFilter;
+      }
+    });
+  </script>
+</dom-module>
 <dom-module id="sps-presentations-add-dialog">
   <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
   <link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
@@ -73,7 +175,7 @@ Polymer({
       var obj = this.grades[key];
       obj['amount'] = 17;
     }
-    console.log(e);
+    //console.log(e);
   },
   _objectArrayToArray: function(arr) {
     var v = $.map(arr, function(value, index) { return [value]; });
@@ -241,6 +343,7 @@ Polymer({
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
     <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
+    <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedPres}}"></sps-presentations-delete-dialog>
 
     <div class="content container">
       <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
@@ -285,7 +388,7 @@ Polymer({
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
     <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
-    <paper-fab id="deleteButton" icon="delete" class="remove"></paper-fab>
+    <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
   </template>
   <script>
     Polymer({
@@ -320,6 +423,9 @@ Polymer({
       },
       _doAddDialog: function(e) {
         this.$.presAddDialog.open();
+      },
+      _doDeleteDialog: function(e) {
+        this.$.presDeleteDialog.open();
       },
       _selectionChanged: function(e) {
         if(e.detail.selected) {
