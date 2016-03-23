@@ -92,7 +92,7 @@
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
     <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
-    <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details"></paper-fab>
+    <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
   </template>
   <script>
@@ -128,6 +128,14 @@
       },
       listeners: {
         'reload-presentations': '_doReloadPresentations'
+      },
+      _doDetailsPage: function() {
+        var arr = [];
+        for (var k in this.selectedPres) {
+          if (!this.selectedPres.hasOwnProperty(k)) continue;
+          arr.push(k);
+        }
+        page('/presentations/details/' + arr.join(","));
       },
       _doReloadPresentations: function(e) {
         this.$.dt.deselectAll();
