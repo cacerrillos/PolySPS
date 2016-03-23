@@ -44,6 +44,10 @@ Example:
     Polymer({
       is: 'sps-page-presentation-details',
       properties: {
+        ctx: {
+          type: Object,
+          observer: '_onContextChanged'
+        },
         presentations: {
           type: Object,
           value: {},
@@ -61,11 +65,22 @@ Example:
         this._doAjax();
         this.$.tmp.render();
       },
-      _computedFromObject: function(obj_arr, id, attr) {
-        return obj_arr[id][attr];
+      _computedFromObject: function(obj_arr, id, attr) {//pres only
+          if(typeof obj_arr[id] === "undefined") {
+            if(typeof obj_arr[attr] === "undefined") {
+              return "?";
+            } else {
+              return obj_arr[attr]; 
+            }
+          } else {
+            return obj_arr[id][attr];
+          }
       },
       _onPresentationsChanged: function(e) {
-        console.log(e);
+        this.$.tmp.render();
+      },
+      _onContextChanged: function(e) {
+        this._doAjax();
       },
       _doAjax: function() {
         this.$.presAjax.url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "?text";
