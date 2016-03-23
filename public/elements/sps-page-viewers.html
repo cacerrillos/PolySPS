@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <dom-module id="sps-page-viewers">
-  <link rel="import" href="sps-presentations-elements.html">
+  <link rel="import" href="sps-viewers-elements.html">
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
   <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
   <link rel="import" href="../bower_components/iron-icons/image-icons.html">
+
   <template>
   <style include="iron-flex"></style>
     <style>
@@ -36,7 +37,7 @@
       }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
-    <iron-ajax id="presentationData" auto url="../api/1.0/viewers/" handle-as="json" last-response="{{viewers}}"></iron-ajax>
+    <iron-ajax id="viewersAjax" auto url="../api/1.0/viewers/" handle-as="json" last-response="{{viewers}}" on-response="_onViewersAjaxResp"></iron-ajax>
     <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
     <!--<iron-ajax id="dateData" auto url="../api/1.0/dates/" handle-as="json" last-response="{{dates}}"></iron-ajax>
     <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>
@@ -47,8 +48,8 @@
     
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
-    <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
-    <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedViewers}}"></sps-presentations-delete-dialog>
+    <sps-viewers-add-dialog id="viewersAddDialog" grades="[[gradeLevels]]" houses="[[houses]]"></sps-viewers-add-dialog>
+    <sps-viewers-delete-dialog id="presDeleteDialog" viewers="{{viewers}}" selected="{{selectedViewers}}"></sps-viewers-delete-dialog>
 
     <div class="content container">
       <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
@@ -58,9 +59,10 @@
             <div>{{item.last_name}}, {{item.first_name}}</div>
           </template>
         </paper-datatable-column>
+        <paper-datatable-column header="Grade" property="grade_name"></paper-datatable-column>
         <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
 
-        <paper-datatable-column header="Grade" property="grade_name"></paper-datatable-column>
+        
 
       </paper-datatable>
     </div>
@@ -100,11 +102,21 @@
           value: {}
         }
       },
+      listeners: {
+        'reload-viewers': '_reloadViewers'
+      },
+      _reloadViewers: function(e) {
+        this.$.dt.deselectAll();
+        this.$.viewersAjax.generateRequest();
+      },
       _doAddDialog: function(e) {
-        this.$.presAddDialog.open();
+        this.$.viewersAddDialog.open();
       },
       _doDeleteDialog: function(e) {
         this.$.presDeleteDialog.open();
+      },
+      _onViewersAjaxResp: function(e) {
+        this.$.dt.reload();
       },
       _selectionChanged: function(e) {
         if(e.detail.selected) {
