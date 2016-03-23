@@ -135,6 +135,7 @@
           if (!this.selectedPres.hasOwnProperty(k)) continue;
           arr.push(k);
         }
+        console.log('/presentations/details/' + arr.join(","));
         page('/presentations/details/' + arr.join(","));
         this.$.dt.deselectAll();
       },
