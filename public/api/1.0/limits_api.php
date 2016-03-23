@@ -26,7 +26,7 @@ function GetLimits($presentation_id, $totals = false) {
   }
   
   if($stmt = $mysqli -> prepare("SELECT `grade_level`, `amount` FROM `presentation_limits` WHERE `id` = ?;")) {
-    $stmt->bind_param("i", intval($presentation_id));
+    $stmt->bind_param("i", $presentation_id);
     $stmt->execute();
     $stmt->bind_result($grade_level, $amount);
     while($stmt->fetch()) {
@@ -40,8 +40,8 @@ function GetLimits($presentation_id, $totals = false) {
   $count_arr = array();
 
   if($totals) {
-    if($stmt = $mysqli -> prepare("SELECT `viewers`.`grade` FROM `registrations` INNER JOIN `viewers` ON `registrations`.`viewer` = `viewers`.`id` WHERE `registrations`.`presentation` = ?;")) {
-      $stmt->bind_param("i", intval($presentation_id));
+    if($stmt = $mysqli -> prepare("SELECT `viewers`.`grade_id` FROM `registrations` INNER JOIN `viewers` ON `registrations`.`viewer` = `viewers`.`viewer_id` WHERE `registrations`.`presentation` = ?;")) {
+      $stmt->bind_param("i", $presentation_id);
       $stmt->execute();
       $stmt->bind_result($grade_level);
       while($stmt->fetch()) {

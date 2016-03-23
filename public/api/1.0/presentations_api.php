@@ -28,7 +28,7 @@ function GetPresentation($presentation_id, $text = false) {
     exit();
   }
   if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id` FROM `presentations` WHERE `presentation_id` = ? LIMIT 1;")) {
-    $stmt->bind_param("i", intval($presentation_id));
+    $stmt->bind_param("i", $presentation_id);
     $stmt->execute();
     $stmt->bind_result($first_name, $last_name, $house_id, $date, $block_id, $location_id);
     while($stmt->fetch()) {
@@ -44,7 +44,7 @@ function GetPresentation($presentation_id, $text = false) {
     $stmt->close();
     if($text) {
       if($stmt = $mysqli -> prepare("SELECT `presentation_text` FROM `presentation_text` WHERE `presentation_id` = ? LIMIT 1;")) {
-        $stmt->bind_param("i", intval($presentation_id));
+        $stmt->bind_param("i", $presentation_id);
         $stmt->execute();
         $stmt->bind_result($presentation_text);
         while($stmt->fetch()) {

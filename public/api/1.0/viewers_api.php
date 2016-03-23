@@ -25,7 +25,7 @@ function GetViewer($viewer_id) {
     exit();
   }
   if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `grade_id` FROM `viewers` WHERE `viewer_id` = ? LIMIT 1;")) {
-    $stmt->bind_param("i", intval($viewer_id));
+    $stmt->bind_param("i", $viewer_id);
     $stmt->execute();
     $stmt->bind_result($first_name, $last_name, $house_id, $grade_id);
     while($stmt->fetch()) {
