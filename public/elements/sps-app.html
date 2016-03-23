@@ -110,7 +110,7 @@ Example:
           <paper-spinner id="pageLoadSpinner"></paper-spinner>
           <div class="flex"></div>
         </div>
-        <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
+        <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
           <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
           <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]"></sps-page-presentation-details>
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}"></sps-page-viewers>
@@ -208,7 +208,7 @@ Example:
       },
       _onContextChanged: function(e) {
         console.log(this.page);
-        this.$.pageSelector.select(this.page);
+        console.log(e);
       },
       goToPageOnClick: function(e) {
         var pageId = "";
