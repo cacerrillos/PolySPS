@@ -90,7 +90,7 @@ $app->post('/presentations/', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
   $post_data = $request->getParsedBody();
-  var_dump($post_data);
+  //var_dump($post_data);
   if(isset($post_data['first_name']) &&
      isset($post_data['last_name']) &&
      isset($post_data['presentation_text']) &&
@@ -113,7 +113,7 @@ $app->post('/presentations/', function(Request $request, Response $response) {
         $all_gl = false;
       }
     }
-    var_dump($all_gl);
+    //var_dump($all_gl);
     global $db_host, $db_user, $db_pass, $db_name;
     $mysqli = new mysqli($db_host, $db_user, $db_pass);
     $mysqli -> select_db($db_name);
