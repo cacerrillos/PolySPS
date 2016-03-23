@@ -48,6 +48,8 @@ include("presentations_api.php");
 
 include("limits_api.php");
 
+include("viewers_api.php");
+
 $app->post('/admin/login', function(Request $request, Response $response) {
   global $mysqli;
   session_destroy();
