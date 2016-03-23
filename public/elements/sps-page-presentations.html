@@ -136,6 +136,7 @@
           arr.push(k);
         }
         page('/presentations/details/' + arr.join(","));
+        this.$.dt.deselectAll();
       },
       _doReloadPresentations: function(e) {
         this.$.dt.deselectAll();
