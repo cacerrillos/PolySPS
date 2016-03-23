@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<dom-module id="sps-viewers-delete-dialog">
+<link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
+  <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
+  <style is="custom-style">
+
+  </style>
+
+  <template>
+    <iron-ajax method="DELETE" id="deleteAjax" url="../api/1.0/viewers/" handle-as="json" on-response="onDeleteResp" content-type="application/json"></iron-ajax>
+    <ctech-confirm-dialog id="dialog" on-ctech-dialog-confirm="_onConfirm" on-ctech-dialog-dismiss="_onDismiss" confirm-text="Delete" valid-color="#c62828" modal>
+      <h2>Delete The Presentation(s)?</h2>
+
+      <paper-datatable id="dt" data="{{_objectArrayToArray(viewers)}}" filter="{{_myFilter}}">
+        <paper-datatable-column header="Name" property="last_name">
+          <template>
+            <div>{{item.last_name}}, {{item.first_name}}</div>
+          </template>
+        </paper-datatable-column>
+      </paper-datatable>
+    </ctech-confirm-dialog>
+  </template>
+
+  <script>
+    var selectedExt = {};
+    var _myFilter = function(item, key, items) {
+      var show = false;
+        for (var key in selectedExt) {
+          if (!selectedExt.hasOwnProperty(key)) continue;
+          if(item.viewer_id == key) {
+            show = true;
+            break;
+          }
+        }
+        return show;
+      };
+    Polymer({
+      is: "sps-viewers-delete-dialog",
+      properties: {
+        viewers: {
+          type: Object,
+          observer: '_onViewersChanged'
+        },
+        selected: {
+          type: Object,
+          observer: '_onSelectedChanged'
+        }
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _onConfirm: function() {
+        var o_out = {};
+        for (var key in this.selected) {
+          if (!this.selected.hasOwnProperty(key)) continue;
+          //key
+          o_out[key] = { viewer_id: key };
+        }
+        this.$.deleteAjax.body = JSON.stringify(o_out);
+        this.$.deleteAjax.generateRequest();
+      },
+      _onDismiss: function(e) {
+        
+      },
+      onDeleteResp: function(e){
+        if(e.detail.response.status == true){
+          this.fire('firetoast', { message: "Deleted viewer(s)!"});
+          this.fire('reload-viewers');
+        } else {
+          if(e.detail.response.error){
+            if(e.detail.response.error == 1451){
+              this.fire('firetoast', { message: "Failed to delete viewer! FK error"});
+            }
+          } else {
+            this.fire('firetoast', { message: "Failed to delete viewer!"});
+          }
+        }
+      },
+      _onViewersChanged: function(e) {
+        this.$.dt.reload();
+      },
+      _onSelectedChanged: function(e) {
+        selectedExt = this.selected;
+        if(this.presentations) {
+          this.$.dt.reload();
+        }
+        
+      },
+      open: function(sessionObject){
+        this.sessionObject = sessionObject;
+        this.$.dt.reload();
+        this.$.dialog.open();
+
+      },
+      ready: function(){
+        this.$.dt.filter = _myFilter;
+      }
+    });
+  </script>
+</dom-module>
+<dom-module id="sps-viewers-add-dialog">
+  <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
+  <link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+  <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
+  <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+
+  <style is="custom-style">
+    .nomargins { 
+      margin: 0px;
+    }
+    paper-dialog {
+      background-color: white;
+    }
+    .validButton {
+      background-color: #4285f4;
+      color: rgba(255,255,255,1.00);
+    }
+    paper-button {
+      margin-top: 8px;
+    }
+  </style>
+<template>
+  <iron-ajax method="POST" id="createAjax" url="../api/1.0/viewers/" handle-as="json" on-response="createResp" content-type="application/json"></iron-ajax>
+  
+  <ctech-confirm-dialog id="mainDialog" on-ctech-dialog-confirm="reqSubmit" on-ctech-dialog-dismiss="resetForm" confirm-text="Create" valid-color="#8BC34A" modal>
+    <div class="layout horizontal">
+      <div class="flex"></div>
+      <h2>New Presentation</h2>
+      <div class="flex"></div>
+    </div>
+    <div class="layout vertical">
+      <paper-input name="firstname" label="First Name" on-input="_validateForm" id="firstname" maxlength="255" char-counter></paper-input>
+      <paper-input name="lastname" label="Last Name" on-input="_validateForm" id="lastname" maxlength="255" char-counter></paper-input>
+      <ctech-dropdown-selector id="gradeSelector" default-text="Select a Grade" items="[[grades]]" attr-for-selected="grade_id" attr-for-text="grade_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+      <ctech-dropdown-selector id="houseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+      
+    </div>
+  </ctech-confirm-dialog>
+</template>
+<script>
+Polymer({
+  is: "sps-viewers-add-dialog",
+  properties: {
+    quizData: {
+      type: Object
+    },
+    houses: {
+      type: Object
+    },
+    grades: {
+      type: Object,
+      observer: '_onGradesChanged'
+    },
+    gradesN: {
+      type: Object
+    },
+    sessionname: String
+    
+  },
+  _onGradesChanged: function(e) {
+    this.gradesN = this.grades;
+    for (var key in this.grades) {
+      if (!this.grades.hasOwnProperty(key)) continue;
+      var obj = this.grades[key];
+      obj['amount'] = 17;
+    }
+    //console.log(e);
+  },
+  _objectArrayToArray: function(arr) {
+    var v = $.map(arr, function(value, index) { return [value]; });
+    //console.log(v);
+    return $.map(arr, function(value, index) { return [value]; });
+  },
+  open: function() {
+    this.$.mainDialog.open();
+  },
+  test: function(e) {
+    console.log(e);
+  },
+  reqSubmit: function(e){
+    this.$.createAjax.body =
+      JSON.stringify({
+        'first_name': this.$.firstname.value,
+        'last_name': this.$.lastname.value,
+        'house_id': this.$.houseSelector.selected.house_id,
+        'grade_id': this.$.gradeSelector.selected.grade_id
+      });
+      console.log(this.$.createAjax.body);
+    this.$.createAjax.generateRequest();
+  },
+  createResp: function(e){
+    if(e.detail.response.status === true){
+      this.resetForm();
+      this.fire('firetoast', { message: "Viewer added!"});
+      this.fire("reload-viewers", { });
+    } else {
+      var det = "NO_DETAILS";
+      if(e.detail.response.status_details) {
+        det = e.detail.response.status_details;
+        switch(det) {
+          case 1062:
+            det = "Duplicate House Name";
+            break;
+          default:
+            break;
+        }
+      }
+      this.fire('firetoast', { message: "FAILED to add viewer! [" + det + "]"});
+    }
+    
+    console.log(e);
+  },
+  resetForm: function(e){
+    this.$.firstname.value = "";
+    this.$.lastname.value = "";
+    this.$.houseSelector.select();
+    this.$.gradeSelector.select();
+    this.$.mainDialog.invalid = true;
+  },
+  _validateForm: function(e){
+    if(this.$.houseSelector.selected
+       && this.$.gradeSelector.selected
+       && this.$.firstname.value.length > 0
+       && this.$.lastname.value.length > 0) {
+      this.$.mainDialog.invalid = false;
+    } else {
+      this.$.mainDialog.invalid = true;
+    }
+  },
+  ready: function(){
+    this._validateForm();
+  }
+});
+</script>
+</dom-module>
