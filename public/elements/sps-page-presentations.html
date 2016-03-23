@@ -130,6 +130,7 @@
         'reload-presentations': '_doReloadPresentations'
       },
       _doReloadPresentations: function(e) {
+        this.$.dt.deselectAll();
         this.$.presentationData.generateRequest();
       },
       _doAddDialog: function(e) {
