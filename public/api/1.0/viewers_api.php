@@ -135,6 +135,8 @@ $app->put('/viewers/', function(Request $request, Response $response) {
 });
 
 $app->delete('/viewers/', function (Request $request, Response $response) {
+  $resp = array();
+  $resp['status'] = false;
   $post_data = $request->getParsedBody();
   global $db_host, $db_user, $db_pass, $db_name;
     $mysqli = new mysqli($db_host, $db_user, $db_pass);
@@ -143,10 +145,14 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
     if($stmt = $mysqli->prepare("DELETE FROM `viewers` WHERE `viewer_id` = ?;")) {
       $stmt->bind_param("i", $value['viewer_id']);
       $stmt->execute();
+      if($stmt->affected_rows > 0) {
+        $resp['status'] = true;
+      }
     } else {
       echo $mysqli->error;
     }
   }
+  $response->getBody()->write(json_encode($resp, JSON_PRETTY_PRINT));
   return $response;
 });
 
