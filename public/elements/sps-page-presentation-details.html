@@ -30,10 +30,18 @@ Example:
     <iron-ajax id="presAjax" url="../api/1.0/presentations/" handle-as="json" last-response="{{presentations}}"></iron-ajax>
     <div class="container content">
     <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
+      <iron-ajax
+        id="viewersAjax"
+         url="..//api/1.0/viewers/"
+         handle-as="json"
+         on-response="handleResponse"></iron-ajax>
       <paper-material elevation="1">
         <h3>[[_computedFromObject(presentations, presentation_id, 'last_name')]], [[_computedFromObject(presentations, presentation_id, 'first_name')]] - [[_computedFromObject(presentations, presentation_id, 'presentation_text')]]</3>
-        <paper-datatable id="dt" data="{{_pDT(presentations)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
-
+        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentation_id)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+          <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
+          <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
+          <paper-datatable-column header="Grade" property="grade_id"></paper-datatable-column>
+          <paper-datatable-column header="House" property="house_id"></paper-datatable-column>
         </paper-datatable>
 
       </paper-material>
@@ -60,10 +68,27 @@ Example:
         }
       },
       _onPresentationsToViewChanged: function(e) {
-        console.log("CHANGEd");
-        console.log(e);
-        this._doAjax();
-        
+        this._doAjax();        
+      },
+      _getViewersArray: function(arr, p_id) {
+        var v_o = {};
+        if(typeof arr[p_id] === "undefined") {
+          if(typeof arr['viewers'] === "undefined") {
+            v_o = "?";
+          } else {
+            v_o = arr['viewers']; 
+          }
+        } else {
+          v_o = arr[p_id]['viewers'];
+        }
+        return this._objectToArray(v_o);
+        //console.log(v_o);
+
+      },
+      _objectToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
       },
       _computedFromObject: function(obj_arr, id, attr) {//pres only
           if(typeof obj_arr[id] === "undefined") {
@@ -77,13 +102,14 @@ Example:
           }
       },
       _onPresentationsChanged: function(e) {
+        console.log(e);
         this.$.tmp.render();
       },
       _onContextChanged: function(e) {
         this._doAjax();
       },
       _doAjax: function() {
-        this.$.presAjax.url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "?text";
+        this.$.presAjax.url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "?text&viewers";
         this.$.presAjax.generateRequest();
       },
       ready: function() {
