@@ -12,11 +12,12 @@ class Presentation {
   public $block_id;
   public $location_id;
   public $presentation_text;
+  public $viewers;
   public function __construct() {
   }
 }
 
-function GetPresentation($presentation_id, $text = false) {
+function GetPresentation($presentation_id, $text = false, $viewers = false) {
   global $db_host, $db_user, $db_pass, $db_name;
 
   $pres = null;
@@ -50,11 +51,17 @@ function GetPresentation($presentation_id, $text = false) {
         while($stmt->fetch()) {
           $pres->presentation_text = $presentation_text;
         }
+        $stmt->close();
       }
     } else {
       echo $mysqli->error;
     }
-    
+    if($viewers) {
+      $pres->viewers = array();
+      $pres->viewers = GetViewersByPresentation($mysqli, $presentation_id);
+    } else {
+      echo $mysqli->error;
+    }
   } else {
     echo $mysqli->error;
   }
@@ -80,7 +87,7 @@ $app->get('/presentations/', function (Request $request, Response $response) {
     echo $mysqli->error;
   }
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetPresentation($value, isset($request->getQueryParams()['text']));
+    $final_data[intval($value)] = GetPresentation($value, isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
   }
   $response->getBody()->write(json_encode($final_data, JSON_PRETTY_PRINT));
   return $response;
@@ -207,11 +214,11 @@ $app->get('/presentations/{presentation_id}', function (Request $request, Respon
   if(strpos($raw_str, ',') !== false) {
     $pres_id_arr = explode(",", $raw_str);
     for($x = 0; $x < count($pres_id_arr); $x++) {
-      $data[$pres_id_arr[$x]] = GetPresentation($pres_id_arr[$x], isset($request->getQueryParams()['text']));
+      $data[$pres_id_arr[$x]] = GetPresentation($pres_id_arr[$x], isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
     }
     
   } else {
-    $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']));
+    $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
   }
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
 
