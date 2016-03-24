@@ -43,15 +43,35 @@ function GetViewer($viewer_id) {
     
   return $pres;
 }
+function GetViewerM($mysqli, $viewer_id) {
 
-$app->get('/viewers/', function (Request $request, Response $response) {
+  $pres = null;
+
+  if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `grade_id` FROM `viewers` WHERE `viewer_id` = ? LIMIT 1;")) {
+    $stmt->bind_param("i", $viewer_id);
+    $stmt->execute();
+    $stmt->bind_result($first_name, $last_name, $house_id, $grade_id);
+    while($stmt->fetch()) {
+      $pres = new Viewer();
+      $pres->viewer_id = intval($viewer_id);
+      $pres->first_name = $first_name;
+      $pres->last_name = $last_name;
+      $pres->house_id = $house_id;
+      $pres->grade_id = $grade_id;
+    }
+    $stmt->close();
+  } else {
+    echo $mysqli->error;
+  }
+    
+  return $pres;
+}
+
+function GetViewersByPresentation($mysqli, $presentation_id) {
   $final_data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-
   $pres_id = array();
-  if($stmt = $mysqli -> prepare("SELECT `viewer_id` FROM `viewers`;")) {
+  if($stmt = $mysqli -> prepare("SELECT `viewer` FROM `registrations` WHERE `presentation`=?;")) {
+    $stmt->bind_param("i", $presentation_id);
     $stmt->execute();
     $stmt->bind_result($viewer_id);
     while($stmt->fetch()) {
@@ -61,6 +81,46 @@ $app->get('/viewers/', function (Request $request, Response $response) {
   } else {
     echo $mysqli->error;
   }
+  foreach ($pres_id as $key => $value) {
+    $final_data[intval($value)] = GetViewerM($mysqli, $value);
+  }
+  return $final_data;
+}
+$app->get('/viewers/', function (Request $request, Response $response) {
+  $final_data = array();
+  global $db_host, $db_user, $db_pass, $db_name;
+  $mysqli = new mysqli($db_host, $db_user, $db_pass);
+  $mysqli -> select_db($db_name);
+
+  $pres_id = array();
+  if(!isset($request->getQueryParams()['presentation_id'])) {
+    if($stmt = $mysqli -> prepare("SELECT `viewer_id` FROM `viewers`;")) {
+      $stmt->execute();
+      $stmt->bind_result($viewer_id);
+      while($stmt->fetch()) {
+        array_push($pres_id, $viewer_id);
+      }
+      $stmt->close();
+    } else {
+      echo $mysqli->error;
+    }
+  } else {
+    $presentation_id = $request->getQueryParams()['presentation_id'];
+
+    if($stmt = $mysqli -> prepare("SELECT `viewer` FROM `registrations` WHERE `presentation`=?;")) {
+      $stmt->bind_param("i", $presentation_id);
+      $stmt->execute();
+      $stmt->bind_result($viewer_id);
+      while($stmt->fetch()) {
+        array_push($pres_id, $viewer_id);
+      }
+      $stmt->close();
+    } else {
+      echo $mysqli->error;
+    }
+  }
+  
+
   foreach ($pres_id as $key => $value) {
     $final_data[intval($value)] = GetViewer($value);
   }
