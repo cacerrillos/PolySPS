@@ -112,7 +112,7 @@ Example:
         </div>
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
           <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
-          <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]"></sps-page-presentation-details>
+          <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}"></sps-page-viewers>
           <polyquiz-page-home data-page="home"></polyquiz-page-home>
           <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
@@ -134,6 +134,11 @@ Example:
            url="../api/1.0/grade_levels/"
            handle-as="json"
            last-response="{{grade_levels}}"></iron-ajax>
+           <iron-ajax
+           auto
+           url="../api/1.0/houses/"
+           handle-as="json"
+           last-response="{{houses}}"></iron-ajax>
            <!--
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
@@ -171,6 +176,9 @@ Example:
           type: Object
         },
         adminStatus: {
+          type: Object
+        },
+        houses: {
           type: Object
         },
         presentationsToView: {

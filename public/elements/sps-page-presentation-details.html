@@ -37,11 +37,20 @@ Example:
          on-response="handleResponse"></iron-ajax>
       <paper-material elevation="1">
         <h3>[[_computedFromObject(presentations, presentation_id, 'last_name')]], [[_computedFromObject(presentations, presentation_id, 'first_name')]] - [[_computedFromObject(presentations, presentation_id, 'presentation_text')]]</3>
-        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentation_id)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+
+        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentation_id, grades, houses)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
           <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
           <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
-          <paper-datatable-column header="Grade" property="grade_id"></paper-datatable-column>
-          <paper-datatable-column header="House" property="house_id"></paper-datatable-column>
+          <paper-datatable-column header="Grade" property="grade_id">
+            <template>
+              <div>[[_computedFromObject(grades, value, 'grade_name')]]</div>
+            </template>
+          </paper-datatable-column>
+          <paper-datatable-column header="House" property="house_id">
+            <template>
+              <div>[[_computedFromObject(houses, value, 'house_name')]]</div>
+            </template>
+          </paper-datatable-column>
         </paper-datatable>
 
       </paper-material>
@@ -65,12 +74,33 @@ Example:
           type: Array,
           value: [],
           observer: '_onPresentationsToViewChanged'
+        },
+        houses: {
+          type: Object,
+          observer: '_onHousesChanged'
+        },
+        grades: {
+          type: Object,
+          observer: '_onGradesChanged'
         }
+      },
+      _onHousesChanged: function(e) {
+        console.log("Houses Changed");
+        console.log(e);
+      },
+      _onGradesChanged: function(e) {
+        console.log("Grades Changed");
+        console.log(e);
       },
       _onPresentationsToViewChanged: function(e) {
         this._doAjax();        
       },
-      _getViewersArray: function(arr, p_id) {
+      _getViewersArray: function(arr, p_id, grades, houses) {
+        console.log("_getViewersArray");
+        console.log(arr);
+        console.log(p_id);
+        console.log(grades);
+        console.log(houses);
         var v_o = {};
         if(typeof arr[p_id] === "undefined") {
           if(typeof arr['viewers'] === "undefined") {
@@ -81,16 +111,27 @@ Example:
         } else {
           v_o = arr[p_id]['viewers'];
         }
+        console.log(v_o);
+        for (var v_o_key in v_o) {
+          if (!v_o.hasOwnProperty(v_o_key)) continue;
+          v_o[v_o_key]['grade_name'] = grades[v_o[v_o_key]['grade_id']];
+          v_o[v_o_key]['house_name'] = houses[v_o[v_o_key]['grade_id']];
+        }
+        console.log(v_o);
         return this._objectToArray(v_o);
         //console.log(v_o);
 
       },
+
       _objectToArray: function(arr) {
         var v = $.map(arr, function(value, index) { return [value]; });
         console.log(v);
         return $.map(arr, function(value, index) { return [value]; });
       },
       _computedFromObject: function(obj_arr, id, attr) {//pres only
+        console.log(obj_arr);
+        console.log(id);
+        console.log(attr);
           if(typeof obj_arr[id] === "undefined") {
             if(typeof obj_arr[attr] === "undefined") {
               return "?";
@@ -101,8 +142,14 @@ Example:
             return obj_arr[id][attr];
           }
       },
+      _log: function(e) {
+        console.log(e);
+        this.$.tmp.render();
+        this.$.dt.reload();
+      },
       _onPresentationsChanged: function(e) {
         console.log(e);
+        console.log("PRES CHANGED")
         this.$.tmp.render();
       },
       _onContextChanged: function(e) {
@@ -114,6 +161,7 @@ Example:
       },
       ready: function() {
         console.log(this.ctx);
+        console.log(this.grades);
       }
     });
   </script>
