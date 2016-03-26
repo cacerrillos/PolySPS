@@ -36,6 +36,7 @@ Example:
   <link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
   <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
   <link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+  <link rel="import" href="../bower_components/paper-menu/paper-submenu.html">
   <link rel="import" href="../bower_components/paper-item/paper-item.html">
   <link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
   <link rel="import" href="../bower_components/paper-styles/paper-styles.html">
@@ -58,6 +59,12 @@ Example:
       :host {
         display: block;
       }
+      .sublist {
+        padding-left: 30px;
+      }
+      .sublist2 {
+        padding-left: 50px;
+      }
     </style>
     <iron-ajax auto id="adminStatusAjax" url="../../api/1.0/admin/" handle-as="json" last-response="{{adminStatus}}"></iron-ajax>
     <paper-drawer-panel id="mainPanel" on-paper-responsive-change="onresp">
@@ -75,9 +82,41 @@ Example:
           <paper-icon-item on-click="goToPageOnClick" data-page="presentations">
             <iron-icon icon="social:people" item-icon></iron-icon><span>Presentations</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="viewers">
-            <iron-icon icon="social:people-outline" item-icon></iron-icon><span>Viewers</span>
-          </paper-icon-item>
+
+          <paper-submenu id="viewersSubmenu">
+
+            <paper-icon-item on-click="goToPageOnClick" data-page="viewers" class="menu-trigger">
+              <iron-icon icon="social:people-outline" item-icon></iron-icon><span>Viewers</span>
+            </paper-icon-item>
+
+            <paper-menu id="outer" class="menu-content" attr-for-selected="data-g-id" selected="[[sGradeId]]" on-iron-select="expandGrades">
+                <template is="dom-repeat" items="[[_objectArrayToArray(grade_levels)]]" as="grade_level">
+                  <paper-submenu data-g-id="[[grade_level.grade_id]]" >
+
+                    <paper-icon-item on-click="_goToGrade" class="menu-trigger sublist" data-grade-id="[[grade_level.grade_id]]">
+                      <iron-icon icon="social:people-outline" item-icon></iron-icon><span>[[grade_level.grade_name]]</span>
+                    </paper-icon-item>
+
+                    <paper-menu class="menu-content" attr-for-selected="data-attr" selected="[[ghSelected]]">
+                      <template is="dom-repeat" items="[[_objectArrayToArray(houses)]]" as="house">
+                        <paper-icon-item on-click="_goToHouse"
+                        data-attr="[[grade_level.grade_id]]-[[house.house_id]]"
+                        data-grade-id="[[grade_level.grade_id]]"
+                        data-house-id="[[house.house_id]]"
+                        class="sublist2">
+                          <iron-icon icon="social:people-outline" item-icon></iron-icon><span>[[house.house_name]]</span>
+                        </paper-icon-item>
+
+                      </template>
+                      
+                    </paper-menu>
+
+                  </paper-submenu>
+                </template>
+            </paper-menu>
+
+          </paper-submenu>
+
           <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:date-range" item-icon></iron-icon><span>Dates</span>
           </paper-icon-item>
@@ -185,6 +224,12 @@ Example:
           type: Array,
           value: []
         },
+        sGradeId: {
+          type: Number
+        },
+        ghSelected: {
+          type: String
+        },
         ctx: {
           type: Object,
           observer: '_onContextChanged'
@@ -227,13 +272,51 @@ Example:
         }
         page('/' + pageId);
       },
+      _goToGrade: function(e) {
+        var grade_id = "";
+        if(e.target.dataGradeId) {
+          grade_id = e.target.dataGradeId;
+        } else if(e.target.parentNode.dataGradeId) {
+          grade_id = e.target.parentNode.dataGradeId;
+        } else {
+          console.log("ERROR");
+          console.log(e);
+        }
+        page('/viewers/' + grade_id);
+      },
+      expandGrades: function(e) {
+        console.log(e);
+        this.$.viewersSubmenu.open();
+        this.$.outer.selectedItem.open();
+        //e.target.open();
+      },
+      _goToHouse: function(e) {
+        var grade_id = "";
+        var house_id = "";
+        if(e.target.dataHouseId) {
+          house_id = e.target.dataHouseId;
+          grade_id = e.target.dataGradeId;
+        } else if(e.target.parentNode.dataHouseId) {
+          house_id = e.target.parentNode.dataHouseId;
+          grade_id = e.target.parentNode.dataGradeId;
+        } else {
+          console.log("ERROR");
+          console.log(e);
+        }
+        page('/viewers/' + grade_id + "/" + house_id);
+      },
       ready: function() {
         //this.$.adminStatusAjax.generateRequest();
         this.$.mainPanel.responsiveWidth = "1280px";
         var self = this;
         setInterval(function() {
+          //console.log(self.$.outer.selectedItem);
+          //console.log(self.$.outer.items);
+          //self.$.outer.select(self.sGradeId);
           self.$.getLimits.generateRequest();
         }, 3000);
+        this.$.viewersSubmenu.open();
+        //this.$.outer.select(this.sGradeId);
       }
     });
   </script>
