@@ -65,6 +65,16 @@ Example:
       .sublist2 {
         padding-left: 50px;
       }
+      .noselect {
+        cursor: default;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none;   /* Chrome/Safari/Opera */
+        -khtml-user-select: none;    /* Konqueror */
+        -moz-user-select: none;      /* Firefox */
+        -ms-user-select: none;       /* IE/Edge */
+        user-select: none;           /* non-prefixed version, currently
+                                    not supported by any browser */
+      }
     </style>
     <iron-ajax auto id="adminStatusAjax" url="../../api/1.0/admin/" handle-as="json" last-response="{{adminStatus}}"></iron-ajax>
     <paper-drawer-panel id="mainPanel" on-paper-responsive-change="onresp">
@@ -72,21 +82,21 @@ Example:
         <paper-toolbar>
           <div style="color:#FFFFFF"></div>
         </paper-toolbar>
-        <paper-menu id="sidebarMenu" class="flex" attr-for-selected="data-page">
+        <paper-menu id="sidebarMenu" class="flex" attr-for-selected="data-page" selected="[[page]]">
           <paper-icon-item on-click="goToPageOnClick" data-page="signup" hidden="{{adminStatus.is_admin}}">
-            <iron-icon icon="icons:event-seat" item-icon></iron-icon><span>Sign-Up</span>
+            <iron-icon icon="icons:event-seat" item-icon></iron-icon><span class="noselect">Sign-Up</span>
           </paper-icon-item>
           <paper-icon-item on-click="goToPageOnClick" data-page="dashboard">
-            <iron-icon icon="icons:dashboard" item-icon></iron-icon><span>Dashboard</span>
+            <iron-icon icon="icons:dashboard" item-icon></iron-icon><span class="noselect">Dashboard</span>
           </paper-icon-item>
           <paper-icon-item on-click="goToPageOnClick" data-page="presentations">
-            <iron-icon icon="social:people" item-icon></iron-icon><span>Presentations</span>
+            <iron-icon icon="social:people" item-icon></iron-icon><span class="noselect">Presentations</span>
           </paper-icon-item>
 
           <paper-submenu id="viewersSubmenu">
 
             <paper-icon-item on-click="goToPageOnClick" data-page="viewers" class="menu-trigger">
-              <iron-icon icon="social:people-outline" item-icon></iron-icon><span>Viewers</span>
+              <iron-icon icon="social:people-outline" item-icon></iron-icon><span class="noselect">Viewers</span>
             </paper-icon-item>
 
             <paper-menu id="outer" class="menu-content" attr-for-selected="data-g-id" selected="[[sGradeId]]" on-iron-select="expandGrades">
@@ -94,7 +104,7 @@ Example:
                   <paper-submenu data-g-id="[[grade_level.grade_id]]" >
 
                     <paper-icon-item on-click="_goToGrade" class="menu-trigger sublist" data-grade-id="[[grade_level.grade_id]]">
-                      <iron-icon icon="social:people-outline" item-icon></iron-icon><span>[[grade_level.grade_name]]</span>
+                      <iron-icon icon="social:people-outline" item-icon></iron-icon><span class="noselect">[[grade_level.grade_name]]</span>
                     </paper-icon-item>
 
                     <paper-menu class="menu-content" attr-for-selected="data-attr" selected="[[ghSelected]]">
@@ -104,7 +114,7 @@ Example:
                         data-grade-id="[[grade_level.grade_id]]"
                         data-house-id="[[house.house_id]]"
                         class="sublist2">
-                          <iron-icon icon="social:people-outline" item-icon></iron-icon><span>[[house.house_name]]</span>
+                          <iron-icon icon="social:people-outline" item-icon></iron-icon><span class="noselect">[[house.house_name]]</span>
                         </paper-icon-item>
 
                       </template>
@@ -118,13 +128,13 @@ Example:
           </paper-submenu>
 
           <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{!adminStatus.is_admin}}">
-            <iron-icon icon="icons:date-range" item-icon></iron-icon><span>Dates</span>
+            <iron-icon icon="icons:date-range" item-icon></iron-icon><span class="noselect">Dates</span>
           </paper-icon-item>
           <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{!adminStatus.is_admin}}">
-            <iron-icon icon="icons:view-list" item-icon></iron-icon><span>Blocks</span>
+            <iron-icon icon="icons:view-list" item-icon></iron-icon><span class="noselect">Blocks</span>
           </paper-icon-item>
           <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{!adminStatus.is_admin}}">
-            <iron-icon icon="maps:place" item-icon></iron-icon><span>Locations</span>
+            <iron-icon icon="maps:place" item-icon></iron-icon><span class="noselect">Locations</span>
           </paper-icon-item>
         </paper-menu>
         <polyquiz-admin-login-form hidden="[[adminStatus.is_admin]]"></polyquiz-admin-login-form>
@@ -153,6 +163,8 @@ Example:
           <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
           <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" x></sps-page-viewers>
+          <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
+            viewers-to-view="[[viewersToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-viewer-details>
           <polyquiz-page-home data-page="home"></polyquiz-page-home>
           <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
           <polyquiz-page-admin data-page="admin" ctx="[[ctx]]"></polyquiz-page-admin>
@@ -202,7 +214,8 @@ Example:
       is: 'sps-app',
       properties: {
         page: {
-          type: String
+          type: String,
+          observer: '_onPageChanged'
         },
         pageTitle: {
           type: String,
@@ -310,6 +323,11 @@ Example:
         }
         page('/viewers/' + grade_id + "/" + house_id);
       },
+      _onPageChanged: function(e) {
+        if(this.page === "viewers") {
+          this.$.viewersSubmenu.open();
+        }
+      },
       ready: function() {
         //this.$.adminStatusAjax.generateRequest();
         this.$.mainPanel.responsiveWidth = "1280px";
@@ -320,7 +338,8 @@ Example:
           //self.$.outer.select(self.sGradeId);
           self.$.getLimits.generateRequest();
         }, 3000);
-        this.$.viewersSubmenu.open();
+        
+        
         //this.$.outer.select(this.sGradeId);
       }
     });
