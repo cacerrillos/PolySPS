@@ -14,8 +14,23 @@ Example:
 
 @demo demo/index.html
 -->
+<!--
+A comment describing this element
 
-<dom-module id="sps-page-presentation-details">
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="pres-details-card">
   <template>
     <style>
       :host {
@@ -25,20 +40,28 @@ Example:
         padding: 10px;
         margin-bottom: 64px;
       }
+      paper-fab.add-specific {
+        position: absolute;
+        bottom: -28px;
+        right: 28px;
+      }
+      paper-fab.details-specific {
+        --paper-fab-background: var(--paper-blue-800);
+        position: absolute;
+        bottom: -28px;
+        right: 96px;
+      }
+      paper-fab.remove-specific {
+        --paper-fab-background: var(--paper-red-800);
+        position: absolute;
+        bottom: -28px;
+        right: 164px;
+      }
     </style>
-    
-    <iron-ajax id="presAjax" url="../api/1.0/presentations/" handle-as="json" last-response="{{presentations}}"></iron-ajax>
-    <div class="container content">
-    <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
-      <iron-ajax
-        id="viewersAjax"
-         url="..//api/1.0/viewers/"
-         handle-as="json"
-         on-response="handleResponse"></iron-ajax>
-      <paper-material elevation="1">
-        <h3>[[_computedFromObject(presentations, presentation_id, 'last_name')]], [[_computedFromObject(presentations, presentation_id, 'first_name')]] - [[_computedFromObject(presentations, presentation_id, 'presentation_text')]]</3>
+    <paper-material elevation="1" style="padding-bottom: 32px;">
+        <h3>[[_computedFromObject(presentations, presentationId, 'last_name')]], [[_computedFromObject(presentations, presentationId, 'first_name')]] - [[_computedFromObject(presentations, presentationId, 'presentation_text')]]</3>
 
-        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentation_id, grades, houses)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentationId, grades, houses)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
           <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
           <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
           <paper-datatable-column header="Grade" property="grade_id">
@@ -52,9 +75,167 @@ Example:
             </template>
           </paper-datatable-column>
         </paper-datatable>
-
+        <paper-fab id="addButton" icon="add" class="add-specific" on-click="_doAddDialog"></paper-fab>
+        <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details-specific" on-click="_doDetailsPage"></paper-fab>
+        <paper-fab id="deleteButton" icon="delete" class="remove-specific" on-click="_doRemoveDialog"></paper-fab>
       </paper-material>
+  </template>
+  <script>
+    Polymer({
+      is: 'pres-details-card',
+      properties: {
+        presentationId: {
+          type: Number
+        },
+        grades: {
+          type: Object
+        },
+        houses: {
+          type: Object
+        },
+        selectedViewers: {
+          type: Object,
+          value: {}
+        }
+      },
+      _selectionChanged: function(e) {
+        if(typeof this.selectedViewers[this.presentationId] === 'undefined') {
+          this.selectedViewers[this.presentationId] = {};
+        }
+        //this.selectedViewers[this.presentationId] = {};
+        if(e.detail.selected) {
+          var o_s = e.detail.selected;
+          for (var x = 0; x < o_s.length; x++) {
+            var viewer_id = this.$.dt.get('data.' + o_s[x] + '.viewer_id');
+            this.selectedViewers[this.presentationId][viewer_id] = "";
+          }
+        }
+        if(e.detail.deselected) {
+          var o_ds = e.detail.deselected;
+          for (var x = 0; x < o_ds.length; x++) {
+            var viewer_id = this.$.dt.get('data.' + o_ds[x] + '.viewer_id');
+            delete this.selectedViewers[this.presentationId][viewer_id];
+          }
+        }
+        this.fire('viewer-selection-changed', { presentationId: this.presentationId, selected: this.selectedViewers[this.presentationId] });
+        this._refreshActionButtons();
+      },
+      _refreshActionButtons: function() {
+        var count = 0;
+        for (var k in this.selectedViewers) {
+          if (this.selectedViewers.hasOwnProperty(k)) count++;
+        }
+        this.$.deleteButton.disabled = count > 0 ? false : true;
+        this.$.detailsButton.disabled = count > 0 ? false : true;
+      },
+      _getViewersArray: function(arr, p_id, grades, houses) {
+        //console.log("_getViewersArray");
+        //console.log(arr);
+        //console.log(p_id);
+        //console.log(grades);
+        //console.log(houses);
+        var v_o = {};
+        if(typeof arr[p_id] === "undefined") {
+          if(typeof arr['viewers'] === "undefined") {
+            v_o = "?";
+          } else {
+            v_o = arr['viewers']; 
+          }
+        } else {
+          v_o = arr[p_id]['viewers'];
+        }
+        //console.log(v_o);
+        for (var v_o_key in v_o) {
+          if (!v_o.hasOwnProperty(v_o_key)) continue;
+          v_o[v_o_key]['grade_name'] = grades[v_o[v_o_key]['grade_id']];
+          v_o[v_o_key]['house_name'] = houses[v_o[v_o_key]['grade_id']];
+        }
+        //console.log(v_o);
+        return this._objectToArray(v_o);
+        //console.log(v_o);
+
+      },
+      _doAddDialog: function(e) {
+        console.log(e);
+      },
+      _doRemoveDialog: function(e) {
+        console.log(e);
+      },
+      _objectToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _computedFromObject: function(obj_arr, id, attr) {//pres only
+          if(typeof obj_arr[id] === "undefined") {
+            if(typeof obj_arr[attr] === "undefined") {
+              return "?";
+            } else {
+              return obj_arr[attr]; 
+            }
+          } else {
+            return obj_arr[id][attr];
+          }
+      },
+      ready: function(e) {
+        this._refreshActionButtons();
+      }
+    });
+  </script>
+</dom-module>
+<dom-module id="sps-page-presentation-details">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-material {
+        padding: 10px;
+        margin-bottom: 64px;
+      }
+      paper-fab.add {
+        --paper-fab-background: var(--paper-green-600);
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+      }
+      paper-fab.edit {
+        --paper-fab-background: var(--paper-blue-800);
+        position: fixed;
+        bottom: 24px;
+        right: 92px;
+      }
+      paper-fab.details {
+        --paper-fab-background: var(--paper-blue-800);
+        position: fixed;
+        bottom: 24px;
+        right: 160px;
+      }
+      paper-fab.remove {
+        --paper-fab-background: var(--paper-red-800);
+        position: fixed;
+        bottom: 24px;
+        right: 228px;
+      }
+
+    </style>
+    
+    <iron-ajax id="presAjax" url="../api/1.0/presentations/" handle-as="json" last-response="{{presentations}}"></iron-ajax>
+
+    <iron-ajax
+        id="viewersAjax"
+         url="..//api/1.0/viewers/"
+         handle-as="json"
+         on-response="handleResponse"></iron-ajax>
+
+    <div class="container content" style="margin-bottom: 124px;">
+    <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
+      
+      <pres-details-card presentations="[[presentations]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
     </template>
+    <paper-fab id="swapButton" icon="icons:swap-vert" class="edit" on-click="_doSwapDialog"></paper-fab>
+    <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
+    <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
     </div>
   </template>
   <script>
@@ -82,7 +263,47 @@ Example:
         grades: {
           type: Object,
           observer: '_onGradesChanged'
+        },
+        globalSelection: {
+          type: Object,
+          value: {},
+          observer: '_selectionChanged'
         }
+      },
+      listeners: {
+        'viewer-selection-changed': '_onSelectionChangedGlobal'
+      },
+      _onSelectionChangedGlobal: function(e) {
+        this.globalSelection[e.detail.presentationId] = e.detail;
+        this._refreshActionButtons();
+      },
+      _refreshActionButtons: function() {
+        var count = 0;
+        var swap_last_p = 0;
+        var swap_check = [];
+        var swapable = false;
+
+        for (var k in this.globalSelection) {
+          if (!this.globalSelection.hasOwnProperty(k)) continue;
+          var i_c = 0;
+          for(var ki in this.globalSelection[k].selected) {
+            if(!this.globalSelection[k].selected.hasOwnProperty(ki)) continue;
+            i_c++;
+          }
+          if(i_c > 0) {
+            swap_check.push({ p_id: k, count: i_c });
+          }
+          count += i_c;
+        }
+
+        if(swap_check.length == 2) {
+          if(swap_check[0].count == swap_check[1].count) {
+            swapable  = true;
+          }
+        }
+        this.$.deleteButton.disabled = count > 0 ? false : true;
+        this.$.detailsButton.disabled = count > 0 ? false : true;
+        this.$.swapButton.disabled = !swapable;
       },
       _onHousesChanged: function(e) {
         console.log("Houses Changed");
@@ -95,52 +316,15 @@ Example:
       _onPresentationsToViewChanged: function(e) {
         this._doAjax();        
       },
-      _getViewersArray: function(arr, p_id, grades, houses) {
-        console.log("_getViewersArray");
-        console.log(arr);
-        console.log(p_id);
-        console.log(grades);
-        console.log(houses);
-        var v_o = {};
-        if(typeof arr[p_id] === "undefined") {
-          if(typeof arr['viewers'] === "undefined") {
-            v_o = "?";
-          } else {
-            v_o = arr['viewers']; 
-          }
-        } else {
-          v_o = arr[p_id]['viewers'];
-        }
-        console.log(v_o);
-        for (var v_o_key in v_o) {
-          if (!v_o.hasOwnProperty(v_o_key)) continue;
-          v_o[v_o_key]['grade_name'] = grades[v_o[v_o_key]['grade_id']];
-          v_o[v_o_key]['house_name'] = houses[v_o[v_o_key]['grade_id']];
-        }
-        console.log(v_o);
-        return this._objectToArray(v_o);
-        //console.log(v_o);
-
+      _doAddDialog: function(e) {
+        console.log(e);
       },
-
-      _objectToArray: function(arr) {
-        var v = $.map(arr, function(value, index) { return [value]; });
-        console.log(v);
-        return $.map(arr, function(value, index) { return [value]; });
+      _doRemoveDialog: function(e) {
+        console.log(e);
       },
-      _computedFromObject: function(obj_arr, id, attr) {//pres only
-        console.log(obj_arr);
-        console.log(id);
-        console.log(attr);
-          if(typeof obj_arr[id] === "undefined") {
-            if(typeof obj_arr[attr] === "undefined") {
-              return "?";
-            } else {
-              return obj_arr[attr]; 
-            }
-          } else {
-            return obj_arr[id][attr];
-          }
+      _doSwapDialog: function(e) {
+        console.log(e);
+        console.log(this.globalSelection);
       },
       _log: function(e) {
         console.log(e);
@@ -162,6 +346,7 @@ Example:
       ready: function() {
         console.log(this.ctx);
         console.log(this.grades);
+        this._refreshActionButtons();
       }
     });
   </script>
