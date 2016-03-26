@@ -55,10 +55,11 @@
     <sps-viewers-add-dialog id="viewersAddDialog" grades="[[gradeLevels]]" houses="[[houses]]"></sps-viewers-add-dialog>
     <sps-viewers-delete-dialog id="presDeleteDialog" viewers="{{viewers}}" selected="{{selectedViewers}}"></sps-viewers-delete-dialog>
 
-    <div class="content container">
-      <template is="dom-repeat" items="[[_objectArrayToArray(gradeLevels)]]" as="grade_level">
-        <template is="dom-repeat" items="[[_objectArrayToArray(houses)]]" as="house">
-          <paper-material elevation="1">
+    <div id="mDiv" class="content container">
+      <template id="outerTemplate" is="dom-repeat" items="[[_objectArrayToArray(gradeLevels)]]" as="grade_level">
+        <div id="pirate" data-gh-id="[[grade_level.grade_id]]"></div>
+        <template id="innerTemplate" data-grade-id="[[grade_level.grade_id]]" is="dom-repeat" items="[[_objectArrayToArray(houses)]]" as="house">
+          <paper-material id="pirate" data-gh-id="[[grade_level.grade_id]]-[[house.house_id]]" elevation="1">
             <h3>[[grade_level.grade_name]] - [[house.house_name]]</h3>
             <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels, house.house_id, grade_level.grade_id)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged"
               filter="[[_gradeFilter(grade_level.grade_id, house.house_id)]]">
@@ -86,8 +87,7 @@
       is: 'sps-page-viewers',
       properties: {
         viewers: {
-          type: Object,
-          observer: 'log'
+          type: Object
         },
         houses: {
           type: Object
@@ -106,6 +106,14 @@
         },
         limits: {
           type: Object
+        },
+        dataGrade: {
+          type: String,
+          observer: 'scrollTo'
+        },
+        dataAttr: {
+          type: String,
+          observer: 'scrollTo'
         },
         selectedViewers: {
           type: Object,
@@ -219,6 +227,26 @@
         //console.log(pres_arr);
         return pres_arr;
       },
+      getElementPos: function(el) {
+            // yay readability
+            for (var lx=0, ly=0;
+                 el != null;
+                 lx += el.offsetLeft, ly += el.offsetTop, el = el.offsetParent);
+            return {x: lx,y: ly};
+        },
+      scrollTo: function(e) {
+        console.log("SST");
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#pirate");
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            if(arr[key].dataGhId == e) {
+              console.log(arr[key].dataGhId);
+              console.log(this.getElementPos(arr[key]));
+              this.fire('scroll-request', this.getElementPos(arr[key]));
+            }
+            
+        }
+      },
       _objectArrayToArray: function(arr) {
         var v = $.map(arr, function(value, index) { return [value]; });
         //console.log(v);
@@ -260,6 +288,7 @@
           self.$.limitsData.generateRequest();
         }, 3000);
         */
+        
         this._refreshActionButtons();
       }
     });

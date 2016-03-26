@@ -152,7 +152,7 @@ Example:
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
           <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
           <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
-          <sps-page-viewers data-page="viewers" ctx="{{ctx}}"></sps-page-viewers>
+          <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" x></sps-page-viewers>
           <polyquiz-page-home data-page="home"></polyquiz-page-home>
           <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
           <polyquiz-page-admin data-page="admin" ctx="[[ctx]]"></polyquiz-page-admin>
@@ -239,7 +239,12 @@ Example:
         'firetoast': 'fireToast',
         'polyquiz-admin-check-status': 'checkAdminStatus',
         'polyquiz-admin-do-logout': 'doLogout',
-        'polyquiz-admin-status': 'onAdminStatusChanged'
+        'polyquiz-admin-status': 'onAdminStatusChanged',
+        'scroll-request': '_doScroll'
+      },
+      _doScroll: function(e) {
+        console.log(e);
+        this.$.scrollheader.scroll(e.detail.y-96, true);
       },
       _objectArrayToArray: function(arr) {
         var v = $.map(arr, function(value, index) { return [value]; });
