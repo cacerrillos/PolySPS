@@ -183,6 +183,144 @@ Example:
     });
   </script>
 </dom-module>
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="presentation-swap-dialog">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <ctech-confirm-dialog id="dialog"
+      confirm-text="Swap" modal="true">
+      <h2>Swap?</h2>
+      <h3>[[_computedFromObject(presentations, presA, 'last_name')]], [[_computedFromObject(presentations, presA, 'first_name')]] - [[_computedFromObject(presentations, presA, 'presentation_text')]]</h3>
+      <paper-datatable id="dtA" data="{{_getViewersArray(presentations, presA)}}" filter="[[_filterBySelected(presA)]]">
+        <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
+          <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
+      </paper-datatable>
+      <h3>[[_computedFromObject(presentations, presB, 'last_name')]], [[_computedFromObject(presentations, presB, 'first_name')]] - [[_computedFromObject(presentations, presB, 'presentation_text')]]</h3>
+      <paper-datatable id="dtB" data="{{_getViewersArray(presentations, presB)}}" filter="[[_filterBySelected(presB)]]">
+        <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
+          <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
+      </paper-datatable>
+
+
+    </ctech-confirm-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'presentation-swap-dialog',
+      properties: {
+        globalSelection: {
+          type: Object
+        },
+        presentations: {
+          type: Object
+        },
+        viewers: {
+          type: Object
+        },
+        presA: Number,
+        presB: Number
+      },
+      _objectToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _computedFromObject: function(obj_arr, id, attr) {//pres only
+          if(typeof obj_arr[id] === "undefined") {
+            if(typeof obj_arr[attr] === "undefined") {
+              return "?";
+            } else {
+              return obj_arr[attr]; 
+            }
+          } else {
+            return obj_arr[id][attr];
+          }
+      },
+      _filterBySelected: function(p_id) {
+        var arr = [];
+        for(var k in this.globalSelection[p_id].selected) {
+          if(this.globalSelection[p_id].selected.hasOwnProperty(k)) {
+            arr.push(parseInt(k));
+          }
+        }
+        return function(element, index, array) {
+          if($.inArray(element.viewer_id, arr)) {
+            return false;
+          }
+          return true;
+        }
+      },
+      _getViewersArray: function(arr, p_id) {
+        //console.log("_getViewersArray");
+        //console.log(arr);
+        //console.log(p_id);
+        //console.log(grades);
+        //console.log(houses);
+        var v_o = {};
+        if(typeof arr[p_id] === "undefined") {
+          console.log(arr);
+          console.log(p_id);
+          if(typeof arr['viewers'] === "undefined") {
+            v_o = "?";
+          } else {
+            v_o = arr['viewers']; 
+          }
+        } else {
+          v_o = arr[p_id]['viewers'];
+        }
+        //console.log(v_o);
+        //console.log(v_o);
+        return this._objectToArray(v_o);
+        //console.log(v_o);
+
+      },
+      open: function(e) {
+        var A = 0;
+        var B = 0;
+        for(var k in this.globalSelection) {
+          if(!this.globalSelection.hasOwnProperty(k)) continue;
+          var c = 0;
+          for(var ki in this.globalSelection[k].selected) {
+            if(!this.globalSelection[k].selected.hasOwnProperty(ki)) continue;
+            c++;
+          }
+          if(c > 0) {
+            if(A == 0) {
+
+              A = k;
+            } else if(B == 0) {
+              B = k;
+            }
+          }
+        }
+        this.presA = A;
+        this.presB = B;
+        this.$.dialog.open();
+
+
+      }
+    });
+  </script>
+</dom-module>
 <dom-module id="sps-page-presentation-details">
   <template>
     <style>
@@ -233,6 +371,7 @@ Example:
       
       <pres-details-card presentations="[[presentations]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
     </template>
+    <presentation-swap-dialog id="swapDialog" presentations="[[presentations]]" global-selection="[[globalSelection]]"></presentation-swap-dialog>
     <paper-fab id="swapButton" icon="icons:swap-vert" class="edit" on-click="_doSwapDialog"></paper-fab>
     <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
@@ -325,6 +464,7 @@ Example:
       _doSwapDialog: function(e) {
         console.log(e);
         console.log(this.globalSelection);
+        this.$.swapDialog.open();
       },
       _log: function(e) {
         console.log(e);
