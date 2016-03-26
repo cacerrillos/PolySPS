@@ -154,8 +154,23 @@ page('/viewers', function(ctx, next) {
 	mainapp.page = "viewers";
 	mainapp.pageTitle = "Viewers";
 	mainapp.ctx = ctx;
-
 });
+
+page('/viewers/:grade_id', function(ctx, next) {
+	mainapp.page = "viewers";
+	mainapp.pageTitle = "Viewers";
+	mainapp.ctx = ctx;
+	mainapp.sGradeId = ctx.params.grade_id;
+});
+
+page('/viewers/:grade_id/:house_id', function(ctx, next) {
+	mainapp.page = "viewers";
+	mainapp.pageTitle = "Viewers";
+	mainapp.ctx = ctx;
+	mainapp.sGradeId = ctx.params.grade_id;
+	mainapp.ghSelected = ctx.params.grade_id + "-" + ctx.params.house_id;
+});
+
 page('/dates', function(ctx, next) {
 	mainapp.page = "dates";
 	mainapp.pageTitle = "Dates";
