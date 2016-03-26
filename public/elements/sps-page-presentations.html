@@ -49,7 +49,7 @@
     <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
     <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedPres}}"></sps-presentations-delete-dialog>
 
-    <div class="content container">
+    <div class="content container" style="margin-bottom: 124px;">
       <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
         <paper-datatable-column header="Date" property="block_id">
           <template>
