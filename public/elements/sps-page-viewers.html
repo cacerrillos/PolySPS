@@ -35,6 +35,10 @@
         bottom: 24px;
         right: 228px;
       }
+      paper-material {
+        padding: 10px;
+        margin-bottom: 64px;
+      }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
     <iron-ajax id="viewersAjax" auto url="../api/1.0/viewers/" handle-as="json" last-response="{{viewers}}" on-response="_onViewersAjaxResp"></iron-ajax>
@@ -52,19 +56,25 @@
     <sps-viewers-delete-dialog id="presDeleteDialog" viewers="{{viewers}}" selected="{{selectedViewers}}"></sps-viewers-delete-dialog>
 
     <div class="content container">
-      <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
-
-        <paper-datatable-column header="Name" property="last_name">
-          <template>
-            <div>{{item.last_name}}, {{item.first_name}}</div>
-          </template>
-        </paper-datatable-column>
-        <paper-datatable-column header="Grade" property="grade_name"></paper-datatable-column>
-        <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
-
-        
-
-      </paper-datatable>
+      <template is="dom-repeat" items="[[_objectArrayToArray(gradeLevels)]]" as="grade_level">
+        <template is="dom-repeat" items="[[_objectArrayToArray(houses)]]" as="house">
+          <paper-material elevation="1">
+            <h3>[[grade_level.grade_name]] - [[house.house_name]]</h3>
+            <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels, house.house_id, grade_level.grade_id)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged"
+              filter="[[_gradeFilter(grade_level.grade_id, house.house_id)]]">
+              <paper-datatable-column header="Name" property="last_name">
+                <template>
+                  <div>{{item.last_name}}, {{item.first_name}}</div>
+                </template>
+              </paper-datatable-column>
+              <paper-datatable-column header="Grade" property="grade_name"></paper-datatable-column>
+              <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
+            </paper-datatable>
+          </paper-material>
+        </template>
+      
+      </template>
+      
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
     <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
@@ -104,6 +114,15 @@
       },
       listeners: {
         'reload-viewers': '_reloadViewers'
+      },
+      _gradeFilter: function(grade_id, house_id) {
+        return function(item, key, items) {
+          if(item.grade_id == grade_id && item.house_id == house_id) {
+            return true;
+          } else {
+            return false;
+          }
+        };
       },
       _reloadViewers: function(e) {
         this.$.dt.deselectAll();
@@ -184,15 +203,18 @@
       _resetTopic: function(e) {
         e.model.set('item.topic_edit', e.model.get('item.presentation_text'));
       },
-      _viewersDataTable: function(pres, houses, grades) {
+      _viewersDataTable: function(pres, houses, grades, house_id, grade_id) {
         //console.log(pres);
         var pres_arr = this._objectArrayToArray(pres);
         for (var key in pres_arr) {
           if (!pres_arr.hasOwnProperty(key)) continue;
-          var obj = pres_arr[key];
-          obj['topic_edit'] = obj['presentation_text'];
-          obj['house_name'] = houses[obj['house_id']].house_name;
-          obj['grade_name'] = grades[obj['grade_id']].grade_name;
+          if(pres_arr[key]['house_id'] != house_id && pres_arr[key][grade_id] != grade_id) {
+            delete pres_arr[key];
+            continue;
+          }
+          pres_arr[key]['topic_edit'] = pres_arr[key]['presentation_text'];
+          pres_arr[key]['house_name'] = houses[pres_arr[key]['house_id']].house_name;
+          pres_arr[key]['grade_name'] = grades[pres_arr[key]['grade_id']].grade_name;
         }
         //console.log(pres_arr);
         return pres_arr;
