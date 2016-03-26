@@ -96,6 +96,15 @@ Example:
         selectedViewers: {
           type: Object,
           value: {}
+        },
+        ctx: {
+          type: Object,
+          observer: '_onContextChanged'
+        }
+      },
+      _onContextChanged: function(e) {
+        if(mainapp.page !== "presentation_details") {
+          this.$.dt.deselectAll();
         }
       },
       _selectionChanged: function(e) {
@@ -369,7 +378,7 @@ Example:
     <div class="container content" style="margin-bottom: 124px;">
     <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
       
-      <pres-details-card presentations="[[presentations]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
+      <pres-details-card ctx="[[ctx]]" presentations="[[presentations]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
     </template>
     <presentation-swap-dialog id="swapDialog" presentations="[[presentations]]" global-selection="[[globalSelection]]"></presentation-swap-dialog>
     <paper-fab id="swapButton" icon="icons:swap-vert" class="edit" on-click="_doSwapDialog"></paper-fab>
@@ -477,7 +486,12 @@ Example:
         this.$.tmp.render();
       },
       _onContextChanged: function(e) {
-        this._doAjax();
+        if(mainapp.page !== "presentation_details") {
+          this.globalSelection = {};
+        } else {
+          this._doAjax();
+        }
+        
       },
       _doAjax: function() {
         this.$.presAjax.url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "?text&viewers";
