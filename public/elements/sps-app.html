@@ -338,10 +338,13 @@ Example:
         this.$.mainPanel.responsiveWidth = "1280px";
         var self = this;
         setInterval(function() {
+          if(mainapp.page === "presentations") {
+            self.$.getLimits.generateRequest();
+          }
           //console.log(self.$.outer.selectedItem);
           //console.log(self.$.outer.items);
           //self.$.outer.select(self.sGradeId);
-          self.$.getLimits.generateRequest();
+          
         }, 3000);
         
         
