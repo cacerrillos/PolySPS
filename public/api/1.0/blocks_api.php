@@ -14,13 +14,7 @@ class Block {
 
 $app->get('/blocks/', function (Request $request, Response $response) {
   $data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
+  $mysqli = $this->db;
   if($stmt = $mysqli -> prepare("SELECT `block_id`, `block_name` FROM `blocks`;")) {
     $stmt->execute();
     $stmt->bind_result($block_id, $block_name);
@@ -36,9 +30,7 @@ $app->get('/blocks/', function (Request $request, Response $response) {
 });
 
 $app->get('/blocks/{block_id}', function (Request $request, Response $response) {
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
+  $mysqli = $this->db;
   if(mysqli_connect_errno()) {
     echo "Connection Failed: " . mysqli_connect_errno();
     exit();

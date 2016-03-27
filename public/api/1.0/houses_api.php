@@ -14,13 +14,7 @@ class House {
 
 $app->get('/houses/', function (Request $request, Response $response) {
   $data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
+  $mysqli = $this->db;
   if($stmt = $mysqli -> prepare("SELECT `house_id`, `house_name` FROM `houses`;")) {
     $stmt->execute();
     $stmt->bind_result($house_id, $house_name);
@@ -36,13 +30,7 @@ $app->get('/houses/', function (Request $request, Response $response) {
 });
 
 $app->get('/houses/{house_id}', function (Request $request, Response $response) {
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
+  $mysqli = $this->db;
   $house_id = $request->getAttribute('house_id');
   if($stmt = $mysqli -> prepare("SELECT `house_name` FROM `houses` WHERE `house_id` = ? LIMIT 1;")) {
     $stmt->bind_param("i", intval($house_id));

@@ -15,15 +15,8 @@ class Limits {
   }
 }
 
-function GetLimits($presentation_id, $totals = false) {
+function GetLimits($mysqli, $presentation_id, $totals = false) {
   $arr = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
   
   if($stmt = $mysqli -> prepare("SELECT `grade_level`, `amount` FROM `presentation_limits` WHERE `id` = ?;")) {
     $stmt->bind_param("i", $presentation_id);
@@ -66,9 +59,7 @@ function GetLimits($presentation_id, $totals = false) {
 
 $app->get('/limits/', function (Request $request, Response $response) {
   $final_data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
+  $mysqli = $this->db;
 
   $pres_id = array();
   if($stmt = $mysqli -> prepare("SELECT `presentation_id` FROM `presentations`;")) {
@@ -82,14 +73,14 @@ $app->get('/limits/', function (Request $request, Response $response) {
     echo $mysqli->error;
   }
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetLimits($value, isset($request->getQueryParams()['totals']));
+    $final_data[intval($value)] = GetLimits($mysqli, $value, isset($request->getQueryParams()['totals']));
   }
   $response->getBody()->write(json_encode($final_data, JSON_PRETTY_PRINT));
   return $response;
 });
 
 $app->get('/limits/{house_id}', function (Request $request, Response $response) {
-  $data = GetLimits($request->getAttribute('house_id'), isset($request->getQueryParams()['totals']));
+  $data = GetLimits($this->db, $request->getAttribute('house_id'), isset($request->getQueryParams()['totals']));
 
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
   return $response;

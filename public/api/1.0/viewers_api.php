@@ -13,53 +13,7 @@ class Viewer {
   }
 }
 
-function GetViewer($viewer_id, $presentations = false) {
-  global $db_host, $db_user, $db_pass, $db_name;
-
-  $pres = null;
-
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
-  if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `grade_id` FROM `viewers` WHERE `viewer_id` = ? LIMIT 1;")) {
-    $stmt->bind_param("i", $viewer_id);
-    $stmt->execute();
-    $stmt->bind_result($first_name, $last_name, $house_id, $grade_id);
-    while($stmt->fetch()) {
-      $pres = new Viewer();
-      $pres->viewer_id = intval($viewer_id);
-      $pres->first_name = $first_name;
-      $pres->last_name = $last_name;
-      $pres->house_id = $house_id;
-      $pres->grade_id = $grade_id;
-      $pres->presentations = array();
-    }
-    $stmt->close();
-    if($presentations) {
-      $pres_id = array();
-      if($stmt = $mysqli -> prepare("SELECT `presentation` FROM `registrations` WHERE `viewer`=?;")) {
-        $stmt->bind_param("i", $viewer_id);
-        $stmt->execute();
-        $stmt->bind_result($presentation_id);
-        while($stmt->fetch()) {
-          array_push($pres_id, $presentation_id);
-        }
-        $stmt->close();
-      } else {
-        echo $mysqli->error;
-      }
-      $pres->presentations = $pres_id;
-    }
-  } else {
-    echo $mysqli->error;
-  }
-    
-  return $pres;
-}
-function GetViewerM($mysqli, $viewer_id, $presentations = false) {
+function GetViewer($mysqli, $viewer_id, $presentations = false) {
 
   $pres = null;
 
@@ -115,15 +69,13 @@ function GetViewersByPresentation($mysqli, $presentation_id, $presentations = fa
     echo $mysqli->error;
   }
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetViewerM($mysqli, $value, $presentations);
+    $final_data[intval($value)] = GetViewer($mysqli, $value, $presentations);
   }
   return $final_data;
 }
 $app->get('/viewers/', function (Request $request, Response $response) {
   $final_data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
+  $mysqli = $this->db;
 
   $pres_id = array();
   if(!isset($request->getQueryParams()['presentation_id'])) {
@@ -155,7 +107,7 @@ $app->get('/viewers/', function (Request $request, Response $response) {
   
 
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetViewer($value, isset($request->getQueryParams()['presentations']));
+    $final_data[intval($value)] = GetViewer($mysqli, $value, isset($request->getQueryParams()['presentations']));
   }
   $response->getBody()->write(json_encode($final_data, JSON_PRETTY_PRINT));
   return $response;
@@ -171,9 +123,7 @@ $app->post('/viewers/', function(Request $request, Response $response) {
      isset($post_data['grade_id'])
      ) {
     //var_dump($all_gl);
-    global $db_host, $db_user, $db_pass, $db_name;
-    $mysqli = new mysqli($db_host, $db_user, $db_pass);
-    $mysqli -> select_db($db_name);
+    $mysqli = $this->db;
 
     $viewer_id = -1;
     if($stmt = $mysqli->prepare("INSERT INTO `viewers` (`viewer_id`, `first_name`, `last_name`, `email`, `house_id`, `grade_id`) VALUES (NULL, ?, ?, '', ?, ?);")) {
@@ -201,9 +151,9 @@ $app->put('/viewers/', function(Request $request, Response $response) {
   //try to save data
   if(isset($post_data['viewer_id'])) {
     global $db_host, $db_user, $db_pass, $db_name;
-    $mysqli = new mysqli($db_host, $db_user, $db_pass);
+    $mysqli = $this->db;
     $mysqli -> select_db($db_name);
-    $old_data = GetViewer(intval($post_data['viewer_id']));
+    $old_data = GetViewer($mysqli, intval($post_data['viewer_id']));
     if($old_data->viewer_id == intval($post_data['viewer_id'])) {
       $first_name = isset($post_data['first_name']) ? $post_data['first_name'] : $old_data->first_name;
       $last_name = isset($post_data['last_name']) ? $post_data['last_name'] : $old_data->last_name;
@@ -232,7 +182,7 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
   $resp['status'] = false;
   $post_data = $request->getParsedBody();
   global $db_host, $db_user, $db_pass, $db_name;
-    $mysqli = new mysqli($db_host, $db_user, $db_pass);
+    $mysqli = $this->db;
     $mysqli -> select_db($db_name);
   foreach ($post_data as $key => $value) {
     if($stmt = $mysqli->prepare("DELETE FROM `viewers` WHERE `viewer_id` = ?;")) {
@@ -250,7 +200,7 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
 });
 
 $app->get('/viewers/{viewer_id}', function (Request $request, Response $response) {
-  $data = GetViewer($request->getAttribute('viewer_id'), isset($request->getQueryParams()['presentations']));
+  $data = GetViewer($this->db, $request->getAttribute('viewer_id'), isset($request->getQueryParams()['presentations']));
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
 
   return $response;

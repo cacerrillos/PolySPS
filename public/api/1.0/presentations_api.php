@@ -17,17 +17,10 @@ class Presentation {
   }
 }
 
-function GetPresentation($presentation_id, $text = false, $viewers = false) {
-  global $db_host, $db_user, $db_pass, $db_name;
+function GetPresentation($mysqli, $presentation_id, $text = false, $viewers = false) {
 
   $pres = null;
 
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
   if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id` FROM `presentations` WHERE `presentation_id` = ? LIMIT 1;")) {
     $stmt->bind_param("i", $presentation_id);
     $stmt->execute();
@@ -71,9 +64,7 @@ function GetPresentation($presentation_id, $text = false, $viewers = false) {
 
 $app->get('/presentations/', function (Request $request, Response $response) {
   $final_data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
+  $mysqli = $this->db;
 
   $pres_id = array();
   if($stmt = $mysqli -> prepare("SELECT `presentation_id` FROM `presentations`;")) {
@@ -87,7 +78,7 @@ $app->get('/presentations/', function (Request $request, Response $response) {
     echo $mysqli->error;
   }
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetPresentation($value, isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
+    $final_data[intval($value)] = GetPresentation($mysqli, $value, isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
   }
   $response->getBody()->write(json_encode($final_data, JSON_PRETTY_PRINT));
   return $response;
@@ -121,9 +112,7 @@ $app->post('/presentations/', function(Request $request, Response $response) {
       }
     }
     //var_dump($all_gl);
-    global $db_host, $db_user, $db_pass, $db_name;
-    $mysqli = new mysqli($db_host, $db_user, $db_pass);
-    $mysqli -> select_db($db_name);
+    $mysqli = $this->db;
     //create pres entry
     //create text entry
     //create limits entries
@@ -168,9 +157,8 @@ $app->put('/presentations/', function(Request $request, Response $response) {
   $post_data = $request->getParsedBody();
   //try to save data
   if(isset($post_data['presentation_id']) && isset($post_data['presentation_text'])) {
-    global $db_host, $db_user, $db_pass, $db_name;
-    $mysqli = new mysqli($db_host, $db_user, $db_pass);
-    $mysqli -> select_db($db_name);
+    $mysqli = $this->db;
+
     if($stmt = $mysqli->prepare("UPDATE `presentation_text` SET `presentation_text` = ? WHERE `presentation_text`.`presentation_id` = ? LIMIT 1;")) {
       $stmt->bind_param("si", $post_data['presentation_text'], $post_data['presentation_id']);
       $stmt->execute();
@@ -187,12 +175,11 @@ $app->put('/presentations/', function(Request $request, Response $response) {
 });
 
 $app->delete('/presentations/', function (Request $request, Response $response) {
-    $resp = array();
+  $resp = array();
   $resp['status'] = false;
   $post_data = $request->getParsedBody();
-  global $db_host, $db_user, $db_pass, $db_name;
-    $mysqli = new mysqli($db_host, $db_user, $db_pass);
-    $mysqli -> select_db($db_name);
+  $mysqli = $this->db;
+
   foreach ($post_data as $key => $value) {
     if($stmt = $mysqli->prepare("DELETE FROM `presentations` WHERE `presentation_id` = ?;")) {
       $stmt->bind_param("i", $value['presentation_id']);
@@ -214,11 +201,11 @@ $app->get('/presentations/{presentation_id}', function (Request $request, Respon
   if(strpos($raw_str, ',') !== false) {
     $pres_id_arr = explode(",", $raw_str);
     for($x = 0; $x < count($pres_id_arr); $x++) {
-      $data[$pres_id_arr[$x]] = GetPresentation($pres_id_arr[$x], isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
+      $data[$pres_id_arr[$x]] = GetPresentation($this->db, $pres_id_arr[$x], isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
     }
     
   } else {
-    $data = GetPresentation($request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
+    $data = GetPresentation($this->db, $request->getAttribute('presentation_id'), isset($request->getQueryParams()['text']), isset($request->getQueryParams()['viewers']));
   }
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
 

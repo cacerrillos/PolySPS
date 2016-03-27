@@ -12,15 +12,8 @@ class GradeLevel {
   }
 }
 
-function GetGradeLevels() {
+function GetGradeLevels($mysqli) {
   $data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
   if($stmt = $mysqli -> prepare("SELECT `grade_id`,  `grade_name` FROM `grade_levels`;")) {
     $stmt->execute();
     $stmt->bind_result($grade_id, $grade_name);
@@ -36,13 +29,7 @@ function GetGradeLevels() {
 
 $app->get('/grade_levels/', function (Request $request, Response $response) {
   $data = array();
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
+  $mysqli = $this->db;
   if($stmt = $mysqli -> prepare("SELECT `grade_id`,  `grade_name` FROM `grade_levels`;")) {
     $stmt->execute();
     $stmt->bind_result($grade_id, $grade_name);
@@ -58,13 +45,7 @@ $app->get('/grade_levels/', function (Request $request, Response $response) {
 });
 
 $app->get('/grade_levels/{grade_id}', function (Request $request, Response $response) {
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
+  $mysqli = $this->db;
   $grade_id = $request->getAttribute('grade_id');
   if($stmt = $mysqli -> prepare("SELECT `grade_name` FROM `grade_levels` WHERE `grade_id` = ? LIMIT 1;")) {
     $stmt->bind_param("i", intval($grade_id));

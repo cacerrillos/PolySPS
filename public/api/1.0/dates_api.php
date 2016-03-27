@@ -11,13 +11,7 @@ class Date {
 }
 
 $app->get('/dates/', function (Request $request, Response $response) {
-  global $db_host, $db_user, $db_pass, $db_name;
-  $mysqli = new mysqli($db_host, $db_user, $db_pass);
-  $mysqli -> select_db($db_name);
-  if(mysqli_connect_errno()) {
-    echo "Connection Failed: " . mysqli_connect_errno();
-    exit();
-  }
+  $mysqli = $this->db;
   //$grade_id = $request->getAttribute('grade_id');
   $dates = array();
   if($stmt = $mysqli -> prepare("SELECT `date` FROM `dates`;")) {
