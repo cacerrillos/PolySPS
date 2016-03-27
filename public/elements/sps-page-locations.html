@@ -1,32 +1,202 @@
 <!DOCTYPE html>
-<!--
-A comment describing this element
+<dom-module id="sps-locations-delete-dialog">
+<link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
+  <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
+  <style is="custom-style">
 
-Example:
+  </style>
 
-    <my-elem></my-elem>
+  <template>
+    <iron-ajax method="DELETE" id="deleteAjax" url="../api/1.0/locations/" handle-as="json" on-response="onDeleteResp" content-type="application/json"></iron-ajax>
+    <ctech-confirm-dialog id="dialog" on-ctech-dialog-confirm="_onConfirm" on-ctech-dialog-dismiss="_onDismiss" confirm-text="Delete" valid-color="#c62828" modal>
+      <h2>Delete Location</h2>
+      Are you sure you want to delete <b>[[selected.location_name]]</b>?
+    </ctech-confirm-dialog>
+  </template>
 
-Example:
+  <script>
+    Polymer({
+      is: "sps-locations-delete-dialog",
+      properties: {
+        selected: {
+          type: Object
+        }
+      },
+      _onConfirm: function() {
+        var o_out = {};
+        o_out[this.selected.location_id] = this.selected;
+        this.$.deleteAjax.body = JSON.stringify(o_out);
+        this.$.deleteAjax.generateRequest();
+      },
+      _onDismiss: function(e) {
+        
+      },
+      onDeleteResp: function(e){
+        if(e.detail.response.status == true){
+          this.fire('firetoast', { message: "Deleted Location!"});
+          this.fire('reload-locations');
+        } else {
+          if(e.detail.response.error){
+            if(e.detail.response.error == 1451){
+              this.fire('firetoast', { message: "Failed to delete Location! FK error"});
+            }
+          } else {
+            this.fire('firetoast', { message: "Failed to delete Location!"});
+          }
+        }
+      },
+      _onViewersChanged: function(e) {
+        this.$.dt.reload();
+      },
 
-    <my-elem>
-      <h2>Hello my-elem</h2>
-    </my-elem>
+      open: function(){
+        this.$.dialog.open();
+      },
+      ready: function(){
+      }
+    });
+  </script>
+</dom-module>
+<dom-module id="sps-locations-add-dialog">
+  <link rel="import" href="../bower_components/ctech-dialogs/ctech-confirm-dialog.html">
+  <link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+  <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
+  <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
 
-@demo demo/index.html
--->
+  <style is="custom-style">
+    .nomargins { 
+      margin: 0px;
+    }
+    paper-dialog {
+      background-color: white;
+    }
+    .validButton {
+      background-color: #4285f4;
+      color: rgba(255,255,255,1.00);
+    }
+    paper-button {
+      margin-top: 8px;
+    }
+  </style>
+<template>
+  <iron-ajax method="POST" id="createAjax" url="../api/1.0/locations/" handle-as="json" on-response="createResp" content-type="application/json"></iron-ajax>
+  
+  <ctech-confirm-dialog id="mainDialog" on-ctech-dialog-confirm="reqSubmit" on-ctech-dialog-dismiss="resetForm" confirm-text="Create" valid-color="#8BC34A" modal>
+    <div class="layout horizontal">
+      <div class="flex"></div>
+      <h2>New Location</h2>
+      <div class="flex"></div>
+    </div>
+    <div class="layout vertical">
+      <paper-input name="locationName" label="Location Name" on-input="_validateForm" id="locationName" maxlength="255" char-counter></paper-input>
+    </div>
+  </ctech-confirm-dialog>
+</template>
+<script>
+Polymer({
+  is: "sps-locations-add-dialog",
+  properties: {
+    sessionname: String
+    
+  },
+
+  open: function() {
+    this.$.mainDialog.open();
+  },
+
+  reqSubmit: function(e){
+    this.$.createAjax.body =
+      JSON.stringify({
+        'location_name': this.$.locationName.value
+      });
+    this.$.createAjax.generateRequest();
+  },
+  createResp: function(e){
+    if(e.detail.response.status === true){
+      this.resetForm();
+      this.fire('firetoast', { message: "Location added!"});
+      this.fire("reload-locations", { });
+    } else {
+      var det = "NO_DETAILS";
+      if(e.detail.response.status_details) {
+        det = e.detail.response.status_details;
+        switch(det) {
+          case 1062:
+            det = "Duplicate House Name";
+            break;
+          default:
+            break;
+        }
+      }
+      this.fire('firetoast', { message: "FAILED to add Location! [" + det + "]"});
+    }
+    
+  },
+  resetForm: function(e){
+    this.$.locationName.value = "";
+    this.$.mainDialog.invalid = true;
+  },
+  _validateForm: function(e){
+    if(
+       this.$.locationName.value.length > 0) {
+      this.$.mainDialog.invalid = false;
+    } else {
+      this.$.mainDialog.invalid = true;
+    }
+  },
+  ready: function(){
+    this._validateForm();
+  }
+});
+</script>
+</dom-module>
+
 
 <dom-module id="sps-page-locations">
+  <link rel="import" href="../bower_components/ctech-item-managers/ctech-item-managers.html">
   <template>
     <style>
       :host {
         display: block;
       }
     </style>
-    Locations
+    <sps-locations-add-dialog id="addDialog"></sps-locations-add-dialog>
+    <ctech-confirm-dialog id="editDialog">
+      <h2>Edit Location</h2>
+    </ctech-confirm-dialog>
+    <sps-locations-delete-dialog id="deleteDialog" selected="[[selectedLocation]]"></sps-locations-delete-dialog>
+    <div class="container content">
+    <ctech-item-manager-menubar
+          items="{{locations}}"
+          selected="{{selectedLocation}}"
+          attr-for-selected="location_id"
+          attr-for-text="location_name"
+          on-ctech-item-manager-do-add="_doAddLocationDialog"
+          on-ctech-item-manager-do-edit="_doEditLocationDialog"
+          on-ctech-item-manager-do-delete="_doDeleteLocationDialog"
+          ></ctech-item-manager-menubar>
+    </div>
   </template>
   <script>
     Polymer({
-      is: 'sps-page-locations'
+      is: 'sps-page-locations',
+      properties: {
+        locations: {
+          type: Object
+        },
+        selectedLocation: {
+          type: Object
+        }
+      },
+      _doAddLocationDialog: function(e) {
+        this.$.addDialog.open();
+      },
+      _doEditLocationDialog: function(e) {
+        this.$.editDialog.open();
+      },
+      _doDeleteLocationDialog: function(e) {
+        this.$.deleteDialog.open();
+      }
     });
   </script>
 </dom-module>
