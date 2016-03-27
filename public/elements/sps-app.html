@@ -53,6 +53,11 @@ Example:
   <link rel="import" href="sps-page-viewers.html">
   <link rel="import" href="sps-page-presentation-details.html">
   <link rel="import" href="sps-page-viewer-details.html">
+  <link rel="import" href="sps-page-dates.html">
+  <link rel="import" href="sps-page-blocks.html">
+  <link rel="import" href="sps-page-locations.html">
+  <link rel="import" href="sps-page-dashboard.html">
+  <link rel="import" href="sps-page-signup.html">
 
   <style include="iron-flex"></style>
   <template>
@@ -128,13 +133,13 @@ Example:
 
           </paper-submenu>
 
-          <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{!adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="icons:date-range" item-icon></iron-icon><span class="noselect">Dates</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{!adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="icons:view-list" item-icon></iron-icon><span class="noselect">Blocks</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{!adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="maps:place" item-icon></iron-icon><span class="noselect">Locations</span>
           </paper-icon-item>
         </paper-menu>
@@ -161,18 +166,16 @@ Example:
           <div class="flex"></div>
         </div>
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
+          <sps-page-signup data-page="signup"></sps-page-signup>
+          <sps-page-dashboard data-page="dashboard"></sps-page-dashboard>
           <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
           <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" x></sps-page-viewers>
           <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
             viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
-          <polyquiz-page-home data-page="home"></polyquiz-page-home>
-          <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
-          <polyquiz-page-admin data-page="admin" ctx="[[ctx]]"></polyquiz-page-admin>
-          <polyquiz-page-login data-page="login" ctx="[[ctx]]"></polyquiz-page-login>
-          <polyquiz-page-sessions data-page="sessions" ctx="[[ctx]]"></polyquiz-page-sessions>
-          <polyquiz-page-quiz data-page="quiz" ctx="[[ctx]]"></polyquiz-page-quiz>
-          <polyquiz-page-quiz-edit data-page="quizedit" ctx="[[ctx]]"></polyquiz-page-quiz-edit>
+          <sps-page-dates data-page="dates"></sps-page-dates>
+          <sps-page-blocks data-page="blocks"></sps-page-blocks>
+          <sps-page-locations data-page="locations"></sps-page-locations>
         </neon-animated-pages>
 
         <iron-ajax
