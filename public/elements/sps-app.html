@@ -168,9 +168,18 @@ Example:
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
           <sps-page-signup data-page="signup"></sps-page-signup>
           <sps-page-dashboard data-page="dashboard"></sps-page-dashboard>
-          <sps-page-presentations data-page="presentations" ctx="{{ctx}}"></sps-page-presentations>
-          <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
-          <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" x></sps-page-viewers>
+          <sps-page-presentations data-page="presentations" ctx="{{ctx}}" locations="[[locations]]"
+            houses="[[houses]]"
+            dates="[[dates]]"
+            limits="[[limits]]"
+            blocks="[[blocks]]"
+            presentations="[[presentations]]"
+            grade-levels="[[grade_levels]]"
+          ></sps-page-presentations>
+          <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}"
+          presentations="[[presentations]]"
+          presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
+          <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" viewers="[[viewers]]" houses="[[houses]]" grade-levels="[[grade_levels]]"></sps-page-viewers>
           <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
             viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
           <sps-page-dates data-page="dates"></sps-page-dates>
@@ -196,9 +205,15 @@ Example:
            last-response="{{houses}}"></iron-ajax>
        <iron-ajax
            auto
-           url="../api/1.0/presentations/?text"
+           id="presentationData"
+           url="../api/1.0/presentations/?text&viewers"
            handle-as="json"
            last-response="{{presentations}}"></iron-ajax>
+           <iron-ajax
+           auto
+           url="../api/1.0/dates/"
+           handle-as="json"
+           last-response="{{dates}}"></iron-ajax>
        <iron-ajax
            auto
            url="../api/1.0/blocks/"
@@ -291,7 +306,11 @@ Example:
         'polyquiz-admin-do-logout': 'doLogout',
         'polyquiz-admin-status': 'onAdminStatusChanged',
         'scroll-request': '_doScroll',
-        'reload-locations': '_onReloadLocationsRequest'
+        'reload-locations': '_onReloadLocationsRequest',
+        'reload-presentations': '_doReloadPresentations'
+      },
+      _doReloadPresentations: function(e) {
+        this.$.presentationData.generateRequest();
       },
       _onReloadLocationsRequest: function(e) {
         this.$.locationsAjax.generateRequest();
