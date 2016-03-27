@@ -165,7 +165,7 @@ Example:
           <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}" presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" x></sps-page-viewers>
           <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
-            viewers-to-view="[[viewersToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-viewer-details>
+            viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
           <polyquiz-page-home data-page="home"></polyquiz-page-home>
           <polyquiz-page-takeaquiz data-page="takeaquiz" ctx="[[ctx]]"></polyquiz-page-takeaquiz>
           <polyquiz-page-admin data-page="admin" ctx="[[ctx]]"></polyquiz-page-admin>
@@ -186,11 +186,27 @@ Example:
            url="../api/1.0/grade_levels/"
            handle-as="json"
            last-response="{{grade_levels}}"></iron-ajax>
-           <iron-ajax
+       <iron-ajax
            auto
            url="../api/1.0/houses/"
            handle-as="json"
            last-response="{{houses}}"></iron-ajax>
+       <iron-ajax
+           auto
+           url="../api/1.0/presentations/?text"
+           handle-as="json"
+           last-response="{{presentations}}"></iron-ajax>
+       <iron-ajax
+           auto
+           url="../api/1.0/blocks/"
+           handle-as="json"
+           last-response="{{blocks}}"></iron-ajax>
+       <iron-ajax
+           auto
+           url="../api/1.0/locations/?text"
+           handle-as="json"
+           last-response="{{locations}}"></iron-ajax>
+      <iron-ajax auto id="viewersAjax" auto url="../api/1.0/viewers/?presentations" handle-as="json" last-response="{{viewers}}" on-response="_onViewersAjaxResp"></iron-ajax>   
            <!--
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
@@ -222,6 +238,9 @@ Example:
           type: String,
           value: "Home"
         },
+        presentations: {
+          type: Object
+        },
         limits: {
           type: Object
         },
@@ -231,7 +250,16 @@ Example:
         adminStatus: {
           type: Object
         },
+        blocks: {
+          type: Object
+        },
+        locations: {
+          type: Object
+        },
         houses: {
+          type: Object
+        },
+        viewers: {
           type: Object
         },
         presentationsToView: {

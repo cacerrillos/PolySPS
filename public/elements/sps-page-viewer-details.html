@@ -14,6 +14,127 @@ Example:
 
 @demo demo/index.html
 -->
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="viewer-card">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-material {
+        padding: 10px;
+        margin-bottom: 64px;
+      }
+    </style>
+    <paper-material elevation="1">
+      <h3>[[viewer.last_name]], [[viewer.first_name]]</h3>
+      <paper-datatable data="[[_filterByViewer(presentations, viewer.presentations)]]">
+        <paper-datatable-column header="Date" property="block_id">
+          <template>
+            <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="Name" property="last_name">
+          <template>
+            <div>{{item.last_name}}, {{item.first_name}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="House" property="house_id">
+          <template>
+            <div>[[_computedFromObject(houses, value, 'house_name')]]</div>  
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="Topic" property="presentation_text">
+          <!--<template>
+            <div class="layout horizontal flex">
+              <paper-input class="flex" value="{{value}}" no-label-float maxlength="255" char-counter on-keydown="_topicCheckEnter"></paper-input>
+              <paper-icon-button icon="icons:save" on-click="_saveTopic"></paper-icon-button>
+              <paper-icon-button icon="icons:close" on-click="_resetTopic"></paper-icon-button>
+            </div>
+          </template>-->
+        </paper-datatable-column>
+        <paper-datatable-column header="Location" property="location_id">
+          <template>
+            <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
+          </template>
+        </paper-datatable-column>
+        <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
+          <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
+            <template>
+              <div><b>{{_computedFromLimits(limits, value, grades.grade_id)}}</b>/{{_computedFromLimitsMax(limits, value, grades.grade_id)}}</div>
+            </template>
+          </paper-datatable-column>
+        </template>
+        <!--<paper-datatable-column header="Total" property="presentation_id" class="only-large">
+          <template>
+            <div><b>{{_computedFromLimitsTotal(limits, value)}}</b>/{{_computedFromLimitsTotalMax(limits, value)}}</div>
+          </template>
+        </paper-datatable-column>-->
+      </paper-datatable>
+    </paper-material>
+  </template>
+  <script>
+    Polymer({
+      is: 'viewer-card',
+      properties: {
+        viewer: {
+          type: Object
+        },
+        locations: {
+          type: Object
+        },
+        houses: {
+          type: Object
+        },
+        blocks: {
+          type: Object
+        }
+      },
+      _filterByViewer: function(presentations, viewer_id) {
+        console.log(viewer_id);
+        var arr = this._objectArrayToArray(presentations);
+        for(var x = 0; x < arr.length; x++) {
+          if($.inArray(arr[x].presentation_id, viewer_id) === -1) {
+            delete arr[x];
+          }
+        }
+        console.log(arr);
+        return arr;
+      },
+      _trimDate: function(d) {
+        return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
+      },
+      _computedFromObject: function(obj_arr, e, attr) {
+        return obj_arr[e][attr];
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      ready: function(e) {
+
+      }
+
+    });
+  </script>
+</dom-module>
+
 
 <dom-module id="sps-page-viewer-details">
   <template>
@@ -22,9 +143,11 @@ Example:
         display: block;
       }
     </style>
+    <div class="container content" style="margin-bottom: 124px;">
     <template is="dom-repeat" items="[[viewersToView]]" as="viewer">
-        <div>[[viewer]]</div>
+        <viewer-card viewer="[[_getViewer(viewers, viewer)]]" presentations="[[presentations]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]"></viewer-card>
     </template>
+    </div>
   </template>
   <script>
     Polymer({
@@ -32,7 +155,34 @@ Example:
       properties: {
         viewersToView: {
           type: Array
+        },
+        viewers: {
+          type: Object
+        },
+        houses: {
+          type: Object
+        },
+        blocks: {
+          type: Object
+        },
+        locations: {
+          type: Object
+        },
+        presentations: {
+          type: Object
         }
+      },
+
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
+      _getViewer: function(arr, id) {
+        return arr[id];
+      },
+      _computedFromObject: function(obj_arr, e, attr) {
+        return obj_arr[e][attr];
       },
       ready: function() {
         
