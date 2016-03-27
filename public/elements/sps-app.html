@@ -175,7 +175,7 @@ Example:
             viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
           <sps-page-dates data-page="dates"></sps-page-dates>
           <sps-page-blocks data-page="blocks"></sps-page-blocks>
-          <sps-page-locations data-page="locations"></sps-page-locations>
+          <sps-page-locations data-page="locations" locations="[[locations]]"></sps-page-locations>
         </neon-animated-pages>
 
         <iron-ajax
@@ -206,6 +206,7 @@ Example:
            last-response="{{blocks}}"></iron-ajax>
        <iron-ajax
            auto
+           id="locationsAjax"
            url="../api/1.0/locations/?text"
            handle-as="json"
            last-response="{{locations}}"></iron-ajax>
@@ -289,7 +290,11 @@ Example:
         'polyquiz-admin-check-status': 'checkAdminStatus',
         'polyquiz-admin-do-logout': 'doLogout',
         'polyquiz-admin-status': 'onAdminStatusChanged',
-        'scroll-request': '_doScroll'
+        'scroll-request': '_doScroll',
+        'reload-locations': '_onReloadLocationsRequest'
+      },
+      _onReloadLocationsRequest: function(e) {
+        this.$.locationsAjax.generateRequest();
       },
       _doScroll: function(e) {
         console.log(e);
