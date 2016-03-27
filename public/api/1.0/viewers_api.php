@@ -150,9 +150,7 @@ $app->put('/viewers/', function(Request $request, Response $response) {
   $post_data = $request->getParsedBody();
   //try to save data
   if(isset($post_data['viewer_id'])) {
-    global $db_host, $db_user, $db_pass, $db_name;
     $mysqli = $this->db;
-    $mysqli -> select_db($db_name);
     $old_data = GetViewer($mysqli, intval($post_data['viewer_id']));
     if($old_data->viewer_id == intval($post_data['viewer_id'])) {
       $first_name = isset($post_data['first_name']) ? $post_data['first_name'] : $old_data->first_name;
@@ -181,9 +179,7 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
   $resp = array();
   $resp['status'] = false;
   $post_data = $request->getParsedBody();
-  global $db_host, $db_user, $db_pass, $db_name;
     $mysqli = $this->db;
-    $mysqli -> select_db($db_name);
   foreach ($post_data as $key => $value) {
     if($stmt = $mysqli->prepare("DELETE FROM `viewers` WHERE `viewer_id` = ?;")) {
       $stmt->bind_param("i", $value['viewer_id']);
@@ -191,6 +187,7 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
       if($stmt->affected_rows > 0) {
         $resp['status'] = true;
       }
+      $stmt->close();
     } else {
       echo $mysqli->error;
     }
