@@ -156,6 +156,14 @@ page('/viewers', function(ctx, next) {
 	mainapp.ctx = ctx;
 });
 
+page('/viewers/details/:ids', function(ctx, next) {
+	mainapp.page = "viewer_details";
+	mainapp.pageTitle = "Viewer Details";
+	mainapp.ctx = ctx;
+	mainapp.viewersToView = ctx.params.ids.split(",");
+	console.log(ctx.params.ids.split(","));
+});
+
 page('/viewers/:grade_id', function(ctx, next) {
 	mainapp.page = "viewers";
 	mainapp.pageTitle = "Viewers";

@@ -52,6 +52,7 @@ Example:
   <link rel="import" href="sps-page-presentations.html">
   <link rel="import" href="sps-page-viewers.html">
   <link rel="import" href="sps-page-presentation-details.html">
+  <link rel="import" href="sps-page-viewer-details.html">
 
   <style include="iron-flex"></style>
   <template>
@@ -234,6 +235,10 @@ Example:
           type: Object
         },
         presentationsToView: {
+          type: Array,
+          value: []
+        },
+        viewersToView: {
           type: Array,
           value: []
         },

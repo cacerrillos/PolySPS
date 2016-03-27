@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="sps-page-viewer-details">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <template is="dom-repeat" items="[[viewersToView]]" as="viewer">
+        <div>[[viewer]]</div>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      is: 'sps-page-viewer-details',
+      properties: {
+        viewersToView: {
+          type: Array
+        }
+      },
+      ready: function() {
+        
+      }
+    });
+  </script>
+</dom-module>
