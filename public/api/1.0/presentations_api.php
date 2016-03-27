@@ -98,7 +98,7 @@ $app->post('/presentations/', function(Request $request, Response $response) {
      isset($post_data['block_id']) &&
      isset($post_data['grades'])
      ) {
-    $official_gl = GetGradeLevels();
+    $official_gl = GetGradeLevels($this->db);
     $all_gl = true;
     foreach ($official_gl as $key => $value) {
       if(isset($post_data['grades'][$value->grade_id])) {
