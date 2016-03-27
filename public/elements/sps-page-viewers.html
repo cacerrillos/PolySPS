@@ -41,14 +41,6 @@
       }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
-    <iron-ajax id="viewersAjax" auto url="../api/1.0/viewers/" handle-as="json" last-response="{{viewers}}" on-response="_onViewersAjaxResp"></iron-ajax>
-    <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
-    <!--<iron-ajax id="dateData" auto url="../api/1.0/dates/" handle-as="json" last-response="{{dates}}"></iron-ajax>
-    <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>
-    <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
-    <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
-    <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>-->
-    <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
     
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
