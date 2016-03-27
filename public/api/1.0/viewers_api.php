@@ -13,7 +13,7 @@ class Viewer {
   }
 }
 
-function GetViewer($viewer_id) {
+function GetViewer($viewer_id, $presentations = false) {
   global $db_host, $db_user, $db_pass, $db_name;
 
   $pres = null;
@@ -35,15 +35,31 @@ function GetViewer($viewer_id) {
       $pres->last_name = $last_name;
       $pres->house_id = $house_id;
       $pres->grade_id = $grade_id;
+      $pres->presentations = array();
     }
     $stmt->close();
+    if($presentations) {
+      $pres_id = array();
+      if($stmt = $mysqli -> prepare("SELECT `presentation` FROM `registrations` WHERE `viewer`=?;")) {
+        $stmt->bind_param("i", $viewer_id);
+        $stmt->execute();
+        $stmt->bind_result($presentation_id);
+        while($stmt->fetch()) {
+          array_push($pres_id, $presentation_id);
+        }
+        $stmt->close();
+      } else {
+        echo $mysqli->error;
+      }
+      $pres->presentations = $pres_id;
+    }
   } else {
     echo $mysqli->error;
   }
     
   return $pres;
 }
-function GetViewerM($mysqli, $viewer_id) {
+function GetViewerM($mysqli, $viewer_id, $presentations = false) {
 
   $pres = null;
 
@@ -58,16 +74,33 @@ function GetViewerM($mysqli, $viewer_id) {
       $pres->last_name = $last_name;
       $pres->house_id = $house_id;
       $pres->grade_id = $grade_id;
+      $pres->presentations = array();
     }
     $stmt->close();
+    if($presentations) {
+      $pres_id = array();
+      if($stmt = $mysqli -> prepare("SELECT `presentation` FROM `registrations` WHERE `viewer`=?;")) {
+        $stmt->bind_param("i", $viewer_id);
+        $stmt->execute();
+        $stmt->bind_result($presentation_id);
+        while($stmt->fetch()) {
+          array_push($pres_id, $presentation_id);
+        }
+        $stmt->close();
+      } else {
+        echo $mysqli->error;
+      }
+      $pres->presentations = $pres_id;
+    }
   } else {
     echo $mysqli->error;
   }
-    
+
+
   return $pres;
 }
 
-function GetViewersByPresentation($mysqli, $presentation_id) {
+function GetViewersByPresentation($mysqli, $presentation_id, $presentations = false) {
   $final_data = array();
   $pres_id = array();
   if($stmt = $mysqli -> prepare("SELECT `viewer` FROM `registrations` WHERE `presentation`=?;")) {
@@ -82,7 +115,7 @@ function GetViewersByPresentation($mysqli, $presentation_id) {
     echo $mysqli->error;
   }
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetViewerM($mysqli, $value);
+    $final_data[intval($value)] = GetViewerM($mysqli, $value, $presentations);
   }
   return $final_data;
 }
@@ -122,7 +155,7 @@ $app->get('/viewers/', function (Request $request, Response $response) {
   
 
   foreach ($pres_id as $key => $value) {
-    $final_data[intval($value)] = GetViewer($value);
+    $final_data[intval($value)] = GetViewer($value, isset($request->getQueryParams()['presentations']));
   }
   $response->getBody()->write(json_encode($final_data, JSON_PRETTY_PRINT));
   return $response;
@@ -217,7 +250,7 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
 });
 
 $app->get('/viewers/{viewer_id}', function (Request $request, Response $response) {
-  $data = GetViewer($request->getAttribute('viewer_id'));
+  $data = GetViewer($request->getAttribute('viewer_id'), isset($request->getQueryParams()['presentations']));
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
 
   return $response;
