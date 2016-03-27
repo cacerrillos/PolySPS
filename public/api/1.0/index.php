@@ -19,7 +19,23 @@ session_start();
 
 // Instantiate the app
 $settings = require __DIR__ . '/../src/settings.php';
-$app = new \Slim\App();
+include("../../../config.php");
+
+$config['db']['host'] = $db_host;
+$config['db']['user'] = $db_user;
+$config['db']['pass'] = $db_pass;
+$config['db']['name'] = $db_name;
+
+$app = new \Slim\App($settings);
+
+$container = $app->getContainer();
+
+
+$container['db'] = new mysqli($db_host, $db_user, $db_pass);
+$container['db'] -> select_db($db_name);
+if(mysqli_connect_errno()) {
+  echo "Connection Failed: " . mysqli_connect_errno();
+}
 
 // Set up dependencies
 //require __DIR__ . '/../src/dependencies.php';
@@ -31,7 +47,7 @@ $app = new \Slim\App();
 //require __DIR__ . '/../src/routes.php';
 
 // Run app
-include("../../../config.php");
+
 
 
 include("houses_api.php");
@@ -51,7 +67,6 @@ include("limits_api.php");
 include("viewers_api.php");
 
 $app->post('/admin/login', function(Request $request, Response $response) {
-  global $mysqli;
   session_destroy();
   session_start();
 
@@ -61,29 +76,25 @@ $app->post('/admin/login', function(Request $request, Response $response) {
   $result['status'] = false;
   $result['user'] = $_POST_JSON['user'];
   if(count($_POST_JSON) > 0){
-    if(mysqli_connect_errno()) {
-      $result['status_details'] = "Connection Failed: " . mysqli_connect_errno();
+    if($stmt = $this->db -> prepare("SELECT `user_id`, `email` FROM `admin` WHERE email = ? AND password = ? LIMIT 1;")){
+      $stmt -> bind_param("ss", $_POST_JSON['user'], md5($_POST_JSON['pass']));
+      $stmt -> execute();
+      $stmt -> bind_result($data['id'], $data['email']);
+      $stmt -> store_result();
+      $stmt -> fetch();
+      $num = $stmt -> num_rows;
+      $stmt -> close();
     } else {
-      if($stmt = $mysqli -> prepare("SELECT `user_id`, `email` FROM `admin` WHERE email = ? AND password = ? LIMIT 1;")){
-        $stmt -> bind_param("ss", $_POST_JSON['user'], md5($_POST_JSON['pass']));
-        $stmt -> execute();
-        $stmt -> bind_result($data['id'], $data['email']);
-        $stmt -> store_result();
-        $stmt -> fetch();
-        $num = $stmt -> num_rows;
-        $stmt -> close();
-      } else {
-        $result['status_details'] = $mysqli->error;
-      }
-      if($num==1){
-        $_SESSION['is_admin'] = "set";
-        $_SESSION['email'] = $data['email'];
-        //$_SESSION['name'] = $data['name'];
-        $_SESSION['dbext'] = $data['id'];
-        $_SESSION['admin_id_num'] = $data['id'];
-        $_SESSION['permsid'] = $data['permsid'];
-        $result['status'] = true;
-      }
+      $result['status_details'] = $this->db->error;
+    }
+    if($num==1){
+      $_SESSION['is_admin'] = "set";
+      $_SESSION['email'] = $data['email'];
+      //$_SESSION['name'] = $data['name'];
+      $_SESSION['dbext'] = $data['id'];
+      $_SESSION['admin_id_num'] = $data['id'];
+      $_SESSION['permsid'] = $data['permsid'];
+      $result['status'] = true;
     }
   }
   $response->getBody()->write(json_encode($result, JSON_PRETTY_PRINT));
@@ -122,7 +133,6 @@ $app->get('/admin/logout', function(Request $request, Response $response) {
 
 
 $app->get('/', function (Request $request, Response $response) {
-
     $response->getBody()->write(json_encode(true, JSON_PRETTY_PRINT));
 
     return $response;
