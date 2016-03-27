@@ -376,14 +376,6 @@ Example:
 
     </style>
     
-    <iron-ajax id="presAjax" url="../api/1.0/presentations/" handle-as="json" last-response="{{presentations}}"></iron-ajax>
-
-    <iron-ajax
-        id="viewersAjax"
-         url="..//api/1.0/viewers/"
-         handle-as="json"
-         on-response="handleResponse"></iron-ajax>
-
     <div class="container content" style="margin-bottom: 124px;">
     <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
       
@@ -404,9 +396,7 @@ Example:
           observer: '_onContextChanged'
         },
         presentations: {
-          type: Object,
-          value: {},
-          observer: '_onPresentationsChanged'
+          type: Object
         },
         presentationsToView: {
           type: Array,
@@ -471,7 +461,7 @@ Example:
         console.log(e);
       },
       _onPresentationsToViewChanged: function(e) {
-        this._doAjax();        
+        //this.fire('reload-presentations');
       },
       _doAddDialog: function(e) {
         console.log(e);
@@ -502,22 +492,13 @@ Example:
         this.$.tmp.render();
         this.$.dt.reload();
       },
-      _onPresentationsChanged: function(e) {
-        console.log(e);
-        console.log("PRES CHANGED")
-        this.$.tmp.render();
-      },
       _onContextChanged: function(e) {
         if(mainapp.page !== "presentation_details") {
           this.globalSelection = {};
         } else {
-          this._doAjax();
+          //this.fire('reload-presentations');
         }
         
-      },
-      _doAjax: function() {
-        this.$.presAjax.url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "?text&viewers";
-        this.$.presAjax.generateRequest();
       },
       ready: function() {
         console.log(this.ctx);
