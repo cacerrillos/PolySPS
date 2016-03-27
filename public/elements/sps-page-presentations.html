@@ -37,13 +37,6 @@
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
 
-    <iron-ajax id="houseData" auto url="../api/1.0/houses/" handle-as="json" last-response="{{houses}}"></iron-ajax>
-    <iron-ajax id="dateData" auto url="../api/1.0/dates/" handle-as="json" last-response="{{dates}}"></iron-ajax>
-    <iron-ajax id="blockData" auto url="../api/1.0/blocks/" handle-as="json" last-response="{{blocks}}"></iron-ajax>
-    <iron-ajax id="locationData" auto url="../api/1.0/locations/" handle-as="json" last-response="{{locations}}"></iron-ajax>
-    <iron-ajax id="limitsData" auto url="../api/1.0/limits/?totals" handle-as="json" last-response="{{limits}}"></iron-ajax>
-    <iron-ajax id="gradeLevelData" auto url="../api/1.0/grade_levels/" handle-as="json" last-response="{{gradeLevels}}"></iron-ajax>
-    <iron-ajax id="presentationData" auto url="../api/1.0/presentations/?text" handle-as="json" last-response="{{presentations}}"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
     <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
@@ -141,7 +134,6 @@
       },
       _doReloadPresentations: function(e) {
         this.$.dt.deselectAll();
-        this.$.presentationData.generateRequest();
       },
       _doAddDialog: function(e) {
         this.$.presAddDialog.open();
@@ -236,10 +228,18 @@
         return obj_arr[e][attr];
       },
       _computedFromLimits: function(limits, pres, grade) {
-        return limits[pres][grade].total;
+        if(typeof limits[pres] === 'undefined') {
+          return "?";
+        } else {
+          return limits[pres][grade].total;
+        }
       },
       _computedFromLimitsMax: function(limits, pres, grade) {
-        return limits[pres][grade].amount;
+        if(typeof limits[pres] === 'undefined') {
+          return "?";
+        } else {
+          return limits[pres][grade].amount;
+        }
       },
       _computedFromLimitsTotal: function(limits, pres) {
         var total = 0;
@@ -264,7 +264,7 @@
       ready: function(e) {
         var self = this;
         setInterval(function() {
-          self.$.limitsData.generateRequest();
+          self.fire('reload-limits');
         }, 3000);
         this._refreshActionButtons();
       }
