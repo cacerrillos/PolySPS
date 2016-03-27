@@ -167,6 +167,15 @@ Example:
       _doAddDialog: function(e) {
         console.log(e);
       },
+      _doDetailsPage: function(e) {
+        var arr = [];
+        for(var k in this.selectedViewers[this.presentationId]) {
+          if(!this.selectedViewers[this.presentationId].hasOwnProperty(k)) continue;
+          arr.push(k);
+        }
+        page('/viewers/details/' + arr.join(","));
+        this.$.dt.deselectAll();
+      },
       _doRemoveDialog: function(e) {
         console.log(e);
       },
@@ -469,6 +478,19 @@ Example:
       },
       _doRemoveDialog: function(e) {
         console.log(e);
+      },
+      _doDetailsPage: function(e) {
+        var arr = [];
+        for(var k in this.globalSelection) {
+          if(!this.globalSelection.hasOwnProperty(k)) continue;
+          for(var ki in this.globalSelection[k].selected) {
+            if(!this.globalSelection[k].selected.hasOwnProperty(ki)) continue;
+            if($.inArray(ki, arr) == -1) {
+              arr.push(ki);
+            }
+          }
+        }
+        page('/viewers/details/' + arr.join(","));
       },
       _doSwapDialog: function(e) {
         console.log(e);
