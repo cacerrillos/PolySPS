@@ -184,7 +184,7 @@ Example:
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" viewers="[[viewers]]" houses="[[houses]]" grade-levels="[[grade_levels]]"></sps-page-viewers>
           <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
             viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
-          <sps-page-dates data-page="dates"></sps-page-dates>
+          <sps-page-dates data-page="dates" dates="[[dates]]"></sps-page-dates>
           <sps-page-blocks data-page="blocks" blocks="[[blocks]]"></sps-page-blocks>
           <sps-page-locations data-page="locations" locations="[[locations]]"></sps-page-locations>
         </neon-animated-pages>
@@ -213,6 +213,7 @@ Example:
            last-response="{{presentations}}"></iron-ajax>
            <iron-ajax
            auto
+           id="datesAjax"
            url="../api/1.0/dates/"
            handle-as="json"
            last-response="{{dates}}"></iron-ajax>
