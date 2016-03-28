@@ -138,7 +138,7 @@
       <ctech-dropdown-selector id="houseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
 
 
-      <ctech-dropdown-selector id="dateSelector" default-text="Select a Date" items="[[dates]]" attr-for-selected="date" attr-for-text="date" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
+      <ctech-dropdown-selector id="dateSelector" default-text="Select a Date" items="[[_computeDates(dates)]]" attr-for-selected="date" attr-for-text="date_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
       <ctech-dropdown-selector id="blockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
       <ctech-dropdown-selector id="locationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
       <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
@@ -168,6 +168,17 @@ Polymer({
     sessionname: String
     
   },
+  _computeDates: function(e) {
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          var str = e[k]['date'].toString();
+          var y = str.substring(0, 4);
+          var m = str.substring(4, 6);
+          var d = str.substring(6, 8);
+          e[k]['date_name'] = new Date(y, m - 1, d).toDateString();
+        }
+        return e;
+      },
   _onGradesChanged: function(e) {
     this.gradesN = this.grades;
     for (var key in this.grades) {
