@@ -185,7 +185,7 @@ Example:
           <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
             viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
           <sps-page-dates data-page="dates"></sps-page-dates>
-          <sps-page-blocks data-page="blocks"></sps-page-blocks>
+          <sps-page-blocks data-page="blocks" blocks="[[blocks]]"></sps-page-blocks>
           <sps-page-locations data-page="locations" locations="[[locations]]"></sps-page-locations>
         </neon-animated-pages>
 
@@ -218,6 +218,7 @@ Example:
            last-response="{{dates}}"></iron-ajax>
        <iron-ajax
            auto
+           id="blocksAjax"
            url="../api/1.0/blocks/"
            handle-as="json"
            last-response="{{blocks}}"></iron-ajax>
@@ -309,7 +310,11 @@ Example:
         'polyquiz-admin-status': 'onAdminStatusChanged',
         'scroll-request': '_doScroll',
         'reload-locations': '_onReloadLocationsRequest',
-        'reload-presentations': '_doReloadPresentations'
+        'reload-presentations': '_doReloadPresentations',
+        'reload-blocks': '_doReloadBlocks'
+      },
+      _doReloadBlocks: function(e) {
+        this.$.blocksAjax.generateRequest();
       },
       _doReloadPresentations: function(e) {
         this.$.presentationData.generateRequest();
