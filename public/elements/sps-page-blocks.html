@@ -23,7 +23,7 @@ Example:
         display: block;
       }
     </style>
-    <iron-ajax method="POST" id="ajax" url="../api/1.0/blocks/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
+    <iron-ajax id="ajax" url="../api/1.0/blocks/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
 
     
     <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
