@@ -14,19 +14,153 @@ Example:
 
 @demo demo/index.html
 -->
-
 <dom-module id="sps-page-blocks">
+  <link rel="import" href="../bower_components/ctech-item-managers/ctech-item-managers.html">
+  <link rel="import" href="sps-elements.html">
   <template>
     <style>
       :host {
         display: block;
       }
     </style>
-    BLOCKS
+    <iron-ajax method="POST" id="ajax" url="../api/1.0/blocks/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
+
+    
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>New Block</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input label="Block Name" id="blockName" maxlength="255" char-counter class="ctech-input"></paper-input>
+      </div>
+    </ctech-confirm-dialog>
+
+
+    <ctech-confirm-dialog id="editDialog" on-ctech-dialog-confirm="doEdit" confirm-text="Edit" valid-color="#2196f3" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Edit Block</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input label="Block Name" maxlength="255" char-counter class="ctech-input" value="{{editBlockName}}"></paper-input>
+      </div>
+    </ctech-confirm-dialog>
+
+    <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Delete Block</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <div>Are you sure you want to delete <b>[[selectedBlock.block_name]]</b>?</div>
+      </div>
+    </ctech-confirm-dialog>
+
+    <div class="container content">
+    <ctech-item-manager-menubar
+          items="{{blocks}}"
+          selected="{{selectedBlock}}"
+          attr-for-selected="block_id"
+          attr-for-text="block_name"
+          on-ctech-item-manager-do-add="_doAddBlockDialog"
+          on-ctech-item-manager-do-edit="_doEditBlockDialog"
+          on-ctech-item-manager-do-delete="_doDeleteBlockDialog"
+          ></ctech-item-manager-menubar>
+    </div>
   </template>
   <script>
     Polymer({
-      is: 'sps-page-blocks'
+      is: 'sps-page-blocks',
+      properties: {
+        editBlockName: {
+          type: String
+        }
+      },
+      _doAddBlockDialog: function () {
+        this.$.addDialog.open();
+      },
+      _doEditBlockDialog: function () {
+        this.editBlockName = this.selectedBlock.block_name;
+        this.$.editDialog._validateForm();
+        this.$.editDialog.open();
+      },
+      _doDeleteBlockDialog: function () {
+        this.$.deleteDialog.open();
+      },
+
+      doAdd: function(e){
+        this.$.ajax.method = "POST";
+        this.$.ajax.body =
+          JSON.stringify({
+            'block_name': this.$.blockName.value
+          });
+        this.$.ajax.generateRequest();
+      },
+      doEdit: function(e){
+        this.$.ajax.method = "PUT";
+        this.$.ajax.body =
+          JSON.stringify({
+            'block_id': this.selectedBlock.block_id,
+            'block_name': this.editBlockName
+          });
+        this.$.ajax.generateRequest();
+      },
+      doDelete: function(e){
+        this.$.ajax.method = "DELETE";
+        var o_out = {};
+        o_out[this.selectedBlock.block_id] = this.selectedBlock;
+        this.$.ajax.body = JSON.stringify(o_out);
+        this.$.ajax.generateRequest();
+      },
+
+      ajaxResponse: function(e){
+        if(e.detail.response.status === true){
+          this.$.addDialog.resetForm();
+          this.$.editDialog.resetForm();
+          var action_word = "";
+          switch(e.srcElement.method) {
+            case "DELETE":
+              action_word = "deleted";
+              break;
+            case "POST":
+              action_word = "added";
+              break;
+            case "PUT":
+              action_word = "updated";
+          }
+          this.fire('firetoast', { message: "Block " + action_word + "!"});
+          this.fire("reload-blocks", { });
+        } else {
+          var det = "NO_DETAILS";
+          if(e.detail.response.status_details) {
+            det = e.detail.response.status_details;
+            switch(det) {
+              case 1062:
+                det = "Duplicate House Name";
+                break;
+              default:
+                break;
+            }
+          }
+          var action_word = "";
+          switch(e.srcElement.method) {
+            case "DELETE":
+              action_word = "delete";
+              break;
+            case "POST":
+              action_word = "add";
+              break;
+            case "PUT":
+              action_word = "update";
+          }
+          this.fire('firetoast', { message: "FAILED to " + action_word + " Block! [" + det + "]"});
+        }
+        
+      },
     });
   </script>
 </dom-module>
