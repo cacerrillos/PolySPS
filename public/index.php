@@ -194,6 +194,16 @@ page('/locations', function(ctx, next) {
 	mainapp.pageTitle = "Locations";
 	mainapp.ctx = ctx;
 });
+page('/grades', function(ctx, next) {
+	mainapp.page = "grades";
+	mainapp.pageTitle = "Grades";
+	mainapp.ctx = ctx;
+});
+page('/houses', function(ctx, next) {
+	mainapp.page = "houses";
+	mainapp.pageTitle = "Houses";
+	mainapp.ctx = ctx;
+});
 
 
 //page('*', handleSimplePage);
