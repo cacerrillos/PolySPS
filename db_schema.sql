@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1:23306
--- Generation Time: Mar 27, 2016 at 06:14 AM
+-- Generation Time: Mar 28, 2016 at 10:18 PM
 -- Server version: 5.6.27-log
 -- PHP Version: 7.0.4
 
@@ -14,7 +14,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `sps`
@@ -32,13 +31,6 @@ CREATE TABLE `admin` (
   `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `admin`
---
-
-INSERT INTO `admin` (`id`, `email`, `password`) VALUES
-(1, 'admin', '5f4dcc3b5aa765d61d8327deb882cf99');
-
 -- --------------------------------------------------------
 
 --
@@ -50,16 +42,6 @@ CREATE TABLE `blocks` (
   `block_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `blocks`
---
-
-INSERT INTO `blocks` (`block_id`, `block_name`) VALUES
-(1, '1st'),
-(2, '2nd'),
-(3, '3rd'),
-(4, '4th');
-
 -- --------------------------------------------------------
 
 --
@@ -70,13 +52,6 @@ CREATE TABLE `dates` (
   `date` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `dates`
---
-
-INSERT INTO `dates` (`date`) VALUES
-(20160314);
-
 -- --------------------------------------------------------
 
 --
@@ -85,16 +60,9 @@ INSERT INTO `dates` (`date`) VALUES
 
 CREATE TABLE `grade_levels` (
   `grade_id` int(11) UNSIGNED NOT NULL,
-  `grade_name` varchar(255) NOT NULL
+  `grade_name` varchar(255) NOT NULL,
+  `default_amount` int(10) UNSIGNED NOT NULL DEFAULT '17'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `grade_levels`
---
-
-INSERT INTO `grade_levels` (`grade_id`, `grade_name`) VALUES
-(1, '11th'),
-(2, '12th');
 
 -- --------------------------------------------------------
 
@@ -107,16 +75,6 @@ CREATE TABLE `houses` (
   `house_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `houses`
---
-
-INSERT INTO `houses` (`house_id`, `house_name`) VALUES
-(3, 'East'),
-(1, 'North'),
-(2, 'South'),
-(4, 'West');
-
 -- --------------------------------------------------------
 
 --
@@ -127,13 +85,6 @@ CREATE TABLE `locations` (
   `location_id` int(10) UNSIGNED NOT NULL,
   `location_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `locations`
---
-
-INSERT INTO `locations` (`location_id`, `location_name`) VALUES
-(1, 'MPR');
 
 -- --------------------------------------------------------
 
@@ -148,7 +99,8 @@ CREATE TABLE `presentations` (
   `house_id` int(10) UNSIGNED NOT NULL,
   `date` int(11) UNSIGNED NOT NULL,
   `block_id` int(11) UNSIGNED NOT NULL,
-  `location_id` int(11) UNSIGNED NOT NULL
+  `location_id` int(11) UNSIGNED NOT NULL,
+  `claimed` tinyint(3) UNSIGNED NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -270,7 +222,7 @@ ALTER TABLE `presentations`
 --
 ALTER TABLE `presentation_limits`
   ADD PRIMARY KEY (`id`,`grade_level`) USING BTREE,
-  ADD KEY `grade_level` (`grade_level`);
+  ADD KEY `presentation_limits_ibfk_2` (`grade_level`);
 
 --
 -- Indexes for table `presentation_text`
@@ -312,27 +264,27 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `blocks`
 --
 ALTER TABLE `blocks`
-  MODIFY `block_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `block_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `grade_levels`
 --
 ALTER TABLE `grade_levels`
-  MODIFY `grade_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `grade_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `houses`
 --
 ALTER TABLE `houses`
-  MODIFY `house_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `house_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 --
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
-  MODIFY `location_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `location_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `presentations`
 --
 ALTER TABLE `presentations`
-  MODIFY `presentation_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `presentation_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 --
 -- AUTO_INCREMENT for table `viewers`
 --
@@ -356,7 +308,7 @@ ALTER TABLE `presentations`
 --
 ALTER TABLE `presentation_limits`
   ADD CONSTRAINT `presentation_limits_ibfk_1` FOREIGN KEY (`id`) REFERENCES `presentations` (`presentation_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `presentation_limits_ibfk_2` FOREIGN KEY (`grade_level`) REFERENCES `grade_levels` (`grade_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `presentation_limits_ibfk_2` FOREIGN KEY (`grade_level`) REFERENCES `grade_levels` (`grade_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `presentation_text`
