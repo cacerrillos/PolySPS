@@ -73,20 +73,51 @@ $app->post('/grade_levels/', function(Request $request, Response $response) {
   if(isset($post_data['grade_name']) && isset($post_data['default_amount'])) {
     //var_dump($all_gl);
     $mysqli = $this->db;
-
+    $new_id = -1;
     if($stmt = $mysqli->prepare("INSERT INTO `grade_levels` (`grade_id`, `grade_name`, `default_amount`) VALUES (NULL, ?, ?);")) {
       $stmt->bind_param("si", $post_data['grade_name'], $post_data['default_amount']);
       $stmt->execute();
       if($stmt->affected_rows == 1) {
         $status['status'] = true;
+        $new_id = $stmt->insert_id;
       }
       $stmt->close();
     } else {
       echo $mysqli->error;
     }
     //
+    $arr = array();
     if($stmt = $mysqli->prepare("SELECT DISTINCT(`id`) FROM `presentation_limits`;")) {
-
+      $stmt->execute();
+      $stmt->bind_result($id);
+      while($stmt->fetch()) {
+        array_push($arr, $id);
+      }
+      $stmt->close();
+      for($x = 0; $x < count($arr); $x++) {
+        if($stmt = $mysqli->prepare("SELECT `id`, `grade_level`, `amount` FROM `presentation_limits` WHERE `id` = ? AND `grade_level` = ?;")) {
+          $stmt->bind_param("ii", $arr[$x], $new_id);
+          $stmt->execute();
+          if($stmt->num_rows == 0) {
+            $stmt->close();
+            if($stmt = $mysqli->prepare("INSERT INTO `presentation_limits` (`id`, `grade_level`, `amount`) VALUES (?, ?, ?);")) {
+              $stmt->bind_param("iii", $arr[$x], $new_id, $post_data['default_amount']);
+              $stmt->execute();
+              $stmt->close();
+            } else {
+              echo $mysqli->error;
+            }
+            //do insert
+          } else {
+            $stmt->close();
+          }
+        } else {
+          echo $mysqli->error;
+        }
+      }
+      
+    } else {
+      echo $mysqli->error;
     }
   }
   $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
