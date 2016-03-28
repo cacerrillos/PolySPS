@@ -21,9 +21,6 @@
   "dependencies": {
     "polymer": "Polymer/polymer#~1.4.0",
     "jquery": "~2.2.2",
-    "tinymce": "~4.3.8",
-    "tinymce-decorator": "*",
-    "ctech-tinymce": "~1.1.0",
     "skel": "~3.0.0",
     "page": "page.js#~1.7.1",
     "paper-elements": "~1.0.7",
