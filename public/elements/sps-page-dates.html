@@ -29,14 +29,14 @@ Example:
 
     
 
-    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal reset-on-dismiss="false">
       <div class="layout horizontal">
         <div class="flex"></div>
         <h2>New Date</h2>
         <div class="flex"></div>
       </div>
       <div class="layout vertical">
-        <paper-date-picker id="newDate" on-iron-select="_catchSelect"></paper-date-picker>
+        <paper-date-picker id="newDate" on-iron-select="_catchSelect" class="ctech-input-date"></paper-date-picker>
       </div>
     </ctech-confirm-dialog>
 
@@ -47,7 +47,7 @@ Example:
         <div class="flex"></div>
       </div>
       <div class="layout vertical">
-        <paper-date-picker id="editD" date="{{editDate}}"></paper-date-picker>
+        <paper-date-picker id="editD" date="{{editDate}}" class="ctech-input-date"></paper-date-picker>
       </div>
     </ctech-confirm-dialog>
 
@@ -159,7 +159,6 @@ Example:
 
       ajaxResponse: function(e){
         if(e.detail.response.status === true){
-          this.$.addDialog.resetForm();
           this.$.editDialog.resetForm();
           var action_word = "";
           switch(e.srcElement.method) {
