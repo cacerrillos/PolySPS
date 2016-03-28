@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="sps-page-houses">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <iron-ajax id="ajax" url="../api/1.0/houses/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
+
+    
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>New House</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input label="House Name" id="houseName" maxlength="255" char-counter class="ctech-input"></paper-input>
+      </div>
+    </ctech-confirm-dialog>
+
+
+    <ctech-confirm-dialog id="editDialog" on-ctech-dialog-confirm="doEdit" confirm-text="Edit" valid-color="#2196f3" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Edit House</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input label="House Name" maxlength="255" char-counter class="ctech-input" value="{{editHouseName}}"></paper-input>
+      </div>
+    </ctech-confirm-dialog>
+
+    <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Delete House</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <div>Are you sure you want to delete <b>[[selectedHouse.house_name]]</b>?</div>
+      </div>
+    </ctech-confirm-dialog>
+
+    <div class="container content">
+    <ctech-item-manager-menubar
+          items="{{houses}}"
+          selected="{{selectedHouse}}"
+          attr-for-selected="house_id"
+          attr-for-text="house_name"
+          on-ctech-item-manager-do-add="_doAddDialog"
+          on-ctech-item-manager-do-edit="_doEditDialog"
+          on-ctech-item-manager-do-delete="_doDeleteDialog"
+          ></ctech-item-manager-menubar>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'sps-page-houses',
+      properties: {
+        houses: {
+          type: Object
+        },
+        selectedHouse: {
+          type: Object
+        },
+        editHouseName: {
+          type: String
+        }
+      },
+      _doAddDialog: function(e) {
+        this.$.addDialog.open();
+      },
+      _doEditDialog: function(e) {
+        this.editHouseName = this.selectedHouse.house_name;
+        this.$.editDialog._validateForm();
+        this.$.editDialog.open();
+      },
+      _doDeleteDialog: function(e) {
+        this.$.deleteDialog.open();
+      },
+
+      doAdd: function(e){
+        this.$.ajax.method = "POST";
+        this.$.ajax.body =
+          JSON.stringify({
+            'house_name': this.$.houseName.value
+          });
+        this.$.ajax.generateRequest();
+      },
+      doEdit: function(e){
+        this.$.ajax.method = "PUT";
+        this.$.ajax.body =
+          JSON.stringify({
+            'house_id': this.selectedHouse.house_id,
+            'house_name': this.editHouseName
+          });
+          console.log(this.$.ajax.body);
+        this.$.ajax.generateRequest();
+      },
+      doDelete: function(e){
+        this.$.ajax.method = "DELETE";
+        var o_out = {};
+        o_out[this.selectedHouse.house_id] = this.selectedHouse;
+        this.$.ajax.body = JSON.stringify(o_out);
+        this.$.ajax.generateRequest();
+      },
+      ajaxResponse: function(e){
+        if(e.detail.response.status === true){
+          this.$.addDialog.resetForm();
+          this.$.editDialog.resetForm();
+          var action_word = "";
+          switch(e.srcElement.method) {
+            case "DELETE":
+              action_word = "deleted";
+              break;
+            case "POST":
+              action_word = "added";
+              break;
+            case "PUT":
+              action_word = "updated";
+          }
+          this.fire('firetoast', { message: "Location " + action_word + "!"});
+          this.fire("reload-houses", { });
+        } else {
+          var det = "NO_DETAILS";
+          if(e.detail.response.status_details) {
+            det = e.detail.response.status_details;
+            switch(det) {
+              case 1062:
+                det = "Duplicate House Name";
+                break;
+              default:
+                break;
+            }
+          }
+          var action_word = "";
+          switch(e.srcElement.method) {
+            case "DELETE":
+              action_word = "delete";
+              break;
+            case "POST":
+              action_word = "add";
+              break;
+            case "PUT":
+              action_word = "update";
+          }
+          this.fire('firetoast', { message: "FAILED to " + action_word + " Location! [" + det + "]"});
+        }
+    }
+  });
+  </script>
+</dom-module>
