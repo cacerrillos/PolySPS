@@ -64,7 +64,6 @@ skel.on("change", function() {
 <link rel="import" href="bower_components/polymer/polymer.html">
 <script src="bower_components/page/page.js"></script>
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
-<script src="bower_components/tinymce/tinymce.min.js"></script>
 <link rel="import" href="elements/sps-app.html">
 
 <style is="custom-style">
