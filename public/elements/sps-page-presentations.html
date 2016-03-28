@@ -262,10 +262,6 @@
         return total_max;
       },
       ready: function(e) {
-        var self = this;
-        setInterval(function() {
-          self.fire('reload-limits');
-        }, 3000);
         this._refreshActionButtons();
       }
     });
