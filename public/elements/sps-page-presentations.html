@@ -231,6 +231,9 @@
         if(typeof limits[pres] === 'undefined') {
           return "?";
         } else {
+          if(typeof limits[pres][grade] === 'undefined') {
+            return "?";
+          }
           return limits[pres][grade].total;
         }
       },
@@ -238,6 +241,9 @@
         if(typeof limits[pres] === 'undefined') {
           return "?";
         } else {
+          if(typeof limits[pres][grade] === 'undefined') {
+            return "?";
+          }
           return limits[pres][grade].amount;
         }
       },
