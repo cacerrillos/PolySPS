@@ -142,7 +142,7 @@
       <ctech-dropdown-selector id="blockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
       <ctech-dropdown-selector id="locationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" on-ctech-select="_validateForm" raised></ctech-dropdown-selector>
       <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
-        <paper-input label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.amount}}"></paper-input>
+        <paper-input label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.default_amount}}"></paper-input>
       </template>
       
     </div>
