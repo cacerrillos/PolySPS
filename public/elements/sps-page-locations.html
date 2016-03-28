@@ -113,7 +113,7 @@
           this.$.addDialog.resetForm();
           this.$.editDialog.resetForm();
           var action_word = "";
-          switch(e.srcElement.method) {
+          switch(e.target.method) {
             case "DELETE":
               action_word = "deleted";
               break;
@@ -138,7 +138,7 @@
             }
           }
           var action_word = "";
-          switch(e.srcElement.method) {
+          switch(e.target.method) {
             case "DELETE":
               action_word = "delete";
               break;
