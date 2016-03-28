@@ -16,7 +16,6 @@ Example:
 -->
 <dom-module id="sps-page-blocks">
   <link rel="import" href="../bower_components/ctech-item-managers/ctech-item-managers.html">
-  <link rel="import" href="sps-elements.html">
   <template>
     <style>
       :host {
@@ -66,9 +65,9 @@ Example:
           selected="{{selectedBlock}}"
           attr-for-selected="block_id"
           attr-for-text="block_name"
-          on-ctech-item-manager-do-add="_doAddBlockDialog"
-          on-ctech-item-manager-do-edit="_doEditBlockDialog"
-          on-ctech-item-manager-do-delete="_doDeleteBlockDialog"
+          on-ctech-item-manager-do-add="_doAddDialog"
+          on-ctech-item-manager-do-edit="_doEditDialog"
+          on-ctech-item-manager-do-delete="_doDeleteDialog"
           ></ctech-item-manager-menubar>
     </div>
   </template>
@@ -80,15 +79,15 @@ Example:
           type: String
         }
       },
-      _doAddBlockDialog: function () {
+      _doAddDialog: function () {
         this.$.addDialog.open();
       },
-      _doEditBlockDialog: function () {
+      _doEditDialog: function () {
         this.editBlockName = this.selectedBlock.block_name;
         this.$.editDialog._validateForm();
         this.$.editDialog.open();
       },
-      _doDeleteBlockDialog: function () {
+      _doDeleteDialog: function () {
         this.$.deleteDialog.open();
       },
 

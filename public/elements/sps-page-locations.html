@@ -52,9 +52,9 @@
           selected="{{selectedLocation}}"
           attr-for-selected="location_id"
           attr-for-text="location_name"
-          on-ctech-item-manager-do-add="_doAddLocationDialog"
-          on-ctech-item-manager-do-edit="_doEditLocationDialog"
-          on-ctech-item-manager-do-delete="_doDeleteLocationDialog"
+          on-ctech-item-manager-do-add="_doAddDialog"
+          on-ctech-item-manager-do-edit="_doEditDialog"
+          on-ctech-item-manager-do-delete="_doDeleteDialog"
           ></ctech-item-manager-menubar>
     </div>
   </template>
@@ -72,15 +72,15 @@
           type: String
         }
       },
-      _doAddLocationDialog: function(e) {
+      _doAddDialog: function(e) {
         this.$.addDialog.open();
       },
-      _doEditLocationDialog: function(e) {
+      _doEditDialog: function(e) {
         this.editLocationName = this.selectedLocation.location_name;
         this.$.editDialog._validateForm();
         this.$.editDialog.open();
       },
-      _doDeleteLocationDialog: function(e) {
+      _doDeleteDialog: function(e) {
         this.$.deleteDialog.open();
       },
 
