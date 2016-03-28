@@ -33,6 +33,7 @@ Example:
       </div>
       <div class="layout vertical">
         <paper-input label="Grade Name" id="gradeName" maxlength="255" char-counter class="ctech-input"></paper-input>
+        <paper-input label="Default Amount" id="gradeDefaultAmount" allowed-pattern="[0-9]" auto-validated value="17"></paper-input>
       </div>
     </ctech-confirm-dialog>
 
@@ -45,6 +46,7 @@ Example:
       </div>
       <div class="layout vertical">
         <paper-input label="Grade Name" maxlength="255" char-counter class="ctech-input" value="{{editGradeName}}"></paper-input>
+        <paper-input label="Default Amount" allowed-pattern="[0-9]" auto-validated value="{{editGradeDefaultAmount}}"></paper-input>
       </div>
     </ctech-confirm-dialog>
 
@@ -81,6 +83,9 @@ Example:
         selectedGrade: {
           type: Object
         },
+        editGradeDefaultAmount: {
+          type: Number
+        },
         editGradeName: {
           type: String
         }
@@ -90,6 +95,7 @@ Example:
       },
       _doEditDialog: function(e) {
         this.editGradeName = this.selectedGrade.grade_name;
+        this.editGradeDefaultAmount = this.selectedGrade.default_amount;
         this.$.editDialog._validateForm();
         this.$.editDialog.open();
       },
@@ -101,7 +107,8 @@ Example:
         this.$.ajax.method = "POST";
         this.$.ajax.body =
           JSON.stringify({
-            'grade_name': this.$.gradeName.value
+            'grade_name': this.$.gradeName.value,
+            'default_amount': this.$.gradeDefaultAmount.value
           });
         this.$.ajax.generateRequest();
       },
@@ -110,7 +117,8 @@ Example:
         this.$.ajax.body =
           JSON.stringify({
             'grade_id': this.selectedGrade.grade_id,
-            'grade_name': this.editGradeName
+            'grade_name': this.editGradeName,
+            'default_amount': this.editGradeDefaultAmount
           });
           console.log(this.$.ajax.body);
         this.$.ajax.generateRequest();

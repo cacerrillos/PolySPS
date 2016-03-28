@@ -6,19 +6,21 @@ use \Psr\Http\Message\ResponseInterface as Response;
 class GradeLevel {
   public $grade_id;
   public $grade_name;
-  public function __construct($grade_id, $grade_name) {
+  public $default_amount;
+  public function __construct($grade_id, $grade_name, $default_amount) {
     $this->grade_id = $grade_id;
     $this->grade_name = $grade_name;
+    $this->default_amount = $default_amount;
   }
 }
 
 function GetGradeLevels($mysqli) {
   $data = array();
-  if($stmt = $mysqli -> prepare("SELECT `grade_id`,  `grade_name` FROM `grade_levels`;")) {
+  if($stmt = $mysqli -> prepare("SELECT `grade_id`,  `grade_name`, `default_amount` FROM `grade_levels`;")) {
     $stmt->execute();
-    $stmt->bind_result($grade_id, $grade_name);
+    $stmt->bind_result($grade_id, $grade_name, $default_amount);
     while($stmt->fetch()) {
-      $data[$grade_id] = new GradeLevel($grade_id, $grade_name);
+      $data[$grade_id] = new GradeLevel($grade_id, $grade_name, $default_amount);
     }
   } else {
     echo $mysqli->error;
@@ -30,11 +32,11 @@ function GetGradeLevels($mysqli) {
 $app->get('/grade_levels/', function (Request $request, Response $response) {
   $data = array();
   $mysqli = $this->db;
-  if($stmt = $mysqli -> prepare("SELECT `grade_id`,  `grade_name` FROM `grade_levels`;")) {
+  if($stmt = $mysqli -> prepare("SELECT `grade_id`, `grade_name`, `default_amount` FROM `grade_levels`;")) {
     $stmt->execute();
-    $stmt->bind_result($grade_id, $grade_name);
+    $stmt->bind_result($grade_id, $grade_name, $default_amount);
     while($stmt->fetch()) {
-      $data[$grade_id] = new GradeLevel($grade_id, $grade_name);
+      $data[$grade_id] = new GradeLevel($grade_id, $grade_name, $default_amount);
     }
   } else {
     $response->getBody()->write($mysqli->error);
@@ -47,12 +49,12 @@ $app->get('/grade_levels/', function (Request $request, Response $response) {
 $app->get('/grade_levels/{grade_id}', function (Request $request, Response $response) {
   $mysqli = $this->db;
   $grade_id = $request->getAttribute('grade_id');
-  if($stmt = $mysqli -> prepare("SELECT `grade_name` FROM `grade_levels` WHERE `grade_id` = ? LIMIT 1;")) {
+  if($stmt = $mysqli -> prepare("SELECT `grade_name`, `default_amount` FROM `grade_levels` WHERE `grade_id` = ? LIMIT 1;")) {
     $stmt->bind_param("i", intval($grade_id));
     $stmt->execute();
     $stmt->bind_result($grade_name);
     while($stmt->fetch()) {
-      $response->getBody()->write(json_encode(new GradeLevel($grade_id, $grade_name), JSON_PRETTY_PRINT));
+      $response->getBody()->write(json_encode(new GradeLevel($grade_id, $grade_name, $default_amount), JSON_PRETTY_PRINT));
     }
 
   } else {
@@ -68,12 +70,12 @@ $app->post('/grade_levels/', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
   $post_data = $request->getParsedBody();
-  if(isset($post_data['grade_name'])) {
+  if(isset($post_data['grade_name']) && isset($post_data['default_amount'])) {
     //var_dump($all_gl);
     $mysqli = $this->db;
 
-    if($stmt = $mysqli->prepare("INSERT INTO `grade_levels` (`grade_id`, `grade_name`) VALUES (NULL, ?);")) {
-      $stmt->bind_param("s", $post_data['grade_name']);
+    if($stmt = $mysqli->prepare("INSERT INTO `grade_levels` (`grade_id`, `grade_name`, `default_amount`) VALUES (NULL, ?, ?);")) {
+      $stmt->bind_param("si", $post_data['grade_name'], $post_data['default_amount']);
       $stmt->execute();
       if($stmt->affected_rows == 1) {
         $status['status'] = true;
@@ -81,6 +83,10 @@ $app->post('/grade_levels/', function(Request $request, Response $response) {
       $stmt->close();
     } else {
       echo $mysqli->error;
+    }
+    //
+    if($stmt = $mysqli->prepare("SELECT DISTINCT(`id`) FROM `presentation_limits`;")) {
+
     }
   }
   $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
@@ -92,11 +98,11 @@ $app->put('/grade_levels/', function(Request $request, Response $response) {
   $status['status'] = false;
   $post_data = $request->getParsedBody();
   //try to save data
-  if(isset($post_data['grade_id']) && isset($post_data['grade_name'])) {
+  if(isset($post_data['grade_id']) && isset($post_data['grade_name']) && isset($post_data['default_amount'])) {
     $mysqli = $this->db;
 
-    if($stmt = $mysqli->prepare("UPDATE `grade_levels` SET `grade_name` = ? WHERE `grade_levels`.`grade_id` = ? LIMIT 1;")) {
-      $stmt->bind_param("si", $post_data['grade_name'], $post_data['grade_id']);
+    if($stmt = $mysqli->prepare("UPDATE `grade_levels` SET `grade_name` = ?, `default_amount` = ? WHERE `grade_levels`.`grade_id` = ? LIMIT 1;")) {
+      $stmt->bind_param("sii", $post_data['grade_name'], $post_data['default_amount'], $post_data['grade_id']);
       $stmt->execute();
       if($stmt->affected_rows == 1) {
         $status['status'] = true;
