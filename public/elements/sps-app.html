@@ -58,6 +58,8 @@ Example:
   <link rel="import" href="sps-page-locations.html">
   <link rel="import" href="sps-page-dashboard.html">
   <link rel="import" href="sps-page-signup.html">
+  <link rel="import" href="sps-page-grades.html">
+  <link rel="import" href="sps-page-houses.html">
 
   <style include="iron-flex"></style>
   <template>
@@ -96,13 +98,13 @@ Example:
             <iron-icon icon="icons:dashboard" item-icon></iron-icon><span class="noselect">Dashboard</span>
           </paper-icon-item>
           <paper-icon-item on-click="goToPageOnClick" data-page="presentations">
-            <iron-icon icon="social:people" item-icon></iron-icon><span class="noselect">Presentations</span>
+            <iron-icon icon="icons:weekend" item-icon></iron-icon><span class="noselect">Presentations</span>
           </paper-icon-item>
 
           <paper-submenu id="viewersSubmenu">
 
             <paper-icon-item on-click="goToPageOnClick" data-page="viewers" class="menu-trigger">
-              <iron-icon icon="social:people-outline" item-icon></iron-icon><span class="noselect">Viewers</span>
+              <iron-icon icon="icons:face" item-icon></iron-icon><span class="noselect">Viewers</span>
             </paper-icon-item>
 
             <paper-menu id="outer" class="menu-content" attr-for-selected="data-g-id" selected="[[sGradeId]]" on-iron-select="expandGrades">
@@ -110,7 +112,7 @@ Example:
                   <paper-submenu data-g-id="[[grade_level.grade_id]]" >
 
                     <paper-icon-item on-click="_goToGrade" class="menu-trigger sublist" data-grade-id="[[grade_level.grade_id]]">
-                      <iron-icon icon="social:people-outline" item-icon></iron-icon><span class="noselect">[[grade_level.grade_name]]</span>
+                      <iron-icon icon="icons:face" item-icon></iron-icon><span class="noselect">[[grade_level.grade_name]]</span>
                     </paper-icon-item>
 
                     <paper-menu class="menu-content" attr-for-selected="data-attr" selected="[[ghSelected]]">
@@ -120,7 +122,7 @@ Example:
                         data-grade-id="[[grade_level.grade_id]]"
                         data-house-id="[[house.house_id]]"
                         class="sublist2">
-                          <iron-icon icon="social:people-outline" item-icon></iron-icon><span class="noselect">[[house.house_name]]</span>
+                          <iron-icon icon="icons:face" item-icon></iron-icon><span class="noselect">[[house.house_name]]</span>
                         </paper-icon-item>
 
                       </template>
@@ -136,11 +138,17 @@ Example:
           <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="icons:date-range" item-icon></iron-icon><span class="noselect">Dates</span>
           </paper-icon-item>
+          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{adminStatus.is_admin}}">
+            <iron-icon icon="maps:place" item-icon></iron-icon><span class="noselect">Locations</span>
+          </paper-icon-item>
           <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="icons:view-list" item-icon></iron-icon><span class="noselect">Blocks</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{adminStatus.is_admin}}">
-            <iron-icon icon="maps:place" item-icon></iron-icon><span class="noselect">Locations</span>
+          <paper-icon-item on-click="goToPageOnClick" data-page="houses" hidden="{{adminStatus.is_admin}}">
+            <iron-icon icon="icons:home" item-icon></iron-icon><span class="noselect">Houses</span>
+          </paper-icon-item>
+          <paper-icon-item on-click="goToPageOnClick" data-page="grades" hidden="{{adminStatus.is_admin}}">
+            <iron-icon icon="icons:assignment" item-icon></iron-icon><span class="noselect">Grades</span>
           </paper-icon-item>
         </paper-menu>
         <polyquiz-admin-login-form hidden="[[adminStatus.is_admin]]"></polyquiz-admin-login-form>
@@ -187,6 +195,8 @@ Example:
           <sps-page-dates data-page="dates" dates="[[dates]]"></sps-page-dates>
           <sps-page-blocks data-page="blocks" blocks="[[blocks]]"></sps-page-blocks>
           <sps-page-locations data-page="locations" locations="[[locations]]"></sps-page-locations>
+          <sps-page-grades data-page="grades" grades="[[grades]]"></sps-page-grades>
+          <sps-page-houses data-page="houses" houses="[[houses]]"></sps-page-houses>
         </neon-animated-pages>
 
         <iron-ajax
@@ -197,11 +207,13 @@ Example:
            last-response="{{limits}}"></iron-ajax>
         <iron-ajax
            auto
+           id="gradesAjax"
            url="../api/1.0/grade_levels/"
            handle-as="json"
            last-response="{{grade_levels}}"></iron-ajax>
        <iron-ajax
            auto
+           id="housesAjax"
            url="../api/1.0/houses/"
            handle-as="json"
            last-response="{{houses}}"></iron-ajax>
@@ -313,7 +325,19 @@ Example:
         'reload-locations': '_onReloadLocationsRequest',
         'reload-presentations': '_doReloadPresentations',
         'reload-blocks': '_doReloadBlocks',
-        'reload-dates': '_doReloadDates'
+        'reload-dates': '_doReloadDates',
+        'reload-houses': '_doReloadHouses',
+        'reload-grades': '_doReloadGrades',
+        'reload-limits': '_doReloadLimits'
+      },
+      _doReloadHouses: function(e) {
+        this.$.housesAjax.generateRequest();
+      },
+      _doReloadGrades: function(e) {
+        this.$.gradesAjax.generateRequest();
+      },
+      _doReloadLimits: function(e) {
+        this.$.getLimits.generateRequest();
       },
       _doReloadDates: function(e) {
         this.$.datesAjax.generateRequest();
