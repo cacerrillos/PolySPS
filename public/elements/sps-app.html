@@ -312,7 +312,11 @@ Example:
         'scroll-request': '_doScroll',
         'reload-locations': '_onReloadLocationsRequest',
         'reload-presentations': '_doReloadPresentations',
-        'reload-blocks': '_doReloadBlocks'
+        'reload-blocks': '_doReloadBlocks',
+        'reload-dates': '_doReloadDates'
+      },
+      _doReloadDates: function(e) {
+        this.$.datesAjax.generateRequest();
       },
       _doReloadBlocks: function(e) {
         this.$.blocksAjax.generateRequest();

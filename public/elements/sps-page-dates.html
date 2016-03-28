@@ -16,17 +16,190 @@ Example:
 -->
 
 <dom-module id="sps-page-dates">
+  <link rel="import" href="../bower_components/ctech-item-managers/ctech-item-managers.html">
+  <link rel="import" href="../bower_components/paper-date-picker/paper-date-picker.html">
   <template>
     <style>
       :host {
         display: block;
       }
     </style>
-    DATES
+
+    <iron-ajax id="ajax" url="../api/1.0/dates/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
+
+    
+
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>New Date</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-date-picker id="newDate" on-iron-select="_catchSelect"></paper-date-picker>
+      </div>
+    </ctech-confirm-dialog>
+
+    <ctech-confirm-dialog id="editDialog" on-ctech-dialog-confirm="doEdit" confirm-text="Edit" valid-color="#2196f3" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Edit Date</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-date-picker id="editD" date="{{editDate}}"></paper-date-picker>
+      </div>
+    </ctech-confirm-dialog>
+
+    <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Delete Date</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <div>Are you sure you want to delete <b>[[selectedDate.date_name]]</b>?</div>
+      </div>
+    </ctech-confirm-dialog>
+
+    <div class="container content">
+    <ctech-item-manager-menubar
+          items="{{_computeDates(dates)}}"
+          selected="{{selectedDate}}"
+          attr-for-selected="date"
+          attr-for-text="date_name"
+          on-ctech-item-manager-do-add="_doAddDialog"
+          on-ctech-item-manager-do-edit="_doEditDialog"
+          on-ctech-item-manager-do-delete="_doDeleteDialog"
+          ></ctech-item-manager-menubar>
+    </div>
   </template>
   <script>
     Polymer({
-      is: 'sps-page-dates'
+      is: 'sps-page-dates',
+      properties: {
+        editDate: {
+          type: Date
+        }
+      },
+      _computeDates: function(e) {
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          var str = e[k]['date'].toString();
+          var y = str.substring(0, 4);
+          var m = str.substring(4, 6);
+          var d = str.substring(6, 8);
+          e[k]['date_name'] = new Date(y, m - 1, d).toDateString();
+        }
+        return e;
+      },
+      _catchSelect: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      },
+      _doAddDialog: function () {
+        this.$.addDialog.open();
+      },
+      _doEditDialog: function () {
+        var str = this.selectedDate.date.toString();
+        var y = str.substring(0, 4);
+        var m = str.substring(4, 6);
+        var d = str.substring(6, 8);
+        this.editDate = new Date(y, m - 1, d);
+        this.$.editDialog._validateForm();
+        this.$.editDialog.open();
+      },
+      _doDeleteDialog: function () {
+        this.$.deleteDialog.open();
+      },
+
+      doAdd: function(e){
+        var new_date = "" ;
+        var month = (this.$.newDate.date.getMonth() + 1) < 10 ? "0" + (this.$.newDate.date.getMonth() + 1).toString()  : (this.$.newDate.date.getMonth() + 1).toString();
+        var date = this.$.newDate.date.getDate() < 10 ? "0" + this.$.newDate.date.getDate().toString()  : this.$.newDate.date.getDate().toString();
+        new_date = new_date + this.$.newDate.date.getFullYear();
+        new_date = new_date + month;
+        new_date = new_date + date;
+        this.$.ajax.method = "POST";
+        this.$.ajax.body =
+          JSON.stringify({
+            'date': new_date
+          });
+          console.log(this.$.ajax.body);
+        this.$.ajax.generateRequest();
+      },
+      doEdit: function(e) {
+        var old_date = this.selectedDate.date.toString();
+
+        var new_date = "" ;
+        var month = (this.editDate.getMonth() + 1) < 10 ? "0" + (this.editDate.getMonth() + 1).toString()  : (this.editDate.getMonth() + 1).toString();
+        var date = this.editDate.getDate() < 10 ? "0" + this.editDate.getDate().toString()  : this.editDate.getDate().toString();
+        new_date = new_date + this.editDate.getFullYear();
+        new_date = new_date + month;
+        new_date = new_date + date;
+
+        this.$.ajax.method = "PUT";
+        this.$.ajax.body =
+          JSON.stringify({
+            'date_old': old_date,
+            'date': new_date
+          });
+          console.log(this.$.ajax.body);
+        this.$.ajax.generateRequest();
+      },
+      doDelete: function(e){
+        this.$.ajax.method = "DELETE";
+        var o_out = {};
+        o_out[this.selectedDate.date.toString()] = { date: this.selectedDate.date.toString() };
+        this.$.ajax.body = JSON.stringify(o_out);
+        console.log(this.$.ajax.body);
+        this.$.ajax.generateRequest();
+      },
+
+      ajaxResponse: function(e){
+        if(e.detail.response.status === true){
+          this.$.addDialog.resetForm();
+          this.$.editDialog.resetForm();
+          var action_word = "";
+          switch(e.srcElement.method) {
+            case "DELETE":
+              action_word = "deleted";
+              break;
+            case "POST":
+              action_word = "added";
+              break;
+            case "PUT":
+              action_word = "updated";
+          }
+          this.fire('firetoast', { message: "Date " + action_word + "!"});
+          this.fire("reload-dates", { });
+        } else {
+          var det = "NO_DETAILS";
+          if(e.detail.response.status_details) {
+            det = e.detail.response.status_details;
+            switch(det) {
+              case 1062:
+                det = "Duplicate House Name";
+                break;
+              default:
+                break;
+            }
+          }
+          var action_word = "";
+          switch(e.srcElement.method) {
+            case "DELETE":
+              action_word = "delete";
+              break;
+            case "POST":
+              action_word = "add";
+              break;
+            case "PUT":
+              action_word = "update";
+          }
+          this.fire('firetoast', { message: "FAILED to " + action_word + " Date! [" + det + "]"});
+        }
+      },
     });
   </script>
 </dom-module>
