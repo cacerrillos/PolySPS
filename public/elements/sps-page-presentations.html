@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <dom-module id="sps-page-presentations">
-  <link rel="import" href="sps-presentations-elements.html">
   <link rel="import" href="../bower_components/paper-datatable/paper-datatable.html">
   <link rel="import" href="../bower_components/ctech-dropdown-selector/ctech-dropdown-selector.html">
   <link rel="import" href="../bower_components/iron-icons/image-icons.html">
@@ -36,11 +35,47 @@
       }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
-
+    <iron-ajax id="ajax" url="../api/1.0/presentations/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
-    <sps-presentations-add-dialog id="presAddDialog" grades="[[gradeLevels]]" houses="[[houses]]" dates="[[dates]]" blocks="[[blocks]]" locations="[[locations]]"></sps-presentations-add-dialog>
-    <sps-presentations-delete-dialog id="presDeleteDialog" presentations="{{presentations}}" selected="{{selectedPres}}"></sps-presentations-delete-dialog>
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>New Presentation</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input class="ctech-input" label="First Name" id="firstname" maxlength="255" char-counter></paper-input>
+        <paper-input class="ctech-input" label="Last Name" id="lastname" maxlength="255" char-counter></paper-input>
+        <paper-input class="ctech-input" label="Topic" id="topic" maxlength="255" char-counter></paper-input>
+        <ctech-dropdown-selector class="ctech-input-selector" id="houseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="dateSelector" default-text="Select a Date" items="[[_computeDates(dates)]]" attr-for-selected="date" attr-for-text="date_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="blockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="locationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" raised></ctech-dropdown-selector>
+        <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
+          <paper-input class="ctech-input" label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.default_amount}}"></paper-input>
+        </template>
+      </div>
+    </ctech-confirm-dialog>
+
+
+    <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Delete Presentations</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <div>Are you sure you want to delete the following?</div>
+          <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" filter="[[_deleteFilter(selectedPres)]]">
+            <paper-datatable-column header="Name" property="last_name">
+              <template>
+                <div>{{item.last_name}}, {{item.first_name}}</div>
+              </template>
+            </paper-datatable-column>
+          </paper-datatable>
+      </div>
+    </ctech-confirm-dialog>
 
     <div class="content container" style="margin-bottom: 124px;">
       <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
@@ -122,6 +157,112 @@
       listeners: {
         'reload-presentations': '_doReloadPresentations'
       },
+      _computeDates: function(e) {
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          var str = e[k]['date'].toString();
+          var y = str.substring(0, 4);
+          var m = str.substring(4, 6);
+          var d = str.substring(6, 8);
+          e[k]['date_name'] = new Date(y, m - 1, d).toDateString();
+        }
+        return e;
+      },
+      doAdd: function(e){
+        var gr_ar = {};
+        for (var key in this.grades) {
+          if (!this.grades.hasOwnProperty(key)) continue;
+          var obj = this.grades[key];
+          gr_ar[obj.grade_id] = { 'grade_id': obj.grade_id, 'amount': obj.amount };
+        }
+        this.$.ajax.method = "POST";
+        this.$.ajax.body =
+          JSON.stringify({
+            'first_name': this.$.firstname.value,
+            'last_name': this.$.lastname.value,
+            'presentation_text': this.$.topic.value,
+            'house_id': this.$.houseSelector.selected.house_id,
+            'location_id': this.$.locationSelector.selected.location_id,
+            'date': this.$.dateSelector.selected.date,
+            'block_id': this.$.blockSelector.selected.block_id,
+            'grades': gr_ar
+          });
+        this.$.ajax.generateRequest();
+      },
+      doEdit: function(e){
+        this.$.ajax.method = "PUT";
+        this.$.ajax.body =
+          JSON.stringify({
+            'block_id': this.selectedBlock.block_id,
+            'block_name': this.editBlockName
+          });
+        this.$.ajax.generateRequest();
+      },
+      doDelete: function(e){
+        this.$.ajax.method = "DELETE";
+        var o_out = {};
+        for(var k in this.selectedPres) {
+          if(!this.selectedPres.hasOwnProperty(k)) continue;
+          o_out[k] = { presentation_id: k };
+        }
+        this.$.ajax.body = JSON.stringify(o_out);
+        console.log(o_out);
+        this.$.ajax.generateRequest();
+      },
+      ajaxResponse: function(e){
+        if(e.detail.response.status === true){
+          this.$.addDialog.resetForm();
+          //this.$.editDialog.resetForm();
+          var action_word = "";
+          switch(e.target.method) {
+            case "DELETE":
+              action_word = "deleted";
+              break;
+            case "POST":
+              action_word = "added";
+              break;
+            case "PUT":
+              action_word = "updated";
+          }
+          this.fire('firetoast', { message: "Presentation " + action_word + "!"});
+          this.fire("reload-presentations", { });
+        } else {
+          var det = "NO_DETAILS";
+          if(e.detail.response.status_details) {
+            det = e.detail.response.status_details;
+            switch(det) {
+              case 1062:
+                det = "Duplicate House Name";
+                break;
+              default:
+                break;
+            }
+          }
+          var action_word = "";
+          switch(e.target.method) {
+            case "DELETE":
+              action_word = "delete";
+              break;
+            case "POST":
+              action_word = "add";
+              break;
+            case "PUT":
+              action_word = "update";
+          }
+          this.fire('firetoast', { message: "FAILED to " + action_word + " Presentations! [" + det + "]"});
+        }
+      },
+      _deleteFilter: function(e) {
+        return function(a, b, c) {
+          for(var k in e) {
+            if(!e.hasOwnProperty(k)) continue;
+            if(a.presentation_id == k) {
+              return true;
+            }
+          }
+          return false;
+        };
+      },
       _doDetailsPage: function() {
         var arr = [];
         for (var k in this.selectedPres) {
@@ -136,10 +277,10 @@
         this.$.dt.deselectAll();
       },
       _doAddDialog: function(e) {
-        this.$.presAddDialog.open();
+        this.$.addDialog.open();
       },
       _doDeleteDialog: function(e) {
-        this.$.presDeleteDialog.open();
+        this.$.deleteDialog.open();
       },
       _selectionChanged: function(e) {
         if(e.detail.selected) {
