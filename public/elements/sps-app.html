@@ -241,7 +241,12 @@ Example:
            url="../api/1.0/locations/?text"
            handle-as="json"
            last-response="{{locations}}"></iron-ajax>
-      <iron-ajax auto id="viewersAjax" auto url="../api/1.0/viewers/?presentations" handle-as="json" last-response="{{viewers}}" on-response="_onViewersAjaxResp"></iron-ajax>   
+       <iron-ajax
+           auto
+           id="viewersAjax"
+           url="../api/1.0/viewers/?presentations"
+           handle-as="json"
+           last-response="{{viewers}}"></iron-ajax>
            <!--
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
@@ -326,6 +331,7 @@ Example:
         'reload-presentations': '_doReloadPresentations',
         'reload-blocks': '_doReloadBlocks',
         'reload-dates': '_doReloadDates',
+        'reload-viewers': '_doReloadViewers',
         'reload-houses': '_doReloadHouses',
         'reload-grades': '_doReloadGrades',
         'reload-limits': '_doReloadLimits'
@@ -335,6 +341,9 @@ Example:
       },
       _doReloadGrades: function(e) {
         this.$.gradesAjax.generateRequest();
+      },
+      _doReloadViewers: function(e) {
+        this.$.viewersAjax.generateRequest();
       },
       _doReloadLimits: function(e) {
         this.$.getLimits.generateRequest();
