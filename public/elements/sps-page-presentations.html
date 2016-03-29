@@ -57,7 +57,26 @@
         </template>
       </div>
     </ctech-confirm-dialog>
-
+    
+    <ctech-confirm-dialog id="editDialog" on-ctech-dialog-confirm="doEdit" confirm-text="Edit" valid-color="#2196f3" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Edit Presentation</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input class="ctech-input" label="First Name" id="editfirstname" maxlength="255" char-counter value="{{editPresentation.first_name}}"></paper-input>
+        <paper-input class="ctech-input" label="Last Name" id="editlastname" maxlength="255" char-counter value="{{editPresentation.last_name}}"></paper-input>
+        <paper-input class="ctech-input" label="Topic" id="edittopic" maxlength="255" char-counter value="{{editPresentation.presentation_text}}"></paper-input>
+        <ctech-dropdown-selector class="ctech-input-selector" id="edithouseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="editdateSelector" default-text="Select a Date" items="[[_computeDates(dates)]]" attr-for-selected="date" attr-for-text="date_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="editblockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="editlocationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" raised></ctech-dropdown-selector>
+        <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
+          <paper-input class="ctech-input" label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.default_amount}}"></paper-input>
+        </template>
+      </div>
+    </ctech-confirm-dialog>
 
     <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
       <div class="layout horizontal">
@@ -78,7 +97,7 @@
     </ctech-confirm-dialog>
 
     <div class="content container" style="margin-bottom: 124px;">
-      <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+      <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-selection-changed="_selectionChanged">
         <paper-datatable-column header="Date" property="block_id">
           <template>
             <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
@@ -119,7 +138,7 @@
       </paper-datatable>
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
-    <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
+    <paper-fab id="editButton" icon="create" class="edit" on-click="_doEditDialog"></paper-fab>
     <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
   </template>
@@ -190,11 +209,22 @@
         this.$.ajax.generateRequest();
       },
       doEdit: function(e){
+        var p = this.editPresentation;
+        var house_id = this.$.edithouseSelector.selected.house_id;
+        var date = this.$.editdateSelector.selected.date;
+        var block_id = this.$.editblockSelector.selected.block_id;
+        var location_id = this.$.editlocationSelector.selected.location_id;
         this.$.ajax.method = "PUT";
         this.$.ajax.body =
           JSON.stringify({
-            'block_id': this.selectedBlock.block_id,
-            'block_name': this.editBlockName
+            'presentation_id': p.presentation_id,
+            'house_id': house_id,
+            'date': date,
+            'block_id': block_id,
+            'location_id': location_id,
+            'presentation_text': p.presentation_text,
+            'last_name': p.last_name,
+            'first_name': p.first_name
           });
         this.$.ajax.generateRequest();
       },
@@ -278,6 +308,29 @@
       },
       _doAddDialog: function(e) {
         this.$.addDialog.open();
+      },
+      _doEditDialog: function(e) {
+        var presentation_id = 0;
+        for (var k in this.selectedPres) {
+          if (!this.selectedPres.hasOwnProperty(k)) continue;
+          presentation_id = k;
+        }
+        var p = this.presentations[presentation_id];
+        this.editPresentation = {
+          first_name: p.first_name,
+          last_name: p.last_name,
+          presentation_id: p.presentation_id,
+          presentation_text: p.presentation_text,
+          house_id: p.house_id,
+          date: p.date,
+          block_id: p.block_id
+        };
+        this.$.edithouseSelector.select(p.house_id);
+        this.$.editdateSelector.select(p.date);
+        this.$.editblockSelector.select(p.block_id);
+        this.$.editlocationSelector.select(p.location_id);
+        this.$.editDialog._validateForm();
+        this.$.editDialog.open();
       },
       _doDeleteDialog: function(e) {
         this.$.deleteDialog.open();
