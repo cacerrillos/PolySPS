@@ -179,6 +179,13 @@ page('/presentations', function(ctx, next) {
   mainapp.ctx = ctx;
 });
 
+page('/presentations/:house_id', function(ctx, next) {
+  mainapp.page = "presentations";
+  mainapp.pageTitle = "Presentations";
+  mainapp.ctx = ctx;
+  mainapp.sPHouseId = ctx.params.house_id;
+});
+
 page('/viewers', function(ctx, next) {
   mainapp.page = "viewers";
   mainapp.pageTitle = "Viewers";

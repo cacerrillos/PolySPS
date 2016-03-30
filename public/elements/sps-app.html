@@ -97,9 +97,25 @@ Example:
           <paper-icon-item on-click="goToPageOnClick" data-page="dashboard">
             <iron-icon icon="icons:dashboard" item-icon></iron-icon><span class="noselect">Dashboard</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="presentations">
-            <iron-icon icon="icons:weekend" item-icon></iron-icon><span class="noselect">Presentations</span>
-          </paper-icon-item>
+
+          <paper-submenu id="presentationsSubmenu">
+
+            <paper-icon-item on-click="goToPageOnClick" data-page="presentations" class="menu-trigger">
+              <iron-icon icon="icons:weekend" item-icon></iron-icon><span class="noselect">Presentations</span>
+            </paper-icon-item>
+
+            <paper-menu id="outerPres" class="menu-content" attr-for-selected="data-house-id" selected="[[sPHouseId]]" on-iron-select="expandPres">
+              <template is="dom-repeat" items="[[_objectArrayToArray(houses)]]" as="house">
+                <paper-icon-item on-click="_goToHouseP"
+                data-house-id="[[house.house_id]]"
+                class="sublist">
+                  <iron-icon icon="icons:weekend" item-icon></iron-icon><span class="noselect">[[house.house_name]]</span>
+                </paper-icon-item>
+
+              </template>
+            </paper-menu>
+
+          </paper-submenu>
 
           <paper-submenu id="viewersSubmenu">
 
@@ -185,6 +201,7 @@ Example:
             dates="[[dates]]"
             limits="[[limits]]"
             blocks="[[blocks]]"
+            data-house="[[sPHouseId]]"
             presentations="[[presentations]]"
             grade-levels="[[grade_levels]]"
           ></sps-page-presentations>
@@ -415,6 +432,12 @@ Example:
         this.$.outer.selectedItem.open();
         //e.target.open();
       },
+      expandPres: function(e) {
+        //console.log(e);
+        this.$.presentationsSubmenu.open();
+        //this.$.outerPres.selectedItem.open();
+        //e.target.open();
+      },
       _goToHouse: function(e) {
         var grade_id = "";
         var house_id = "";
@@ -430,9 +453,23 @@ Example:
         }
         page('/viewers/' + grade_id + "/" + house_id);
       },
+      _goToHouseP: function(e) {
+        var house_id = "";
+        if(e.target.dataHouseId) {
+          house_id = e.target.dataHouseId;
+        } else if(e.target.parentNode.dataHouseId) {
+          house_id = e.target.parentNode.dataHouseId;
+        } else {
+          console.log("ERROR");
+          console.log(e);
+        }
+        page('/presentations/' + house_id);
+      },
       _onPageChanged: function(e) {
         if(this.page === "viewers") {
           this.$.viewersSubmenu.open();
+        } else if(this.page === "presentations") {
+          this.$.presentationsSubmenu.open();
         }
       },
       ready: function() {

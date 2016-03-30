@@ -33,6 +33,10 @@
         bottom: 24px;
         right: 228px;
       }
+      paper-material {
+        margin-top: 20px;
+        padding: 10px;
+      }
     </style>
     <iron-ajax id="ajax" url="../api/1.0/presentations/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
@@ -95,8 +99,13 @@
       </div>
     </ctech-confirm-dialog>
 
-    <div class="content container" style="margin-bottom: 124px;">
-      <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" selectable multi-selection on-selection-changed="_selectionChanged">
+    <div id="mDiv" class="content container" style="margin-bottom: 124px;">
+    <template is="dom-repeat" items="[[_objectToArray(houses)]]" as="sorthouse">
+    
+    <paper-material elevation="1">
+      <h3 style="margin-top: 0px;">[[sorthouse.house_name]]</h3>
+      <div class="content">
+      <paper-datatable id="pirate" data-house="[[sorthouse.house_id]]" data="{{_presentationsDataTableFilterByHouse(presentations, houses, locations, gradeLevels, limits, sorthouse.house_id)}}" selectable multi-selection on-selection-changed="_selectionChanged">
         <paper-datatable-column header="Date" property="block_id">
           <template>
             <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
@@ -128,12 +137,19 @@
           </template>
         </paper-datatable-column>
       </paper-datatable>
+      </div>
+      </paper-material>
+      </template>
+
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
     <paper-fab id="editButton" icon="create" class="edit" on-click="_doEditDialog"></paper-fab>
     <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
+
+
   </template>
+
   <script>
     Polymer({
       is: 'sps-page-presentations',
@@ -161,6 +177,10 @@
         },
         newLimits: {
           type: Array
+        },
+        dataHouse: {
+          type: String,
+          observer: 'scrollTo'
         },
         selectedPres: {
           type: Object,
@@ -204,6 +224,29 @@
             'grades': gr_ar
           });
         this.$.ajax.generateRequest();
+      },
+      getElementPos: function(el) {
+            // yay readability
+            for (var lx=0, ly=0;
+                 el != null;
+                 lx += el.offsetLeft, ly += el.offsetTop, el = el.offsetParent);
+            return {x: lx,y: ly};
+        },
+      scrollTo: function(e) {
+        //console.log("SST");
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#pirate");
+        this.lastST = e;
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            if(arr[key]['dataHouse'] == e) {
+              //console.log(arr[key]);
+              //console.log(arr[key]['dataHouse']);
+              //console.log(arr[key].dataGhId);
+              //sconsole.log(this.getElementPos(arr[key]));
+              this.fire('scroll-request', this.getElementPos(arr[key]));
+            }
+            
+        }
       },
       doEdit: function(e){
 
@@ -306,10 +349,18 @@
         }
         console.log('/presentations/details/' + arr.join(","));
         page('/presentations/details/' + arr.join(","));
-        this.$.dt.deselectAll();
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#pirate");
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            arr[key].deselectAll();
+        }
       },
       _doReloadPresentations: function(e) {
-        this.$.dt.deselectAll();
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#pirate");
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            arr[key].deselectAll();
+        }
       },
       _doAddDialog: function(e) {
         this.$.addDialog.resetForm();
@@ -352,17 +403,18 @@
         this.$.deleteDialog.open();
       },
       _selectionChanged: function(e) {
+        console.log(e);
         if(e.detail.selected) {
           var o_s = e.detail.selected;
           for (var x = 0; x < o_s.length; x++) {
-            var presentation_id = this.$.dt.get('data.' + o_s[x] + '.presentation_id');
+            var presentation_id = e.target.get('data.' + o_s[x] + '.presentation_id');
             this.selectedPres[presentation_id] = "";
           }
         }
         if(e.detail.deselected) {
           var o_ds = e.detail.deselected;
           for (var x = 0; x < o_ds.length; x++) {
-            var presentation_id = this.$.dt.get('data.' + o_ds[x] + '.presentation_id');
+            var presentation_id = e.target.get('data.' + o_ds[x] + '.presentation_id');
             delete this.selectedPres[presentation_id];
           }
         }
@@ -389,6 +441,22 @@
         var pres_arr = this._objectArrayToArray(pres);
         for (var key in pres_arr) {
           if (!pres_arr.hasOwnProperty(key)) continue;
+          var obj = pres_arr[key];
+          obj['topic_edit'] = obj['presentation_text'];
+          obj['house_name'] = houses[obj['house_id']].house_name;
+        }
+        //console.log(pres_arr);
+        return pres_arr;
+      },
+      _presentationsDataTableFilterByHouse: function(pres, houses, locations, grades, limits, house_id) {
+        //console.log(pres);
+        var pres_arr = this._objectArrayToArray(pres);
+        for (var key in pres_arr) {
+          if (!pres_arr.hasOwnProperty(key)) continue;
+          if(pres_arr[key].house_id !== house_id) {
+            delete pres_arr[key];
+            continue;
+          }
           var obj = pres_arr[key];
           obj['topic_edit'] = obj['presentation_text'];
           obj['house_name'] = houses[obj['house_id']].house_name;
