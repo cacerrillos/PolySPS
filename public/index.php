@@ -61,7 +61,6 @@ skel.on("change", function() {
 });
 </script>
 <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<link rel="import" href="bower_components/polymer/polymer.html">
 <script src="bower_components/page/page.js"></script>
 <script src="bower_components/jquery/dist/jquery.min.js"></script>
 <link rel="import" href="elements/sps-app.html">
