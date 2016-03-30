@@ -334,6 +334,9 @@
         }
         var p = JSON.parse(JSON.stringify(this.presentations[presentation_id]));
         p['limits'] = this._objectToArray(JSON.parse(JSON.stringify(this.limits[presentation_id])));
+        for(var x = 0; x < p['limits'].length; x++) {
+          p['limits'][x].amount = p['limits'][x].amount.toString();
+        }
         this.editPresentation = p;
         this.$.edithouseSelector.select(p.house_id);
         this.$.editdateSelector.select(p.date);
