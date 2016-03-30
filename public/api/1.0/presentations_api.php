@@ -167,6 +167,21 @@ $app->put('/presentations/', function(Request $request, Response $response) {
     }
     $t_s = false;
     $d_s = false;
+    $l_s = false;
+    if(isset($post_data['limits'])) {
+      foreach($post_data['limits'] as $key => $value) {
+        if($stmt = $mysqli->prepare("UPDATE `presentation_limits` SET `amount` = ? WHERE `presentation_limits`.`id` = ? AND `presentation_limits`.`grade_level` = ? LIMIT 1;")) {
+          $stmt->bind_param("iii", $value, $post_data['presentation_id'], $key);
+          $stmt->execute();
+          if($stmt->affected_rows == 1) {
+            $l_s = true;
+          }
+          $stmt->close();
+        } else {
+          echo $mysqli->error;
+        }
+      }
+    }
     if($stmt = $mysqli->prepare("UPDATE `presentations` SET `house_id` = ?, `block_id` = ?, `date` = ?, `location_id` = ?, `last_name` = ?, `first_name` = ? WHERE `presentations`.`presentation_id` = ? LIMIT 1;")) {
       $stmt->bind_param("iiiissi", $dIn['house_id'], $dIn['block_id'], $dIn['date'], $dIn['location_id'], $dIn['last_name'], $dIn['first_name'], $post_data['presentation_id']);
       $stmt->execute();
@@ -187,7 +202,7 @@ $app->put('/presentations/', function(Request $request, Response $response) {
     } else {
       echo $mysqli->error;
     }
-    $status['status'] = $t_s || $d_s;
+    $status['status'] = $t_s || $d_s || $l_s;
   }
   $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
   return $response;

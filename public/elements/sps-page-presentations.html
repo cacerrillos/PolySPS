@@ -72,8 +72,8 @@
         <ctech-dropdown-selector class="ctech-input-selector" id="editdateSelector" default-text="Select a Date" items="[[_computeDates(dates)]]" attr-for-selected="date" attr-for-text="date_name" raised></ctech-dropdown-selector>
         <ctech-dropdown-selector class="ctech-input-selector" id="editblockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" raised></ctech-dropdown-selector>
         <ctech-dropdown-selector class="ctech-input-selector" id="editlocationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" raised></ctech-dropdown-selector>
-        <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
-          <paper-input class="ctech-input" label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.default_amount}}"></paper-input>
+        <template is="dom-repeat" items="{{editPresentation.limits}}" as="gradelevel" id="editGradesTemplate">
+          <paper-input class="ctech-input grade-edit" label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated id="[[gradelevel.grade_id]]" value="{{gradelevel.amount}}"></paper-input>
         </template>
       </div>
     </ctech-confirm-dialog>
@@ -209,7 +209,13 @@
         this.$.ajax.generateRequest();
       },
       doEdit: function(e){
+
         var p = this.editPresentation;
+        var l_o = {};
+        var limits = p.limits;
+        for(var x = 0; x < limits.length; x++) {
+          l_o[limits[x].grade_level] = limits[x].amount;
+        }
         var house_id = this.$.edithouseSelector.selected.house_id;
         var date = this.$.editdateSelector.selected.date;
         var block_id = this.$.editblockSelector.selected.block_id;
@@ -224,8 +230,10 @@
             'location_id': location_id,
             'presentation_text': p.presentation_text,
             'last_name': p.last_name,
-            'first_name': p.first_name
+            'first_name': p.first_name,
+            'limits': l_o
           });
+          console.log(this.$.ajax.body);
         this.$.ajax.generateRequest();
       },
       doDelete: function(e){
@@ -309,28 +317,31 @@
       _doAddDialog: function(e) {
         this.$.addDialog.open();
       },
+      _getEditLimits: function(p, grade_id) {
+        console.log(p);
+        return p['limits'][grade_id].amount;
+      },
+      _objectToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      },
       _doEditDialog: function(e) {
         var presentation_id = 0;
         for (var k in this.selectedPres) {
           if (!this.selectedPres.hasOwnProperty(k)) continue;
           presentation_id = k;
         }
-        var p = this.presentations[presentation_id];
-        this.editPresentation = {
-          first_name: p.first_name,
-          last_name: p.last_name,
-          presentation_id: p.presentation_id,
-          presentation_text: p.presentation_text,
-          house_id: p.house_id,
-          date: p.date,
-          block_id: p.block_id
-        };
+        var p = JSON.parse(JSON.stringify(this.presentations[presentation_id]));
+        p['limits'] = this._objectToArray(JSON.parse(JSON.stringify(this.limits[presentation_id])));
+        this.editPresentation = p;
         this.$.edithouseSelector.select(p.house_id);
         this.$.editdateSelector.select(p.date);
         this.$.editblockSelector.select(p.block_id);
         this.$.editlocationSelector.select(p.location_id);
-        this.$.editDialog._validateForm();
+        
         this.$.editDialog.open();
+        this.$.editDialog._validateForm();
       },
       _doDeleteDialog: function(e) {
         this.$.deleteDialog.open();
