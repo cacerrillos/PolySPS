@@ -85,7 +85,7 @@
       </div>
       <div class="layout vertical">
         <div>Are you sure you want to delete the following?</div>
-          <paper-datatable id="dt" data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" filter="[[_deleteFilter(selectedPres)]]">
+          <paper-datatable data="{{_presentationsDataTable(presentations, houses, locations, gradeLevels, limits)}}" filter="[[_deleteFilter(selectedPres)]]">
             <paper-datatable-column header="Name" property="last_name">
               <template>
                 <div>{{item.last_name}}, {{item.first_name}}</div>
