@@ -34,11 +34,10 @@
         right: 228px;
       }
     </style>
-    <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
     <iron-ajax id="ajax" url="../api/1.0/presentations/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
-    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Create" valid-color="#8BC34A" modal>
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" on-ctech-dialog-dismiss="doAddReset" confirm-text="Create" valid-color="#8BC34A" modal reset-on-dismiss="false">
       <div class="layout horizontal">
         <div class="flex"></div>
         <h2>New Presentation</h2>
@@ -52,8 +51,8 @@
         <ctech-dropdown-selector class="ctech-input-selector" id="dateSelector" default-text="Select a Date" items="[[_computeDates(dates)]]" attr-for-selected="date" attr-for-text="date_name" raised></ctech-dropdown-selector>
         <ctech-dropdown-selector class="ctech-input-selector" id="blockSelector" default-text="Select a Block" items="[[blocks]]" attr-for-selected="block_id" attr-for-text="block_name" raised></ctech-dropdown-selector>
         <ctech-dropdown-selector class="ctech-input-selector" id="locationSelector" default-text="Select a Location" items="[[locations]]" attr-for-selected="location_id" attr-for-text="location_name" raised></ctech-dropdown-selector>
-        <template is="dom-repeat" items="{{_objectArrayToArray(gradesN)}}" as="gradelevel">
-          <paper-input class="ctech-input" label="Max [[gradelevel.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{gradelevel.default_amount}}"></paper-input>
+        <template is="dom-repeat" items="{{newLimits}}">
+          <paper-input on-input="test" class="ctech-input" label="Max [[item.grade_name]]" allowed-pattern="[0-9]" auto-validated value="{{item.amount}}"></paper-input>
         </template>
       </div>
     </ctech-confirm-dialog>
@@ -110,13 +109,6 @@
         </paper-datatable-column>
         <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
         <paper-datatable-column header="Topic" property="presentation_text">
-          <!--<template>
-            <div class="layout horizontal flex">
-              <paper-input class="flex" value="{{value}}" no-label-float maxlength="255" char-counter on-keydown="_topicCheckEnter"></paper-input>
-              <paper-icon-button icon="icons:save" on-click="_saveTopic"></paper-icon-button>
-              <paper-icon-button icon="icons:close" on-click="_resetTopic"></paper-icon-button>
-            </div>
-          </template>-->
         </paper-datatable-column>
         <paper-datatable-column header="Location" property="location_id">
           <template>
@@ -147,8 +139,7 @@
       is: 'sps-page-presentations',
       properties: {
         presentations: {
-          type: Object,
-          observer: 'log'
+          type: Object
         },
         houses: {
           type: Object
@@ -168,6 +159,9 @@
         limits: {
           type: Object
         },
+        newLimits: {
+          type: Array
+        },
         selectedPres: {
           type: Object,
           value: {}
@@ -175,6 +169,10 @@
       },
       listeners: {
         'reload-presentations': '_doReloadPresentations'
+      },
+      test: function(e) {
+        console.log(e);
+        console.log(this.newLimits);
       },
       _computeDates: function(e) {
         for(var k in e) {
@@ -189,9 +187,8 @@
       },
       doAdd: function(e){
         var gr_ar = {};
-        for (var key in this.grades) {
-          if (!this.grades.hasOwnProperty(key)) continue;
-          var obj = this.grades[key];
+        for(var x = 0; x < this.newLimits.length; x++) {
+          var obj = this.newLimits[x];
           gr_ar[obj.grade_id] = { 'grade_id': obj.grade_id, 'amount': obj.amount };
         }
         this.$.ajax.method = "POST";
@@ -233,7 +230,6 @@
             'first_name': p.first_name,
             'limits': l_o
           });
-          console.log(this.$.ajax.body);
         this.$.ajax.generateRequest();
       },
       doDelete: function(e){
@@ -244,13 +240,11 @@
           o_out[k] = { presentation_id: k };
         }
         this.$.ajax.body = JSON.stringify(o_out);
-        console.log(o_out);
+        //console.log(o_out);
         this.$.ajax.generateRequest();
       },
       ajaxResponse: function(e){
         if(e.detail.response.status === true){
-          this.$.addDialog.resetForm();
-          //this.$.editDialog.resetForm();
           var action_word = "";
           switch(e.target.method) {
             case "DELETE":
@@ -258,9 +252,12 @@
               break;
             case "POST":
               action_word = "added";
+              //sthis.$.addDialog.resetForm();
               break;
             case "PUT":
               action_word = "updated";
+              this.$.editDialog.resetForm();
+              break;
           }
           this.fire('firetoast', { message: "Presentation " + action_word + "!"});
           this.fire("reload-presentations", { });
@@ -315,11 +312,16 @@
         this.$.dt.deselectAll();
       },
       _doAddDialog: function(e) {
+        this.$.addDialog.resetForm();
+        var l = this._objectToArray(JSON.parse(JSON.stringify(this.gradeLevels)));
+        for(var x = 0; x < l.length; x++) {
+          l[x].amount = l[x].amount.toString();
+        }
+        this.newLimits = l;
         this.$.addDialog.open();
       },
-      _getEditLimits: function(p, grade_id) {
-        console.log(p);
-        return p['limits'][grade_id].amount;
+      doAddReset: function(e) {
+
       },
       _objectToArray: function(arr) {
         var v = $.map(arr, function(value, index) { return [value]; });
@@ -379,41 +381,8 @@
       _trimDate: function(d) {
         return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
       },
-      _getHousesFormatted: function(e) {
-        console.log(e);
-        return e;
-      },
       log: function(e) {
         console.log(e);
-      },
-      _getHouseId: function(e) {
-        console.log(e);
-      },
-      _topicAjaxResponse: function(e) {
-        console.log(e);
-        if(e.detail.response) {
-          if(e.detail.response['status']) {
-            this.$.presentationData.generateRequest();
-            this.fire('firetoast', { message: "Topic saved!"});
-          } else {
-            this.fire('firetoast', { message: "Failed to save topic!"});
-          }
-        }
-      },
-      _topicCheckEnter: function(e) {
-        if(e.keyCode === 13) {
-          this._saveTopicManual(e.model.get('item.presentation_id'), e.model.get('item.topic_edit'));
-        }
-      },
-      _saveTopic: function(e) {
-        this._saveTopicManual(e.model.get('item.presentation_id'), e.model.get('item.topic_edit'));
-      },
-      _saveTopicManual: function(p_id, n_t) {
-        this.$.editTopicAjax.body = JSON.stringify({ "presentation_id": p_id, "presentation_text": n_t });
-        this.$.editTopicAjax.generateRequest();
-      },
-      _resetTopic: function(e) {
-        e.model.set('item.topic_edit', e.model.get('item.presentation_text'));
       },
       _presentationsDataTable: function(pres, houses, locations, grades, limits) {
         //console.log(pres);
