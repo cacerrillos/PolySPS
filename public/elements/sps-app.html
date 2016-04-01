@@ -84,7 +84,8 @@ Example:
                                     not supported by any browser */
       }
     </style>
-    <iron-ajax auto id="adminStatusAjax" url="../../api/1.0/admin/" handle-as="json" last-response="{{adminStatus}}"></iron-ajax>
+    <iron-ajax auto id="adminStatusAjax" url="../api/1.0/admin/" handle-as="json" last-response="{{adminStatus}}"></iron-ajax>
+    <iron-ajax id="logoutAjax" method="GET" url="../api/1.0/admin/logout" handle-as="json" on-response="_doCheckAdminStatus"></iron-ajax>
     <paper-drawer-panel id="mainPanel">
       <paper-header-panel drawer class="vertical layout">
         <paper-toolbar>
@@ -358,7 +359,11 @@ Example:
         'reload-viewers': '_doReloadViewers',
         'reload-houses': '_doReloadHouses',
         'reload-grades': '_doReloadGrades',
+        'admin-check-status': '_doCheckAdminStatus',
         'reload-limits': '_doReloadLimits'
+      },
+      _doCheckAdminStatus: function(e) {
+        this.$.adminStatusAjax.generateRequest();
       },
       _onAdminStatus: function(e) {
         if(e.is_admin !== this.lastAdminStatus) {
