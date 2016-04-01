@@ -33,7 +33,9 @@ $container = $app->getContainer();
 
 $container['db'] = new mysqli($db_host, $db_user, $db_pass);
 $container['db'] -> select_db($db_name);
-$container['is_admin'] = true;
+
+$container['is_admin'] = isset($_SESSION['is_admin']);
+
 if(mysqli_connect_errno()) {
   echo "Connection Failed: " . mysqli_connect_errno();
 }
@@ -67,18 +69,35 @@ include("limits_api.php");
 
 include("viewers_api.php");
 
+/*        */
+
+$app->get('/admin/', function(Request $request, Response $response) {
+  $data = array();
+  $data['is_admin'] = $this->is_admin;
+  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->map(['GET', 'POST'], '/admin/logout', function(Request $request, Response $response, $args) {
+  session_destroy();
+  $status = array();
+  $status['status'] = true;
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 $app->post('/admin/login', function(Request $request, Response $response) {
   session_destroy();
   session_start();
 
-  global $_POST_JSON;
 
   $result = array();
+  $post_data = $request->getParsedBody();
   $result['status'] = false;
-  $result['user'] = $_POST_JSON['user'];
-  if(count($_POST_JSON) > 0){
+  $result['user'] = $post_data['user'];
+  if(isset($post_data['user']) && isset($post_data['pass'])){
     if($stmt = $this->db -> prepare("SELECT `user_id`, `email` FROM `admin` WHERE email = ? AND password = ? LIMIT 1;")){
-      $stmt -> bind_param("ss", $_POST_JSON['user'], md5($_POST_JSON['pass']));
+      $stmt -> bind_param("ss", $post_data['user'], md5($post_data['pass']));
       $stmt -> execute();
       $stmt -> bind_result($data['id'], $data['email']);
       $stmt -> store_result();
@@ -92,9 +111,7 @@ $app->post('/admin/login', function(Request $request, Response $response) {
       $_SESSION['is_admin'] = "set";
       $_SESSION['email'] = $data['email'];
       //$_SESSION['name'] = $data['name'];
-      $_SESSION['dbext'] = $data['id'];
       $_SESSION['admin_id_num'] = $data['id'];
-      $_SESSION['permsid'] = $data['permsid'];
       $result['status'] = true;
     }
   }
@@ -102,41 +119,12 @@ $app->post('/admin/login', function(Request $request, Response $response) {
   return $response;
 });
 
-$app->post('/admin/logout', function(Request $request, Response $response) {
-  session_destroy();
-  $status = array();
-  $status['status'] = true;
-  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
-  return $response;
-});
-
-
-$app->get('/admin/', function(Request $request, Response $response) {
-  $data = array();
-  if(isset($_SESSION["is_admin"])) {
-    $data['is_admin'] = true;
-  } else {
-    $data['is_admin'] = false;
-  }
-  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
-  return $response;
-});
-
-$app->get('/admin/login', function(Request $request, Response $response) {
-
-  return $response;
-});
-
-$app->get('/admin/logout', function(Request $request, Response $response) {
-
-  return $response;
-});
-
 
 $app->get('/', function (Request $request, Response $response) {
-    $response->getBody()->write(json_encode(true, JSON_PRETTY_PRINT));
-
-    return $response;
+  $data = array();
+  $data['is_admin'] = $this->is_admin;
+  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+  return $response;
 });
 
 /*
