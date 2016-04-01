@@ -151,30 +151,30 @@ Example:
 
           </paper-submenu>
 
-          <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="dates" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:date-range" item-icon></iron-icon><span class="noselect">Dates</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="locations" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="maps:place" item-icon></iron-icon><span class="noselect">Locations</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="blocks" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:view-list" item-icon></iron-icon><span class="noselect">Blocks</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="houses" hidden="{{adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="houses" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:home" item-icon></iron-icon><span class="noselect">Houses</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="grades" hidden="{{adminStatus.is_admin}}">
+          <paper-icon-item on-click="goToPageOnClick" data-page="grades" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:assignment" item-icon></iron-icon><span class="noselect">Grades</span>
           </paper-icon-item>
         </paper-menu>
-        <!--
+        
         <polyquiz-admin-login-form hidden="[[adminStatus.is_admin]]"></polyquiz-admin-login-form>
         <paper-icon-item hidden="[[!adminStatus.is_admin]]" on-click="doLogout">
           Log Out
         </paper-icon-item>
         <paper-item disabled>
         </paper-item>
-        -->
+        
       </paper-header-panel>
       <paper-scroll-header-panel class="flex" main id="scrollheader" fixed>
         <paper-toolbar>
@@ -306,8 +306,13 @@ Example:
         grade_levels: {
           type: Object
         },
+        lastAdminStatus: {
+          type: Boolean,
+          value: false
+        },
         adminStatus: {
-          type: Object
+          type: Object,
+          observer: '_onAdminStatus'
         },
         blocks: {
           type: Object
@@ -354,6 +359,18 @@ Example:
         'reload-houses': '_doReloadHouses',
         'reload-grades': '_doReloadGrades',
         'reload-limits': '_doReloadLimits'
+      },
+      _onAdminStatus: function(e) {
+        if(e.is_admin !== this.lastAdminStatus) {
+          if(e.is_admin) {
+            this.fireToastNonEvent("Logged In!");
+          } else {
+            this.fireToastNonEvent("Logged Out!");
+            page("/");
+          }
+          this.lastAdminStatus = e.is_admin;
+        }
+        
       },
       _doReloadHouses: function(e) {
         this.$.housesAjax.generateRequest();
@@ -402,6 +419,7 @@ Example:
         this.fire('polyquiz-resize');
       },
       _onContextChanged: function(e) {
+        this.$.adminStatusAjax.generateRequest();
         console.log(this.page);
         console.log(e);
       },
@@ -485,6 +503,9 @@ Example:
           //self.$.outer.select(self.sGradeId);
           
         }, 3000);
+        setInterval(function() {
+          self.$.adminStatusAjax.generateRequest();
+        }, 30000);
         
         
         //this.$.outer.select(this.sGradeId);
