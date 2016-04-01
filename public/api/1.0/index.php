@@ -96,7 +96,7 @@ $app->post('/admin/login', function(Request $request, Response $response) {
   $result['status'] = false;
   $result['user'] = $post_data['user'];
   if(isset($post_data['user']) && isset($post_data['pass'])){
-    if($stmt = $this->db -> prepare("SELECT `user_id`, `email` FROM `admin` WHERE email = ? AND password = ? LIMIT 1;")){
+    if($stmt = $this->db -> prepare("SELECT `id`, `email` FROM `admin` WHERE email = ? AND password = ? LIMIT 1;")){
       $stmt -> bind_param("ss", $post_data['user'], md5($post_data['pass']));
       $stmt -> execute();
       $stmt -> bind_result($data['id'], $data['email']);
