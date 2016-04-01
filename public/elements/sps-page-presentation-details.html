@@ -62,18 +62,10 @@ Example:
         <h3>[[_computedFromObject(presentations, presentationId, 'last_name')]], [[_computedFromObject(presentations, presentationId, 'first_name')]] - [[_computedFromObject(presentations, presentationId, 'presentation_text')]]</3>
 
         <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentationId, grades, houses)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
-          <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
-          <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
-          <paper-datatable-column header="Grade" property="grade_id">
-            <template>
-              <div>[[_computedFromObject(grades, value, 'grade_name')]]</div>
-            </template>
-          </paper-datatable-column>
-          <paper-datatable-column header="House" property="house_id">
-            <template>
-              <div>[[_computedFromObject(houses, value, 'house_name')]]</div>
-            </template>
-          </paper-datatable-column>
+          <paper-datatable-column header="Last Name" property="last_name" sortable></paper-datatable-column>
+          <paper-datatable-column header="First Name" property="first_name" sortable></paper-datatable-column>
+          <paper-datatable-column header="Grade" property="grade_name" sortable></paper-datatable-column>
+          <paper-datatable-column header="House" property="house_name" sortable></paper-datatable-column>
         </paper-datatable>
         <paper-fab id="addButton" icon="add" class="add-specific" on-click="_doAddDialog"></paper-fab>
         <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details-specific" on-click="_doDetailsPage"></paper-fab>
@@ -156,8 +148,8 @@ Example:
         //console.log(v_o);
         for (var v_o_key in v_o) {
           if (!v_o.hasOwnProperty(v_o_key)) continue;
-          v_o[v_o_key]['grade_name'] = grades[v_o[v_o_key]['grade_id']];
-          v_o[v_o_key]['house_name'] = houses[v_o[v_o_key]['grade_id']];
+          v_o[v_o_key]['grade_name'] = grades[v_o[v_o_key]['grade_id']].grade_name;
+          v_o[v_o_key]['house_name'] = houses[v_o[v_o_key]['house_id']].house_name;
         }
         //console.log(v_o);
         return this._objectToArray(v_o);
