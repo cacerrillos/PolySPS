@@ -61,7 +61,7 @@ Example:
     <paper-material elevation="1" style="padding-bottom: 32px;">
         <h3>[[_computedFromObject(presentations, presentationId, 'last_name')]], [[_computedFromObject(presentations, presentationId, 'first_name')]] - [[_computedFromObject(presentations, presentationId, 'presentation_text')]]</3>
 
-        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentationId, grades, houses)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged">
+        <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentationId, grades, houses)}}" selectable multi-selection on-selection-changed="_selectionChanged">
           <paper-datatable-column header="Last Name" property="last_name" sortable></paper-datatable-column>
           <paper-datatable-column header="First Name" property="first_name" sortable></paper-datatable-column>
           <paper-datatable-column header="Grade" property="grade_name" sortable></paper-datatable-column>
@@ -103,7 +103,6 @@ Example:
         if(typeof this.selectedViewers[this.presentationId] === 'undefined') {
           this.selectedViewers[this.presentationId] = {};
         }
-        //this.selectedViewers[this.presentationId] = {};
         if(e.detail.selected) {
           var o_s = e.detail.selected;
           for (var x = 0; x < o_s.length; x++) {
@@ -123,8 +122,8 @@ Example:
       },
       _refreshActionButtons: function() {
         var count = 0;
-        for (var k in this.selectedViewers) {
-          if (this.selectedViewers.hasOwnProperty(k)) count++;
+        for (var k in this.selectedViewers[this.presentationId]) {
+          if (this.selectedViewers[this.presentationId].hasOwnProperty(k)) count++;
         }
         this.$.deleteButton.disabled = count > 0 ? false : true;
         this.$.detailsButton.disabled = count > 0 ? false : true;
@@ -368,6 +367,32 @@ Example:
 
     </style>
     
+
+    <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Remove Viewers</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <div>Are you sure you want remove viewers from the following?</div>
+        <template is="dom-repeat" items="[[delSelection]]" as="gPresentation">
+          <h3>[[_computedFromObject(presentations, gPresentation.presentationId, 'last_name')]], [[_computedFromObject(presentations, gPresentation.presentationId, 'first_name')]] - [[_computedFromObject(presentations, gPresentation.presentationId, 'presentation_text')]]</h3>
+          <paper-datatable id="dtA" data="{{_getViewersFromSelectedKeys(gPresentation.selected, presentations, gPresentation.presentationId)}}" >
+            <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
+              <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
+          </paper-datatable>
+        </template>
+        <!--
+        <h3>[[_computedFromObject(presentations, presA, 'last_name')]], [[_computedFromObject(presentations, presA, 'first_name')]] - [[_computedFromObject(presentations, presA, 'presentation_text')]]</h3>
+        <paper-datatable id="dtA" data="{{_getViewersArray(presentations, presA)}}" filter="[[_filterBySelected(presA)]]">
+          <paper-datatable-column header="Last Name" property="last_name"></paper-datatable-column>
+            <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
+        </paper-datatable>
+-->
+      </div>
+    </ctech-confirm-dialog>
+
     <div class="container content" style="margin-bottom: 124px;">
     <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
       
@@ -403,6 +428,9 @@ Example:
           type: Object,
           observer: '_onGradesChanged'
         },
+        delSelection: {
+          type: Array
+        },
         globalSelection: {
           type: Object,
           value: {}/*,
@@ -411,6 +439,30 @@ Example:
       },
       listeners: {
         'viewer-selection-changed': '_onSelectionChangedGlobal'
+      },
+      _getViewersFromSelectedKeys: function(arr, pres, p_id) {
+        var out = [];
+        for(var k in arr) {
+          if(!arr.hasOwnProperty(k)) continue;
+          out.push({ viewer_id: k, first_name: pres[p_id]['viewers'][k].first_name, last_name: pres[p_id]['viewers'][k].last_name });
+        }
+        return out;
+      },
+      _computedFromObject: function(obj_arr, id, attr) {//pres only
+          if(typeof obj_arr[id] === "undefined") {
+            if(typeof obj_arr[attr] === "undefined") {
+              return "?";
+            } else {
+              return obj_arr[attr]; 
+            }
+          } else {
+            return obj_arr[id][attr];
+          }
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
       },
       _onSelectionChangedGlobal: function(e) {
         this.globalSelection[e.detail.presentationId] = e.detail;
@@ -458,8 +510,11 @@ Example:
       _doAddDialog: function(e) {
         console.log(e);
       },
-      _doRemoveDialog: function(e) {
-        console.log(e);
+      _doDeleteDialog: function(e) {
+        this.delSelection = this._objectArrayToArray(this.globalSelection);
+        this.async(function() {
+          this.$.deleteDialog.open();
+        });
       },
       _doDetailsPage: function(e) {
         var arr = [];
