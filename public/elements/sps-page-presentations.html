@@ -426,9 +426,10 @@
         for (var k in this.selectedPres) {
           if (this.selectedPres.hasOwnProperty(k)) count++;
         }
-        this.$.deleteButton.disabled = count > 0 ? false : true;
+        this.$.deleteButton.disabled = (count > 0 && mainapp.isAdmin()) ? false : true;
         this.$.detailsButton.disabled = count > 0 ? false : true;
-        this.$.editButton.disabled = count == 1 ? false : true;
+        this.$.editButton.disabled = (count == 1 && mainapp.isAdmin()) ? false : true;
+        this.$.addButton.disabled = mainapp.isAdmin()  ? false : true;
       },
       _trimDate: function(d) {
         return String(d).substr(4, 2) + "/" + String(d).substr(6,2);

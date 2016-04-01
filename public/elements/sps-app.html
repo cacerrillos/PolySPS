@@ -197,7 +197,7 @@ Example:
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
           <sps-page-signup data-page="signup"></sps-page-signup>
           <sps-page-dashboard data-page="dashboard"></sps-page-dashboard>
-          <sps-page-presentations data-page="presentations" ctx="{{ctx}}" locations="[[locations]]"
+          <sps-page-presentations id="pagePresentations" data-page="presentations" ctx="{{ctx}}" locations="[[locations]]"
             houses="[[houses]]"
             dates="[[dates]]"
             limits="[[limits]]"
@@ -362,10 +362,17 @@ Example:
         'admin-check-status': '_doCheckAdminStatus',
         'reload-limits': '_doReloadLimits'
       },
+      isAdmin: function() {
+        if(typeof this.adminStatus !== 'undefined') {
+          return this.adminStatus.is_admin;
+        }
+        return false;
+      },
       _doCheckAdminStatus: function(e) {
         this.$.adminStatusAjax.generateRequest();
       },
       _onAdminStatus: function(e) {
+        this.$.pagePresentations._refreshActionButtons();
         if(e.is_admin !== this.lastAdminStatus) {
           if(e.is_admin) {
             this.fireToastNonEvent("Logged In!");
