@@ -137,7 +137,7 @@
         console.log(details.detail.response);
         if(details.detail.response != null) {
           if(details.detail.response.status) {
-            this.fire('firetoast', { message: "Logged In!"});
+            //this.fire('firetoast', { message: "Logged In!"});
             this.fire('admin-check-status');
           } else if(details.detail.response.status_details != null) { 
             this.fire('firetoast', { message: "Failed To Login! Server Encountered an Error!"});
