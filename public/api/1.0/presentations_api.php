@@ -87,65 +87,68 @@ $app->get('/presentations/', function (Request $request, Response $response) {
 $app->post('/presentations/', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
-  $post_data = $request->getParsedBody();
-  //var_dump($post_data);
-  if(isset($post_data['first_name']) &&
-     isset($post_data['last_name']) &&
-     isset($post_data['presentation_text']) &&
-     isset($post_data['house_id']) &&
-     isset($post_data['location_id']) &&
-     isset($post_data['date']) &&
-     isset($post_data['block_id']) &&
-     isset($post_data['grades'])
-     ) {
-    $official_gl = GetGradeLevels($this->db);
-    $all_gl = true;
-    foreach ($official_gl as $key => $value) {
-      if(isset($post_data['grades'][$value->grade_id])) {
-        if($post_data['grades'][$value->grade_id]['grade_id'] == $value->grade_id) {
-          //good
+  if($this->is_admin) {
+    $post_data = $request->getParsedBody();
+    //var_dump($post_data);
+    if(isset($post_data['first_name']) &&
+       isset($post_data['last_name']) &&
+       isset($post_data['presentation_text']) &&
+       isset($post_data['house_id']) &&
+       isset($post_data['location_id']) &&
+       isset($post_data['date']) &&
+       isset($post_data['block_id']) &&
+       isset($post_data['grades'])
+       ) {
+      $official_gl = GetGradeLevels($this->db);
+      $all_gl = true;
+      foreach ($official_gl as $key => $value) {
+        if(isset($post_data['grades'][$value->grade_id])) {
+          if($post_data['grades'][$value->grade_id]['grade_id'] == $value->grade_id) {
+            //good
+          } else {
+            $all_gl = false;
+          }
         } else {
           $all_gl = false;
         }
-      } else {
-        $all_gl = false;
       }
-    }
-    //var_dump($all_gl);
-    $mysqli = $this->db;
-    //create pres entry
-    //create text entry
-    //create limits entries
-    $presentation_id = -1;
-    if($stmt = $mysqli->prepare("INSERT INTO `presentations` (`presentation_id`, `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id`) VALUES (NULL, ?,?,?,?,?,?);")) {
-      $stmt->bind_param("ssiiii", $post_data['first_name'], $post_data['last_name'],
-                        intval($post_data['house_id']), intval($post_data['date']), intval($post_data['block_id']), intval($post_data['location_id']) );
-      $stmt->execute();
-      $presentation_id = $stmt->insert_id;
-      $stmt->close();
-      if($stmt = $mysqli->prepare("INSERT INTO `presentation_text` (`presentation_id`, `presentation_text`) VALUES (?, ?);")) {
-        $stmt->bind_param("is", $presentation_id, $post_data['presentation_text']);
+      //var_dump($all_gl);
+      $mysqli = $this->db;
+      //create pres entry
+      //create text entry
+      //create limits entries
+      $presentation_id = -1;
+      if($stmt = $mysqli->prepare("INSERT INTO `presentations` (`presentation_id`, `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id`) VALUES (NULL, ?,?,?,?,?,?);")) {
+        $stmt->bind_param("ssiiii", $post_data['first_name'], $post_data['last_name'],
+                          intval($post_data['house_id']), intval($post_data['date']), intval($post_data['block_id']), intval($post_data['location_id']) );
         $stmt->execute();
+        $presentation_id = $stmt->insert_id;
         $stmt->close();
-        foreach ($official_gl as $key => $value) {
-          if($stmt = $mysqli->prepare("INSERT INTO `presentation_limits` (`id`, `grade_level`, `amount`) VALUES (?, ?, ?);")) {
-            $stmt->bind_param("iii", $presentation_id, $value->grade_id, intval($post_data['grades'][$value->grade_id]['amount']));
-            $stmt->execute();
-            $stmt->close();
-          } else {
-            echo $mysqli->error;
+        if($stmt = $mysqli->prepare("INSERT INTO `presentation_text` (`presentation_id`, `presentation_text`) VALUES (?, ?);")) {
+          $stmt->bind_param("is", $presentation_id, $post_data['presentation_text']);
+          $stmt->execute();
+          $stmt->close();
+          foreach ($official_gl as $key => $value) {
+            if($stmt = $mysqli->prepare("INSERT INTO `presentation_limits` (`id`, `grade_level`, `amount`) VALUES (?, ?, ?);")) {
+              $stmt->bind_param("iii", $presentation_id, $value->grade_id, intval($post_data['grades'][$value->grade_id]['amount']));
+              $stmt->execute();
+              $stmt->close();
+            } else {
+              echo $mysqli->error;
+            }
           }
+        } else {
+          echo $mysqli->error;
         }
       } else {
         echo $mysqli->error;
       }
-    } else {
-      echo $mysqli->error;
+
+
+      $status['status'] = true;
     }
-
-
-    $status['status'] = true;
   }
+  
 
   $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
   return $response;
@@ -154,56 +157,59 @@ $app->post('/presentations/', function(Request $request, Response $response) {
 $app->put('/presentations/', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
-  $post_data = $request->getParsedBody();
-  //try to save data
-  if(isset($post_data['presentation_id'])) {
-    $mysqli = $this->db;
-    $old_data = GetPresentation($mysqli, intval($post_data['presentation_id']), true);
+  if($this->is_admin) {
+    $post_data = $request->getParsedBody();
+    //try to save data
+    if(isset($post_data['presentation_id'])) {
+      $mysqli = $this->db;
+      $old_data = GetPresentation($mysqli, intval($post_data['presentation_id']), true);
 
-    $dToFind = ['presentation_text', 'house_id', 'block_id', 'date', 'location_id', 'last_name', 'first_name'];
-    $dIn = array();//$mysqli, $presentation_id, $text = false, $viewers = false
-    for($x = 0; $x < count($dToFind); $x++) {
-      $dIn[$dToFind[$x]] = isset($post_data[$dToFind[$x]]) ? $post_data[$dToFind[$x]] : $old_data->{$dToFind[$x]};
-    }
-    $t_s = false;
-    $d_s = false;
-    $l_s = false;
-    if(isset($post_data['limits'])) {
-      foreach($post_data['limits'] as $key => $value) {
-        if($stmt = $mysqli->prepare("UPDATE `presentation_limits` SET `amount` = ? WHERE `presentation_limits`.`id` = ? AND `presentation_limits`.`grade_level` = ? LIMIT 1;")) {
-          $stmt->bind_param("iii", $value, $post_data['presentation_id'], $key);
-          $stmt->execute();
-          if($stmt->affected_rows == 1) {
-            $l_s = true;
+      $dToFind = ['presentation_text', 'house_id', 'block_id', 'date', 'location_id', 'last_name', 'first_name'];
+      $dIn = array();//$mysqli, $presentation_id, $text = false, $viewers = false
+      for($x = 0; $x < count($dToFind); $x++) {
+        $dIn[$dToFind[$x]] = isset($post_data[$dToFind[$x]]) ? $post_data[$dToFind[$x]] : $old_data->{$dToFind[$x]};
+      }
+      $t_s = false;
+      $d_s = false;
+      $l_s = false;
+      if(isset($post_data['limits'])) {
+        foreach($post_data['limits'] as $key => $value) {
+          if($stmt = $mysqli->prepare("UPDATE `presentation_limits` SET `amount` = ? WHERE `presentation_limits`.`id` = ? AND `presentation_limits`.`grade_level` = ? LIMIT 1;")) {
+            $stmt->bind_param("iii", $value, $post_data['presentation_id'], $key);
+            $stmt->execute();
+            if($stmt->affected_rows == 1) {
+              $l_s = true;
+            }
+            $stmt->close();
+          } else {
+            echo $mysqli->error;
           }
-          $stmt->close();
-        } else {
-          echo $mysqli->error;
         }
       }
-    }
-    if($stmt = $mysqli->prepare("UPDATE `presentations` SET `house_id` = ?, `block_id` = ?, `date` = ?, `location_id` = ?, `last_name` = ?, `first_name` = ? WHERE `presentations`.`presentation_id` = ? LIMIT 1;")) {
-      $stmt->bind_param("iiiissi", $dIn['house_id'], $dIn['block_id'], $dIn['date'], $dIn['location_id'], $dIn['last_name'], $dIn['first_name'], $post_data['presentation_id']);
-      $stmt->execute();
-      if($stmt->affected_rows == 1) {
-        $d_s = true;
+      if($stmt = $mysqli->prepare("UPDATE `presentations` SET `house_id` = ?, `block_id` = ?, `date` = ?, `location_id` = ?, `last_name` = ?, `first_name` = ? WHERE `presentations`.`presentation_id` = ? LIMIT 1;")) {
+        $stmt->bind_param("iiiissi", $dIn['house_id'], $dIn['block_id'], $dIn['date'], $dIn['location_id'], $dIn['last_name'], $dIn['first_name'], $post_data['presentation_id']);
+        $stmt->execute();
+        if($stmt->affected_rows == 1) {
+          $d_s = true;
+        }
+        $stmt->close();
+      } else {
+        echo $mysqli->error;
       }
-      $stmt->close();
-    } else {
-      echo $mysqli->error;
-    }
-    if($stmt = $mysqli->prepare("UPDATE `presentation_text` SET `presentation_text` = ? WHERE `presentation_text`.`presentation_id` = ? LIMIT 1;")) {
-      $stmt->bind_param("si", $dIn['presentation_text'], $post_data['presentation_id']);
-      $stmt->execute();
-      if($stmt->affected_rows == 1) {
-        $t_s = true;
+      if($stmt = $mysqli->prepare("UPDATE `presentation_text` SET `presentation_text` = ? WHERE `presentation_text`.`presentation_id` = ? LIMIT 1;")) {
+        $stmt->bind_param("si", $dIn['presentation_text'], $post_data['presentation_id']);
+        $stmt->execute();
+        if($stmt->affected_rows == 1) {
+          $t_s = true;
+        }
+        $stmt->close();
+      } else {
+        echo $mysqli->error;
       }
-      $stmt->close();
-    } else {
-      echo $mysqli->error;
+      $status['status'] = $t_s || $d_s || $l_s;
     }
-    $status['status'] = $t_s || $d_s || $l_s;
   }
+  
   $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
   return $response;
 });
@@ -211,21 +217,24 @@ $app->put('/presentations/', function(Request $request, Response $response) {
 $app->delete('/presentations/', function (Request $request, Response $response) {
   $resp = array();
   $resp['status'] = false;
-  $post_data = $request->getParsedBody();
-  $mysqli = $this->db;
+  if($this->is_admin) {
+    $post_data = $request->getParsedBody();
+    $mysqli = $this->db;
 
-  foreach ($post_data as $key => $value) {
-    if($stmt = $mysqli->prepare("DELETE FROM `presentations` WHERE `presentation_id` = ?;")) {
-      $stmt->bind_param("i", $value['presentation_id']);
-      $stmt->execute();
-      if($stmt->affected_rows > 0) {
-        $resp['status'] = true;
+    foreach ($post_data as $key => $value) {
+      if($stmt = $mysqli->prepare("DELETE FROM `presentations` WHERE `presentation_id` = ?;")) {
+        $stmt->bind_param("i", $value['presentation_id']);
+        $stmt->execute();
+        if($stmt->affected_rows > 0) {
+          $resp['status'] = true;
+        }
+      } else {
+        echo $mysqli->error;
       }
-    } else {
-      echo $mysqli->error;
-    }
 
+    }
   }
+  
   $response->getBody()->write(json_encode($resp, JSON_PRETTY_PRINT));
   return $response;
 });

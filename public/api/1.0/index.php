@@ -33,6 +33,7 @@ $container = $app->getContainer();
 
 $container['db'] = new mysqli($db_host, $db_user, $db_pass);
 $container['db'] -> select_db($db_name);
+$container['is_admin'] = true;
 if(mysqli_connect_errno()) {
   echo "Connection Failed: " . mysqli_connect_errno();
 }
