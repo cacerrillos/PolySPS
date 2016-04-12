@@ -21,12 +21,277 @@ Example:
       :host {
         display: block;
       }
+      paper-material {
+        margin-top: 20px;
+        padding: 10px;
+      }
+      .r {
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+      .r:hover {
+        background: #EEEEEE;
+      }
     </style>
-    SIGN-UP
+    <iron-ajax
+       id="ajax"
+       method="POST"
+       url="../api/1.0/registrations/"
+       handle-as="json"
+      content-type="application/json"
+       on-response="ajaxResponse"></iron-ajax>
+       <iron-ajax
+           auto
+           id="regAjax"
+           url="../api/1.0/registrations/1"
+           handle-as="json"
+           last-response="{{registrations}}"></iron-ajax>
+    <div id="mDiv" class="content container">
+    <paper-button raised on-click="reloadd">RELOAD</paper-button>
+    <template is="dom-repeat" items="[[_computeDates(dates)]]" as="date">
+        
+        <template is="dom-repeat" items="[[_objectArrayToArray(blocks)]]" as="block">
+          <paper-material elevation="1">
+            <h3 style="margin-top: 0;">[[date.date_name]] - [[block.block_name]]</h3>
+            <template is="dom-repeat" items="[[_FilterPres(presentations, date.date, block.block_id)]]" as="presentation">
+              <div class="layout horizontal r" style="" on-click="_doClickRow">
+                <div style="margin-left:14px; margin-right:14px;"><paper-checkbox id="pirate-[[date.date]]-[[block.block_id]]" data-presentation-id="[[presentation.presentation_id]]" on-click="_doRegister" class="check" checked="[[_getChecked(presentations, registrations, presentation.presentation_id)]]"></paper-checkbox></div>
+                <div class="flex">[[presentation.last_name]], [[presentation.first_name]]</div>
+                <div class="flex">[[presentation.presentation_text]]</div>
+                <div class="flex"></div>
+              </div>
+              <div></div>
+            </template>
+            <paper-datatable id="findmedt" data-date="[[date.date]]" data-block="[[block.block_id]]" data="[[_FilterPres(presentations, date.date, block.block_id)]]" selectable on-selection-changed="_onDtSelect">
+              <paper-datatable-column header="Name" property="last_name">
+                <template>
+                  <div id="findme">HELLO</div>
+                  <div>{{item.last_name}}, {{item.first_name}}</div>
+                </template>
+              </paper-datatable-column>
+              <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
+              <paper-datatable-column header="Location" property="location_id">
+                <template>
+                  <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
+                </template>
+              </paper-datatable-column>
+              <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
+                <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
+                  <template>
+                    <div><b>{{_computedFromLimits(limits, value, grades.grade_id)}}</b>/{{_computedFromLimitsMax(limits, value, grades.grade_id)}}</div>
+                  </template>
+                </paper-datatable-column>
+              </template>
+              <paper-datatable-column header="Total" property="presentation_id" class="only-large">
+                <template>
+                  <div><b>{{_computedFromLimitsTotal(limits, value)}}</b>/{{_computedFromLimitsTotalMax(limits, value)}}</div>
+                </template>
+              </paper-datatable-column>
+            </paper-datatable>
+
+
+          </paper-material>
+          
+        </template>
+      
+    </template>
+    </div>
   </template>
   <script>
     Polymer({
-      is: 'sps-page-signup'
+      is: 'sps-page-signup',
+      properties: {
+        registrations: {
+          type: Array,
+          observer: '_onRegistrationsChanged'
+        },
+        ctx: {
+          type: Object,
+          observer: '_onContextChanged'
+        }
+      },
+      reloadd: function(e) {
+        this.$.regAjax.generateRequest();
+      },
+      _onContextChanged: function(e) {
+        console.log(e);
+        this._onRegistrationsChanged(null);
+      },
+      _onDtSelect: function(e) {
+        console.log(e);
+      },
+      _onRegistrationsChanged: function(e) {
+        var dts = Polymer.dom(this.$.mDiv).querySelectorAll("#findmedt");
+        for(var x = 0; x < dts.length; x++) {
+          var data = this._FilterPres(this.presentations, dts[x].dataDate, dts[x].dataBlock);
+          for(var c = 0; c < data.length; c++) {
+            var t = dts[x]._getByKey('#' + c);
+            for(var y = 0; y < this.registrations.length; y++) {
+              if(this.registrations[y].presentation_id === t.presentation_id) {
+                dts[x].select(t, false);
+              }
+            }
+          }
+        }
+      },
+      _doRegisterManual: function(p_id) {
+        var p = this.presentations[p_id];
+        var d = p.date;
+        var b_id = p.block_id;
+        var search = "#pirate-" + d + "-" + b_id;
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll(search);
+        var disabled = false;
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            disabled = disabled || arr[key].disabled;
+            if(arr[key]['dataPresentationId'] !== p_id && !arr[key].disabled) {
+              arr[key].checked = false;
+              //console.log(arr[key]);
+              //console.log(arr[key]['dataHouse']);
+              //console.log(arr[key].dataGhId);
+              //sconsole.log(this.getElementPos(arr[key]));
+              //this.fire('scroll-request', this.getElementPos(arr[key]));
+            } else if(arr[key]['dataPresentationId'] === p_id && !arr[key].disabled) {
+              arr[key].checked = true;
+            }
+            
+        }
+        //do Ajax
+        if(!disabled) this._doRegisterFunc(p_id);
+      },
+      _getChecked: function(pres, regs, p_id) {
+        //console.log(pres);
+        for(var x = 0; x < regs.length; x++) {
+          if(regs[x].presentation_id === p_id) {
+            return true;
+          }
+        }
+        //console.log(regs);
+        return false;
+      },
+      ajaxResponse: function(e) {
+        console.log(e);
+        var r = e.detail.response;
+        //var p = this.presentations[p_id];
+        var d = r.date;//p.date;
+        var b_id = r.block_id;//p.block_id;
+        var search = "#pirate-" + d + "-" + b_id;
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll(search);
+        for(var key in arr) {
+          if(!arr.hasOwnProperty(key)) continue;
+          arr[key].disabled = false;
+        }
+      },
+      _doRegister: function(e) {
+        
+        //console.log(e);
+        //console.log(e.model.get('presentation.presentation_id'));
+        var p_id = e.model.get('presentation.presentation_id');
+        var d = e.model.get('presentation.date');
+        var b_id = e.model.get('presentation.block_id');
+        //console.log("pirate-" + d + "-" + b_id);
+        var search = "#pirate-" + d + "-" + b_id;
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll(search);
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            if(arr[key]['dataPresentationId'] !== p_id) {
+              arr[key].checked = false;
+            }
+            
+        }
+        //do ajax
+        this._doRegisterFunc(p_id);
+      },
+      _doRegisterFunc: function(p_id) {
+        var p = this.presentations[p_id];
+        var d = p.date;
+        var b_id = p.block_id;
+        var search = "#pirate-" + d + "-" + b_id;
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll(search);
+        for(var key in arr) {
+          if(!arr.hasOwnProperty(key)) continue;
+          arr[key].disabled = true;
+        }
+        this.$.ajax.body = JSON.stringify({ date: d, block_id: b_id });
+        console.log(this.$.ajax.body);
+        this.$.ajax.generateRequest();
+      },
+      _computeDates: function(e) {
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          var str = e[k]['date'].toString();
+          var y = str.substring(0, 4);
+          var m = str.substring(4, 6);
+          var d = str.substring(6, 8);
+          e[k]['date_name'] = new Date(y, m - 1, d).toDateString();
+        }
+        return e;
+      },
+      _FilterPres: function(presentations, date, block_id) {
+        var e = JSON.parse(JSON.stringify(presentations));
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          if(e[k].date === date && e[k].block_id === block_id) {
+
+          } else {
+            delete e[k];
+          }
+        }
+        return this._objectArrayToArray(e);
+      },
+      _computedFromObject: function(obj_arr, e, attr) {
+        return obj_arr[e][attr];
+      },
+      _doClickRow: function(e) {
+        console.log(e);
+        var p_id = e.model.get('presentation.presentation_id');
+        this._doRegisterManual(p_id);
+      },
+      _computedFromLimits: function(limits, pres, grade) {
+        if(typeof limits[pres] === 'undefined') {
+          return "?";
+        } else {
+          if(typeof limits[pres][grade] === 'undefined') {
+            return "?";
+          }
+          return limits[pres][grade].total;
+        }
+      },
+      _computedFromLimitsMax: function(limits, pres, grade) {
+        if(typeof limits[pres] === 'undefined') {
+          return "?";
+        } else {
+          if(typeof limits[pres][grade] === 'undefined') {
+            return "?";
+          }
+          return limits[pres][grade].amount;
+        }
+      },
+      _computedFromLimitsTotal: function(limits, pres) {
+        var total = 0;
+        var p = limits[pres];
+        for (var key in p) {
+          if (!p.hasOwnProperty(key)) continue;
+          var obj = p[key];
+          total += obj.total;
+        }
+        return total;
+      },
+      _computedFromLimitsTotalMax: function(limits, pres) {
+        var total_max = 0;
+        var p = limits[pres];
+        for (var key in p) {
+          if (!p.hasOwnProperty(key)) continue;
+          var obj = p[key];
+          total_max += obj.amount;
+        }
+        return total_max;
+      },
+      _objectArrayToArray: function(arr) {
+        var v = $.map(arr, function(value, index) { return [value]; });
+        //console.log(v);
+        return $.map(arr, function(value, index) { return [value]; });
+      }
     });
   </script>
 </dom-module>

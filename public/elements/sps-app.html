@@ -195,7 +195,14 @@ Example:
           <div class="flex"></div>
         </div>
         <neon-animated-pages id="pageSelector" attr-for-selected="data-page" entry-animation="fade-in-animation" exit-animation="fade-out-animation" selected="[[page]]">
-          <sps-page-signup data-page="signup"></sps-page-signup>
+          <sps-page-signup data-page="signup"
+            ctx="[[ctx]]"
+            dates="[[dates]]"
+            grade-levels="[[grade_levels]]"
+            blocks="[[blocks]]"
+            presentations="[[presentations]]"
+            limits="[[limits]]"
+          ></sps-page-signup>
           <sps-page-dashboard data-page="dashboard"></sps-page-dashboard>
           <sps-page-presentations id="pagePresentations" data-page="presentations" ctx="{{ctx}}" locations="[[locations]]"
             houses="[[houses]]"
