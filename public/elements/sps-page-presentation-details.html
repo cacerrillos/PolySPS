@@ -31,6 +31,7 @@ Example:
 -->
 
 <dom-module id="pres-details-card">
+<link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
   <template>
     <style>
       :host {
@@ -58,8 +59,31 @@ Example:
         right: 164px;
       }
     </style>
+    <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Add" valid-color="#2196f3" modal reset-on-dismiss="false">
+      <div class="layout vertical">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Add Viewers</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h3>[[_computedFromObject(presentations, presentationId, 'last_name')]], [[_computedFromObject(presentations, presentationId, 'first_name')]] - [[_computedFromObject(presentations, presentationId, 'presentation_text')]]</h3>
+        <div class="flex"></div>
+      </div>
+
+      <paper-dialog-scrollable id="scrollable" class="flex">
+      <paper-datatable id="addViewers" data="[[_getViewersNotInThisPresentation(viewers, presentations, presentationId, c)]]" selectable multi-selection on-selection-changed="_selectionChangedToAdd">
+        <paper-datatable-column header="Last Name" property="last_name" sortable></paper-datatable-column>
+        <paper-datatable-column header="First Name" property="first_name" sortable></paper-datatable-column>
+        <paper-datatable-column header="Grade" property="grade_name" sortable></paper-datatable-column>
+        <paper-datatable-column header="House" property="house_name" sortable></paper-datatable-column>
+      </paper-datatable>
+      </paper-dialog-scrollable>
+      </div>
+    </ctech-confirm-dialog>
     <paper-material elevation="1" style="padding-bottom: 32px;">
-        <h3>[[_computedFromObject(presentations, presentationId, 'last_name')]], [[_computedFromObject(presentations, presentationId, 'first_name')]] - [[_computedFromObject(presentations, presentationId, 'presentation_text')]]</3>
+        <h3>[[_computedFromObject(presentations, presentationId, 'last_name')]], [[_computedFromObject(presentations, presentationId, 'first_name')]] - [[_computedFromObject(presentations, presentationId, 'presentation_text')]]</h3>
 
         <paper-datatable id="dt" data="{{_getViewersArray(presentations, presentationId, grades, houses)}}" selectable multi-selection on-selection-changed="_selectionChanged">
           <paper-datatable-column header="Last Name" property="last_name" sortable></paper-datatable-column>
@@ -85,18 +109,61 @@ Example:
         houses: {
           type: Object
         },
+        selectedToAdd: {
+          type: Object,
+          value: {}
+        },
         selectedViewers: {
           type: Object,
           value: {}
+        },
+        c: {
+          type: Object
         },
         ctx: {
           type: Object,
           observer: '_onContextChanged'
         }
       },
+      _getViewersNotInThisPresentation: function(viewers, presentations, presentationId, c) {
+
+        var arr = this._objectToArray(viewers);
+        for(var x = 0; x < arr.length; x++) {
+          if($.inArray(parseInt(presentationId), arr[x].presentations) !== -1) {
+            delete arr[x];
+          }
+        }
+        return arr;
+      },
       _onContextChanged: function(e) {
+        this.$.addButton.disabled = !mainapp.isAdmin();
         if(mainapp.page !== "presentation_details") {
           this.$.dt.deselectAll();
+        }
+      },
+      _onContextChangedThus: function(thus, e) {
+        thus.$.addButton.disabled = !mainapp.isAdmin();
+        if(mainapp.page !== "presentation_details") {
+          thus.$.dt.deselectAll();
+        }
+      },
+      _selectionChangedToAdd: function(e) {
+        if(typeof this.selectedToAdd[this.presentationId] === 'undefined') {
+          this.selectedToAdd[this.presentationId] = {};
+        }
+        if(e.detail.selected) {
+          var o_s = e.detail.selected;
+          for (var x = 0; x < o_s.length; x++) {
+            var viewer_id = e.target.get('data.' + o_s[x] + '.viewer_id');
+            this.selectedToAdd[this.presentationId][viewer_id] = "";
+          }
+        }
+        if(e.detail.deselected) {
+          var o_ds = e.detail.deselected;
+          for (var x = 0; x < o_ds.length; x++) {
+            var viewer_id = e.target.get('data.' + o_ds[x] + '.viewer_id');
+            delete this.selectedToAdd[this.presentationId][viewer_id];
+          }
         }
       },
       _selectionChanged: function(e) {
@@ -125,8 +192,9 @@ Example:
         for (var k in this.selectedViewers[this.presentationId]) {
           if (this.selectedViewers[this.presentationId].hasOwnProperty(k)) count++;
         }
-        this.$.deleteButton.disabled = count > 0 ? false : true;
-        this.$.detailsButton.disabled = count > 0 ? false : true;
+        var is_admin = mainapp.isAdmin();
+        this.$.deleteButton.disabled = (count > 0 && is_admin) ? false : true;
+        this.$.detailsButton.disabled = (count > 0) ? false : true;
       },
       _getViewersArray: function(arr, p_id, grades, houses) {
         //console.log("_getViewersArray");
@@ -156,7 +224,36 @@ Example:
 
       },
       _doAddDialog: function(e) {
-        console.log(e);
+        this.selectedToAdd = {};
+       // this.$.scrollable.dialogElement = this.$.addDialog.getDialog();
+        //console.log(this.$.addDialog.getDialog().sizingTarget);
+        //this.$.addDialog.getDialog().sizingTarget = this.$.scrollable;
+        //console.log(this.$.scrollable.dialogElement);
+        //console.log(this.$.addDialog.getDialog().sizingTarget);
+        
+        this.$.scrollable.dialogElement = this.$.addDialog.getDialog();
+        this.$.scrollable._ensureTarget();
+        this.async(function() {this.$.addDialog.open(); });
+        this.c = {};
+        //this.$.addDialog.getDialog().sizingTarget = this.$.scrollable;
+        //this.$.
+        //this.$.addDialog._checkScrollable();
+        //console.log(e);
+      },
+      doAdd: function(e) {
+        var arr = this.selectedToAdd;
+        var arr_o = [];
+        for(var k in arr) {
+          if(!arr.hasOwnProperty(k)) continue;
+          var p_id = k;
+          for(var ki in arr[k]) {
+            if(!arr[k].hasOwnProperty(ki)) continue;
+            var v_id = ki;
+            arr_o.push({ presentation_id: p_id, viewer_id: v_id });
+          }
+        }
+        this.fire('do-register', arr_o);
+        //console.log(this.selectedToAdd);
       },
       _doDetailsPage: function(e) {
         var arr = [];
@@ -188,6 +285,8 @@ Example:
       },
       ready: function(e) {
         this._refreshActionButtons();
+        var thus = this;
+        mainapp.addEventListener("admin-status-changed", this._onContextChangedThus(thus, e));
       }
     });
   </script>
@@ -331,6 +430,7 @@ Example:
   </script>
 </dom-module>
 <dom-module id="sps-page-presentation-details">
+
   <template>
     <style>
       :host {
@@ -367,7 +467,7 @@ Example:
 
     </style>
     
-
+    <iron-ajax id="addAjax" method="POST" url="../api/1.0/registrations/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
     <ctech-confirm-dialog id="deleteDialog" on-ctech-dialog-confirm="doDelete" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
       <div class="layout horizontal">
         <div class="flex"></div>
@@ -376,6 +476,7 @@ Example:
       </div>
       <div class="layout vertical">
         <div>Are you sure you want remove viewers from the following?</div>
+        <paper-dialog-scrollable id="scrollremove">
         <template is="dom-repeat" items="[[delSelection]]" as="gPresentation">
           <h3>[[_computedFromObject(presentations, gPresentation.presentationId, 'last_name')]], [[_computedFromObject(presentations, gPresentation.presentationId, 'first_name')]] - [[_computedFromObject(presentations, gPresentation.presentationId, 'presentation_text')]]</h3>
           <paper-datatable id="dtA" data="{{_getViewersFromSelectedKeys(gPresentation.selected, presentations, gPresentation.presentationId)}}" >
@@ -383,6 +484,7 @@ Example:
               <paper-datatable-column header="First Name" property="first_name"></paper-datatable-column>
           </paper-datatable>
         </template>
+        </paper-dialog-scrollable>
         <!--
         <h3>[[_computedFromObject(presentations, presA, 'last_name')]], [[_computedFromObject(presentations, presA, 'first_name')]] - [[_computedFromObject(presentations, presA, 'presentation_text')]]</h3>
         <paper-datatable id="dtA" data="{{_getViewersArray(presentations, presA)}}" filter="[[_filterBySelected(presA)]]">
@@ -396,7 +498,7 @@ Example:
     <div class="container content" style="margin-bottom: 124px;">
     <template id="tmp" is="dom-repeat" items="[[presentationsToView]]" as="presentation_id">
       
-      <pres-details-card ctx="[[ctx]]" presentations="[[presentations]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
+      <pres-details-card ctx="[[ctx]]" presentations="[[presentations]]" viewers="[[viewers]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
     </template>
     <presentation-swap-dialog id="swapDialog" presentations="[[presentations]]" global-selection="[[globalSelection]]"></presentation-swap-dialog>
     <paper-fab id="swapButton" icon="icons:swap-vert" class="edit" on-click="_doSwapDialog"></paper-fab>
@@ -438,7 +540,55 @@ Example:
         }
       },
       listeners: {
-        'viewer-selection-changed': '_onSelectionChangedGlobal'
+        'viewer-selection-changed': '_onSelectionChangedGlobal',
+        'do-register': '_doRegister'
+      },
+      _doRegister: function(e) {
+        console.log(e);
+        this.$.addAjax.body = JSON.stringify(e.detail);
+        this.$.addAjax.generateRequest();
+      },
+      ajaxResponse: function(e){
+        if(e.detail.response.status === true){
+          var action_word = "";
+          switch(e.target.method) {
+            case "DELETE":
+              action_word = "deleted";
+              break;
+            case "POST":
+              action_word = "added";
+              break;
+            case "PUT":
+              action_word = "updated";
+          }
+          this.fire('firetoast', { message: "Block " + action_word + "!"});
+          this.fire("reload-presentations", { });
+          this.fire("reload-viewers", {});
+        } else {
+          var det = "NO_DETAILS";
+          if(e.detail.response.status_details) {
+            det = e.detail.response.status_details;
+            switch(det) {
+              case 1062:
+                det = "Duplicate House Name";
+                break;
+              default:
+                break;
+            }
+          }
+          var action_word = "";
+          switch(e.target.method) {
+            case "DELETE":
+              action_word = "delete";
+              break;
+            case "POST":
+              action_word = "add";
+              break;
+            case "PUT":
+              action_word = "update";
+          }
+          this.fire('firetoast', { message: "FAILED to " + action_word + " Block! [" + det + "]"});
+        }
       },
       _getViewersFromSelectedKeys: function(arr, pres, p_id) {
         var out = [];
@@ -492,9 +642,10 @@ Example:
             swapable  = true;
           }
         }
-        this.$.deleteButton.disabled = count > 0 ? false : true;
+        var is_admin = mainapp.isAdmin();
+        this.$.deleteButton.disabled = (count > 0 && is_admin) ? false : true;
         this.$.detailsButton.disabled = count > 0 ? false : true;
-        this.$.swapButton.disabled = !swapable;
+        this.$.swapButton.disabled = !(swapable && is_admin);
       },
       _onHousesChanged: function(e) {
         console.log("Houses Changed");
@@ -508,10 +659,13 @@ Example:
         //this.fire('reload-presentations');
       },
       _doAddDialog: function(e) {
-        console.log(e);
+        //console.log(e);
+        this.$.addDialog.open();
       },
       _doDeleteDialog: function(e) {
         this.delSelection = this._objectArrayToArray(this.globalSelection);
+        this.$.scrollremove.dialogElement = this.$.deleteDialog.getDialog();
+        this.$.scrollremove._ensureTarget();
         this.async(function() {
           this.$.deleteDialog.open();
         });
