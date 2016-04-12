@@ -69,6 +69,8 @@ include("limits_api.php");
 
 include("viewers_api.php");
 
+include("registrations_api.php");
+
 /*        */
 
 $app->get('/admin/', function(Request $request, Response $response) {
