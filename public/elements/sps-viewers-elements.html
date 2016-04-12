@@ -9,7 +9,7 @@
   <template>
     <iron-ajax method="DELETE" id="deleteAjax" url="../api/1.0/viewers/" handle-as="json" on-response="onDeleteResp" content-type="application/json"></iron-ajax>
     <ctech-confirm-dialog id="dialog" on-ctech-dialog-confirm="_onConfirm" on-ctech-dialog-dismiss="_onDismiss" confirm-text="Delete" valid-color="#c62828" modal>
-      <h2>Delete The Presentation(s)?</h2>
+      <h2>Delete The Viewers(s)?</h2>
 
       <paper-datatable id="dt" data="{{_objectArrayToArray(viewers)}}" filter="{{_myFilter}}">
         <paper-datatable-column header="Name" property="last_name">
@@ -127,7 +127,7 @@
   <ctech-confirm-dialog id="mainDialog" on-ctech-dialog-confirm="reqSubmit" on-ctech-dialog-dismiss="resetForm" confirm-text="Create" valid-color="#8BC34A" modal>
     <div class="layout horizontal">
       <div class="flex"></div>
-      <h2>New Presentation</h2>
+      <h2>New Viewer</h2>
       <div class="flex"></div>
     </div>
     <div class="layout vertical">
