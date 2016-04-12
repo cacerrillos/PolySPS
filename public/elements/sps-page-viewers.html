@@ -110,10 +110,17 @@
         selectedViewers: {
           type: Object,
           value: {}
+        },
+        ctx: {
+          type: Object,
+          observer: '_onContextChanged'
         }
       },
       listeners: {
         'reload-viewers': '_reloadViewers'
+      },
+      _onContextChanged: function(e) {
+        this.$.addButton.disabled  = !mainapp.isAdmin();
       },
       _gradeFilter: function(grade_id, house_id) {
         return function(item, key, items) {
