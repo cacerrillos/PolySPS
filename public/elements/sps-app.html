@@ -207,6 +207,7 @@ Example:
             grade-levels="[[grade_levels]]"
           ></sps-page-presentations>
           <sps-page-presentation-details data-page="presentation_details" ctx="{{ctx}}"
+          viewers="[[viewers]]"
           presentations="[[presentations]]"
           presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
           <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" viewers="[[viewers]]" houses="[[houses]]" grade-levels="[[grade_levels]]"></sps-page-viewers>
@@ -313,7 +314,8 @@ Example:
         },
         adminStatus: {
           type: Object,
-          observer: '_onAdminStatus'
+          observer: '_onAdminStatus',
+          notify: true
         },
         blocks: {
           type: Object
