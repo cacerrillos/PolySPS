@@ -202,6 +202,7 @@ Example:
             blocks="[[blocks]]"
             presentations="[[presentations]]"
             limits="[[limits]]"
+            locations="[[locations]]"
           ></sps-page-signup>
           <sps-page-dashboard data-page="dashboard"></sps-page-dashboard>
           <sps-page-presentations id="pagePresentations" data-page="presentations" ctx="{{ctx}}" locations="[[locations]]"
@@ -516,7 +517,7 @@ Example:
         this.$.mainPanel.responsiveWidth = "1280px";
         var self = this;
         setInterval(function() {
-          if(mainapp.page === "presentations") {
+          if(mainapp.page === "presentations" || mainapp.page ===  "signup") {
             self.$.getLimits.generateRequest();
           }
           //console.log(self.$.outer.selectedItem);
