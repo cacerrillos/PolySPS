@@ -16,6 +16,7 @@ Example:
 -->
 
 <dom-module id="sps-page-signup">
+  <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
   <template>
     <style>
       :host {
@@ -32,7 +33,37 @@ Example:
       .r:hover {
         background: #EEEEEE;
       }
+      paper-fab.reload {
+        --paper-fab-background: var(--paper-green-600);
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+      }
+      paper-button.begin {
+        background-color: #8BC34A;
+        color: white;
+      }
     </style>
+    <iron-ajax
+       auto
+       id="signupAjax"
+       method="GET"
+       url="../api/1.0/viewers/me"
+       handle-as="json"
+       last-response="{{regStatus}}"
+       on-response="signupAjaxResponse"></iron-ajax>
+       <iron-ajax
+        id="beginAjax"
+          method="POST"
+          url="../api/1.0/registrations/begin"
+          handle-as="json"
+          content-type="application/json"
+          on-response="beginAjaxResponse"></iron-ajax>
+          <iron-ajax
+             id="finishAjax"
+             url="../api/1.0/registrations/finish?c=1"
+             handle-as="json"
+             on-response="handleFinish"></iron-ajax>
     <iron-ajax
        id="ajax"
        method="POST"
@@ -43,38 +74,100 @@ Example:
        <iron-ajax
            auto
            id="regAjax"
-           url="../api/1.0/registrations/1"
+           url="../api/1.0/registrations/me"
            handle-as="json"
            last-response="{{registrations}}"></iron-ajax>
-    <div id="mDiv" class="content container">
-    <paper-button raised on-click="reloadd">RELOAD</paper-button>
+    <div id="mDiv" class="content container" style="margin-bottom: 128px;">
+
+    <ctech-confirm-dialog id="verifyDialog" on-ctech-dialog-confirm="doBegin" confirm-text="Begin" valid-color="#8BC34A" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Begin?</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        Is this information correct?
+        <div>First: <b>[[preFirstName]]</b></div>
+        <div>Last: <b>[[preLastName]]</b></div>
+        <div>Grade: <b>[[preGrade.grade_name]]</b></div>
+        <div>House: <b>[[preHouse.house_name]]</b></div>
+      </div>
+      <paper-datatable id="presDT" data="[[_FilterPresGradeHouse(presentations, preHouse.house_id)]]" selectable on-selection-changed="_onDtSelectTG" hidden="[[_isPresentor(preGrade.grade_id)]]">
+        <paper-datatable-column header="Name" property="last_name">
+          <template>
+            <div>{{item.last_name}}, {{item.first_name}}</div>
+          </template>
+        </paper-datatable-column>
+        <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
+      </paper-datatable>
+    </ctech-confirm-dialog>
+
+    <div class="row">
+    <div class="6u">
+    <paper-material elevation="1" hidden="[[regStatus.status]]">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Signup!</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input name="firstname" label="First Name" on-input="_validateForm" id="firstname" maxlength="255" char-counter value="{{preFirstName}}"></paper-input>
+        <paper-input name="lastname" label="Last Name" on-input="_validateForm" id="lastname" maxlength="255" char-counter value="{{preLastName}}"></paper-input>
+        <ctech-dropdown-selector id="gradeSelector" default-text="Select a Grade" items="[[grades]]" attr-for-selected="grade_id" attr-for-text="grade_name" on-ctech-select="_validateForm" raised selected="{{preGrade}}"></ctech-dropdown-selector>
+        <ctech-dropdown-selector id="houseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" on-ctech-select="_validateForm" raised selected="{{preHouse}}"></ctech-dropdown-selector>
+        
+      </div>
+      <div class="layout horizontal">
+      <div class="flex"></div>
+      <div>Make sure to click <b>Finish</b> at the bottom when you are completely done!</div>
+      <div class="flex"></div>
+      </div>
+      <paper-button id="beginButton" raised class="" on-click="doVerifyBegin">Begin!</paper-button>
+      <paper-button id="resetButton" raised class="" on-click="doReset">Reset!</paper-button>
+    </paper-material>
+    </div>
+    </div>
+    <div hidden="[[!regStatus.status]]">
+    <paper-material elevation="1">
+      <h3 style="margin-top: 0; margin-bottom: 0;">You are [[regStatus.first_name]] [[regStatus.last_name]]</h3>
+      House: <b>[[_computedFromObject(houses, regStatus.house_id, 'house_name')]]</b><br>
+      Grade: <b>[[_computedFromObject(grades, regStatus.grade_id, 'grade_name')]]</b>
+    </paper-material>
     <template is="dom-repeat" items="[[_computeDates(dates)]]" as="date">
         
         <template is="dom-repeat" items="[[_objectArrayToArray(blocks)]]" as="block">
           <paper-material elevation="1">
             <h3 style="margin-top: 0;">[[date.date_name]] - [[block.block_name]]</h3>
-            <template is="dom-repeat" items="[[_FilterPres(presentations, date.date, block.block_id)]]" as="presentation">
-              <div class="layout horizontal r" style="" on-click="_doClickRow">
-                <div style="margin-left:14px; margin-right:14px;"><paper-checkbox id="pirate-[[date.date]]-[[block.block_id]]" data-presentation-id="[[presentation.presentation_id]]" on-click="_doRegister" class="check" checked="[[_getChecked(presentations, registrations, presentation.presentation_id)]]"></paper-checkbox></div>
-                <div class="flex">[[presentation.last_name]], [[presentation.first_name]]</div>
-                <div class="flex">[[presentation.presentation_text]]</div>
-                <div class="flex"></div>
+            <div class="layout vertical">
+            <template is="dom-repeat" items="[[_FilterPresMan(presentations, date.date, block.block_id, limitsPub, registrations)]]" as="presentation">
+              <div class="layout horizontal" style="padding: 10px;">
+                <paper-checkbox on-change="_presSelected" data-presentation="[[presentation.presentation_id]]" checked="[[presentation.is_registered]]" disabled="[[presentation.full]]"></paper-checkbox>
+                <div class="flex">[[presentation.presentation_text]] - [[presentation.is_registered]] - [[presentation.full]]</div>
               </div>
-              <div></div>
             </template>
-            <paper-datatable id="findmedt" data-date="[[date.date]]" data-block="[[block.block_id]]" data="[[_FilterPres(presentations, date.date, block.block_id)]]" selectable on-selection-changed="_onDtSelect">
+
+
+
+
+
+
+            </div>
+            <paper-datatable id="findmedt" data-date="[[date.date]]" data-block="[[block.block_id]]" data="[[_FilterPres(presentations, date.date, block.block_id, limits,  registrations)]]">
               <paper-datatable-column header="Name" property="last_name">
                 <template>
-                  <div id="findme">HELLO</div>
-                  <div>{{item.last_name}}, {{item.first_name}}</div>
+                  <div class="layout horizontal">
+                  <paper-checkbox on-change="_presSelected" data-presentation="[[item.presentation_id]]" checked="[[item.is_registered]]" disabled="[[_boolOr(item.full, item.is_registered)]]"></paper-checkbox>
+                  <div>{{item.last_name}}, {{item.first_name}} </div>
+                  </div>
                 </template>
               </paper-datatable-column>
               <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
-              <paper-datatable-column header="Location" property="location_id">
+              <!--<paper-datatable-column header="Location" property="location_id">
                 <template>
-                  <div>{{_computedFromObject(locations, value, 'location_name')}}</div>
+                  <div>{{value}}-{{_computedFromObject(locations, value, 'location_name')}}</div>
                 </template>
               </paper-datatable-column>
+              -->
               <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
                 <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
                   <template>
@@ -89,25 +182,203 @@ Example:
               </paper-datatable-column>
             </paper-datatable>
 
-
+            <paper-progress value="[[registerProgress]]" style="width: 100%"></paper-progress>
           </paper-material>
           
         </template>
       
     </template>
+    <paper-material elevation="1">
+      <h3 style="margin-top: 0; margin-bottom: 0;">You are [[regStatus.first_name]] [[regStatus.last_name]]</h3>
+      House: <b>[[_computedFromObject(houses, regStatus.house_id, 'house_name')]]</b><br>
+      Grade: <b>[[_computedFromObject(grades, regStatus.grade_id, 'grade_name')]]</b>
+      <div class="layout veritcal">
+        <div class="layout horizontal">
+          <div class="flex"></div>
+          <div>You have registered for <b>[[registerProgressRaw]]</b> out of <b>[[registerProgressTotal]]</b> presentation slots.</div>
+          <div class="flex"></div>
+        </div>
+        <div class="layout horizontal">
+          <div class="flex"></div>
+          <paper-button raised style="background-color: #2196f3; color: white; margin-top:16px;" on-click="doFinishDialog">Finish</paper-button>
+          <div class="flex"></div>
+        </div>
+        
+      </div>
+    </paper-material>
     </div>
+    </div>
+    <paper-fab class="reload" icon="refresh" on-click="reloadd"></paper-fab>
   </template>
   <script>
     Polymer({
       is: 'sps-page-signup',
       properties: {
+        registerProgressTotal: {
+          type: Number,
+          value: 0
+        },
+        registerProgressRaw: {
+          type: Number,
+          value: 0
+        },
+        registerProgress: {
+          type: Number,
+          value: 0
+        },
+        preFirstName: {
+          type: String
+        },
+        preLastName: {
+          type: String
+        },
+        preGrade: {
+          type: Object
+        },
+        preHouse: {
+          type: Object
+        },
+        prePresId: {
+          type: Number,
+          value: -1
+        },
+        locations: {
+          type: Object
+        },
         registrations: {
           type: Array,
           observer: '_onRegistrationsChanged'
         },
+        registrationsPrivate: {
+          type: Array,
+          observer: '_onRegistrationsChangedPrivate'
+        },
+        limits: {
+          type: Object
+        },
+        regStatus: {
+          type: Object
+        },
+        vald: {
+          type: Boolean,
+          value: false
+        },
+        filtPres: {
+          type: Object,
+          value: {}
+        },
         ctx: {
           type: Object,
           observer: '_onContextChanged'
+        }
+      },
+      _boolOr: function(a, b) {
+        return a || b;
+      },
+      _isPresentor: function(grade_id) {
+        return grade_id === 1;
+      },
+      doFinishDialog: function() {
+        this.$.finishAjax.generateRequest();
+      },
+      doBegin: function(e) {
+        console.log(e);
+        if(this.prePresId === -1) {
+          this.$.beginAjax.body = JSON.stringify({ first_name: this.preFirstName, last_name: this.preLastName, grade_id: this.preGrade.grade_id, house_id: this.preHouse.house_id });
+        } else {
+          this.$.beginAjax.body = JSON.stringify({ first_name: this.preFirstName, last_name: this.preLastName, grade_id: this.preGrade.grade_id, house_id: this.preHouse.house_id, presentation_id: this.prePresId });
+        }
+        
+        this.$.beginAjax.generateRequest();
+        //create new viewer through api
+        //which sets the session variable
+
+        //GOLDEN
+      },
+      handleFinish: function(e) {
+        if(e.detail.response) {
+          if(e.detail.status) {
+            this.$.signupAjax.generateRequest();
+          }
+        }
+      },
+      _onDtSelectTG: function(e) {
+        console.log(e);
+        if(e.detail.selected) {
+          if(e.detail.selected.length > 0) {
+            this.vlad = true;
+            var own_ores = e.target._getByKey(e.detail.selected[0]);
+            this.prePresId = own_ores.presentation_id;
+            this.$.verifyDialog.invalid = false;
+          }
+        } else if(e.detail.deselected) {
+          this.vlad = false;
+          this.$.verifyDialog.invalid = true;
+        }
+        
+      },
+      beginAjaxResponse: function(e) {
+        console.log(e.detail.response);
+        if(e.detail.response.status) {
+          this.fire('firetoast', { message: "Successfully begun!" });
+          this.$.signupAjax.generateRequest();
+          this.doReset();
+        } else {
+          if(e.detail.response.claimed) {
+            this.fire('firetoast', { message: "Presentation already claimed!"});
+          } else {
+            this.fire('firetoast', { message: "Failed to begin!"});
+          }
+        }
+        //console.log(e);
+      },
+      doReset: function(e) {
+        this.$.firstname.value = "";
+        this.$.lastname.value = "";
+        this.$.houseSelector.select();
+        this.$.gradeSelector.select();
+
+        this._validateForm();
+      },
+      doVerifyBegin: function() {
+        this.$.verifyDialog.open();
+        this.validateVerify();
+      },
+      validateVerify: function () {
+        this.vald = false;
+        if(this.preGrade.grade_id === 2) {
+          this.prePresId = -1;
+          this.$.verifyDialog.invalid = true;
+        } else {
+          this.$.verifyDialog.invalid = false;
+        }
+      },
+      ready: function() {
+        this._validateForm();
+        var self = this;
+        setInterval(function() {
+          if(mainapp.page ===  "signup") {
+            self.$.regAjax.generateRequest();
+          }
+          //console.log(self.$.outer.selectedItem);
+          //console.log(self.$.outer.items);
+          //self.$.outer.select(self.sGradeId);
+          
+        }, 3000);
+
+      },
+      _validateForm: function(e) {
+        this.$.beginButton.disabled = !(this.$.firstname.value.length > 0 && this.$.lastname.value.length > 0 && this.$.houseSelector.selected && this.$.gradeSelector.selected);
+      },
+      signupAjaxResponse: function(e) {
+        console.log(e);
+        if(e.detail.response.status) {
+
+        } else {
+          console.log("FALDDL " + mainapp.page);
+          if(mainapp.page ==="signup") {
+            //this.$.preSignupDialog.open();
+          }
         }
       },
       reloadd: function(e) {
@@ -116,14 +387,74 @@ Example:
       _onContextChanged: function(e) {
         console.log(e);
         this._onRegistrationsChanged(null);
+        if(this.regStatus) {
+          if(mainapp.page === "signup") {
+            if(this.regStatus.status) {
+
+            } else {
+              //this.$.preSignupDialog.open();
+            }
+          }
+        }
+      },
+      _presSelected: function(e) {
+        console.log(e);
+        if(e.target.checked) {
+          console.log("SELECTED");
+          this._doRegisterReq(e.target.dataPresentation);
+        } else {
+          console.log("DESELECTED");
+        }
+      },
+      _doRegisterReq: function(p_id) {
+
+            this.$.ajax.body = JSON.stringify({ presentation_id: p_id, viewer_id:  this.regStatus.viewer_id });
+            console.log(this.$.ajax.body);
+            this.$.ajax.generateRequest();
+            /*
+            this.fire('firetoast', { message: "Already Registered!"});
+            this.$.regAjax.generateRequest();
+         */
       },
       _onDtSelect: function(e) {
-        console.log(e);
+        //e.target.selectable =  false;
+        
+        if(e.detail.selected)  {
+          if(e.detail.selected.length == 1) {
+            var dts = Polymer.dom(this.$.mDiv).querySelectorAll("#findmedt");
+            for(var x = 0; x < dts.length; x++) {
+              dts[x].selectable  = false;
+            }
+            var aaa = e.target._getByKey(e.detail.selected[0]);
+            /*if(_computedFromLimits() >= _computedFromLimitsMax()) {
+
+            }
+            */
+            this.$.ajax.body = JSON.stringify({ presentation_id: aaa.presentation_id, viewer_id:  this.regStatus.viewer_id });
+            console.log(this.$.ajax.body);
+            this.$.ajax.generateRequest();
+            console.log(aaa);
+          }
+        } else if(e.detail.deselected) {
+          if(e.detail.deselected.length == 1) {
+            this.fire('firetoast', { message: "Already Registered!"});
+            this.$.regAjax.generateRequest();
+          }
+        }
+        
       },
       _onRegistrationsChanged: function(e) {
+        if(e) {
+          this.registerProgressRaw = e.length;
+          this.registerProgress = e.length / this.registerProgressTotal * 100;
+        }
+        /*
         var dts = Polymer.dom(this.$.mDiv).querySelectorAll("#findmedt");
         for(var x = 0; x < dts.length; x++) {
-          var data = this._FilterPres(this.presentations, dts[x].dataDate, dts[x].dataBlock);
+          //console.log(dts[x]);
+          //dts[x].deselectAll(false);
+
+          var data = this._FilterPres(this.presentations, dts[x].dataDate, dts[x].dataBlock, this.limits, this.registrations);
           for(var c = 0; c < data.length; c++) {
             var t = dts[x]._getByKey('#' + c);
             for(var y = 0; y < this.registrations.length; y++) {
@@ -133,6 +464,7 @@ Example:
             }
           }
         }
+        */
       },
       _doRegisterManual: function(p_id) {
         var p = this.presentations[p_id];
@@ -170,6 +502,27 @@ Example:
         return false;
       },
       ajaxResponse: function(e) {
+        console.log(e);
+        this.fire('reload-limits');
+        if(e.detail.response) {
+          if(e.detail.response.status) {
+             this.fire('firetoast', { message: "Registered!"});
+          } else {
+            if(e.detail.response.notenoughroom) {
+              this.fire('firetoast', { message: "Presentation is Full!"});
+
+            } else {
+              this.fire('firetoast', { message: "Failed to Register!"});
+            }
+            
+          }
+        } else{
+          this.fire('firetoast', { message: "Failed to Register!"});
+        }
+        this.$.regAjax.generateRequest();
+        return;
+
+
         console.log(e);
         var r = e.detail.response;
         //var p = this.presentations[p_id];
@@ -227,11 +580,57 @@ Example:
         }
         return e;
       },
-      _FilterPres: function(presentations, date, block_id) {
+      _FilterPresMan: function(presentations, date, block_id, limits, registrations) {
+        var d_count = 0;
+        for(var k in this.blocks) {
+          if(this.blocks.hasOwnProperty(k)) d_count++;
+        }
+        this.registerProgressTotal = this.dates.length * d_count;
         var e = JSON.parse(JSON.stringify(presentations));
         for(var k in e) {
           if(!e.hasOwnProperty(k)) continue;
           if(e[k].date === date && e[k].block_id === block_id) {
+            e[k]['is_registered'] = false;
+            for(var kk in registrations) {
+              if(e[k].presentation_id === registrations[kk].presentation_id) {
+                e[k]['is_registered'] = true;
+              }
+            }
+          } else {
+            delete e[k];
+          }
+        }
+        return this._objectArrayToArray(e);
+      },
+      _FilterPres: function(presentations, date, block_id, limits, registrations) {
+        var d_count = 0;
+        for(var k in this.blocks) {
+          if(this.blocks.hasOwnProperty(k)) d_count++;
+        }
+        this.registerProgressTotal = this.dates.length * d_count;
+
+        var e = JSON.parse(JSON.stringify(presentations));
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          if(e[k].date === date && e[k].block_id === block_id) {
+            e[k]['is_registered'] = false;
+            e[k]['full'] = !(this._computedFromLimits(limits, e[k].presentation_id, this.regStatus.grade_id) < this._computedFromLimitsMax(limits, e[k].presentation_id, this.regStatus.grade_id));
+            for(var kk in registrations) {
+              if(e[k].presentation_id === registrations[kk].presentation_id) {
+                e[k]['is_registered'] = true;
+              }
+            }
+          } else {
+            delete e[k];
+          }
+        }
+        return this._objectArrayToArray(e);
+      },
+      _FilterPresGradeHouse: function(presentations, house_id) {
+        var e = JSON.parse(JSON.stringify(presentations));
+        for(var k in e) {
+          if(!e.hasOwnProperty(k)) continue;
+          if(e[k].house_id === house_id) {
 
           } else {
             delete e[k];
@@ -240,6 +639,7 @@ Example:
         return this._objectArrayToArray(e);
       },
       _computedFromObject: function(obj_arr, e, attr) {
+        console.log(obj_arr);
         return obj_arr[e][attr];
       },
       _doClickRow: function(e) {
