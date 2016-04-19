@@ -13,6 +13,7 @@ class Presentation {
   public $location_id;
   public $presentation_text;
   public $viewers;
+  public $claimed;
   public function __construct() {
   }
 }
@@ -21,10 +22,10 @@ function GetPresentation($mysqli, $presentation_id, $text = false, $viewers = fa
 
   $pres = null;
 
-  if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id` FROM `presentations` WHERE `presentation_id` = ? LIMIT 1;")) {
+  if($stmt = $mysqli -> prepare("SELECT `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id`, `claimed` FROM `presentations` WHERE `presentation_id` = ? LIMIT 1;")) {
     $stmt->bind_param("i", $presentation_id);
     $stmt->execute();
-    $stmt->bind_result($first_name, $last_name, $house_id, $date, $block_id, $location_id);
+    $stmt->bind_result($first_name, $last_name, $house_id, $date, $block_id, $location_id, $claimed);
     while($stmt->fetch()) {
       $pres = new Presentation();
       $pres->presentation_id = intval($presentation_id);
@@ -34,6 +35,7 @@ function GetPresentation($mysqli, $presentation_id, $text = false, $viewers = fa
       $pres->date = $date;
       $pres->block_id = $block_id;
       $pres->location_id = $location_id;
+      $pres->claimed = $claimed == 1 ? true : false;
     }
     $stmt->close();
     if($text) {
