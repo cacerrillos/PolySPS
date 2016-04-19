@@ -198,6 +198,8 @@ Example:
           <sps-page-signup data-page="signup"
             ctx="[[ctx]]"
             dates="[[dates]]"
+            grades="[[grade_levels]]"
+            houses="[[houses]]"
             grade-levels="[[grade_levels]]"
             blocks="[[blocks]]"
             presentations="[[presentations]]"
@@ -525,6 +527,11 @@ Example:
           //self.$.outer.select(self.sGradeId);
           
         }, 3000);
+        setInterval(function() {
+          if(mainapp.page === "presentations" || mainapp.page === "presentation_details") {
+            self.$.presentationData.generateRequest();
+          }
+        }, 15000);
         setInterval(function() {
           self.$.adminStatusAjax.generateRequest();
         }, 30000);
