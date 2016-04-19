@@ -3,44 +3,9 @@
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-$app->post('/registrations/', function (Request $request, Response $response) {
-  $post_data = $request->getParsedBody();
-  $status = array();
-  $status['status'] = true;
-  foreach ($post_data as $key => $value) {
-    if($stmt = $this->db->prepare("INSERT INTO `registrations` (`presentation`, `viewer`, `timestamp`) VALUES (?, ?, '111');")) {
-      $stmt->bind_param("ii", $value['presentation_id'], $value['viewer_id']);
-      $stmt->execute();
-      $status['status'] = $status['status'] && $stmt->affected_rows > 0;
-      $stmt->close();
-    } else {
-      //echo $this->db->error;
-    }
-  }
-
-  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
-  return $response;
-
+function get_registrations_by_id($mysqli, $viewer_id) {
   $data = array();
-  $mysqli = $this->db;
-  if($stmt = $mysqli -> prepare("SELECT `house_id`, `house_name` FROM `houses`;")) {
-    $stmt->execute();
-    $stmt->bind_result($house_id, $house_name);
-    while($stmt->fetch()) {
-      $data[$house_id] = new House($house_id, $house_name);
-    }
-    $stmt->close();
-  } else {
-    $response->getBody()->write($mysqli->error);
-  }
-  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
-  return $response;
-});
-
-$app->get('/registrations/{viewer_id}', function (Request $request, Response $response) {
-  $data = array();
-  $mysqli = $this->db;
-  $viewer_id = $request->getAttribute('viewer_id');
+  
   if($stmt = $mysqli -> prepare("SELECT `registrations`.`presentation`, `presentations`.`date`, `presentations`.`block_id` FROM `registrations` JOIN `presentations` ON `registrations`.`presentation` = `presentations`.`presentation_id` WHERE `registrations`.`viewer` = ?;")) {
     $stmt->bind_param("i", $viewer_id);
     $stmt->execute();
@@ -56,8 +21,154 @@ $app->get('/registrations/{viewer_id}', function (Request $request, Response $re
     }
     $stmt->close();
   } else {
-    $response->getBody()->write($mysqli->error);
+    //$response->getBody()->write($mysqli->error);
   }
+  return $data;
+}
+
+$app->get('/registrations/finish', function(Request $request, Response $response) {
+  $status = array();
+  $status['status'] = false;
+      session_destroy();
+      session_start();
+      $status['status'] = true;
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->post('/registrations/begin', function (Request $request, Response $response) {
+  $status = array();
+  $status['status'] = false;
+
+  $post_data = $request->getParsedBody();
+  if(isset($post_data['first_name']) && isset($post_data['last_name']) && isset($post_data['grade_id']) && isset($post_data['house_id'])) {
+    if(isset($post_data['presentation_id']) && $post_data['grade_id'] == 2) {
+      $status['senior'] = true;
+      //is senior, attempt to claim accooint
+      $pres = GetPresentation($this->db, $post_data['presentation_id']);
+      if($pres) {
+        if(!$pres->claimed) {
+
+        } else {
+          $status['claimed'] = true;
+        }
+      } else {
+        $status['nopres'] = true;
+      }
+    } else {
+      $id = -1;
+      if($stmt = $this->db->prepare("INSERT INTO `viewers` (`viewer_id`, `first_name`, `last_name`, `email`, `house_id`, `grade_id`) VALUES (NULL, ?, ?, '', ?, ?);")) {
+        $stmt->bind_param("ssii", $post_data['first_name'], $post_data['last_name'], $post_data['house_id'], $post_data['grade_id']);
+        if($stmt->execute()) {
+          $id = $stmt->insert_id;
+          $status['status'] = true;
+          $_SESSION['viewer_id'] = $id;
+        }
+        $stmt->close();
+      } else {
+        $status['inserterror'] = $this->db->error;
+      }
+
+      $status['senior'] = false;
+      $status['pid'] = isset($post_data['presentation_id']);
+      $status['gdid'] = $post_data['grade_id'] == 1;
+    }
+  } else {
+    $status['missingvars'] = true;
+  }
+  
+  $status['in'] = $post_data;
+
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->post('/registrations/', function (Request $request, Response $response) {
+  $post_data = $request->getParsedBody();
+  $status = array();
+  $status['status'] = true;
+  $mysqli_status = true;
+  $entered = false;
+  if(isset($post_data['presentation_id'])  && isset($post_data['viewer_id'])) {
+    
+    $pres = GetPresentation($this->db, $post_data['presentation_id']);
+    $viewer = GetViewer($this->db, $post_data['viewer_id']);
+    $limits = GetLimits($this->db, $post_data['presentation_id'], true);
+    if($pres && $viewer  && $limits) {
+      $entered = true;
+
+      $claimed_modif = (!$pres->claimed && $viewer->grade_id == 2) ? 1 : 0; //not sure if this works
+      $status['c'] = $pres->claimed;
+      $status['gid'] = $viewer->grade_id;
+      $status['stmt'] = !$pres->claimed && $viewer->grade_id == 2;
+      if($limits[$viewer->grade_id]->total < $limits[$viewer->grade_id]->amount - $claimed_modif) {
+        if($stmt = $this->db->prepare("LOCK TABLE `registrations` WRITE;")) {
+          $stmt->execute();
+          $stmt->close();
+        } else {
+          $status['erur'] = $this->db->error;
+        }
+        if($stmt = $this->db->prepare("DELETE FROM `registrations` WHERE `registrations`.`date` = ? AND `registrations`.`block_id` = ? AND `registrations`.`viewer` = ? LIMIT 1;")) {
+          $stmt->bind_param("iii", $pres->date, $pres->block_id, $post_data['viewer_id']);
+          $stmt->execute();
+          $stmt->close();
+        } else {
+          echo $this->db->error;
+        }
+        if($stmt = $this->db->prepare("INSERT INTO `registrations` (`presentation`, `viewer`, `timestamp`, `date`, `block_id`) VALUES (?, ?, ?, ? ,?);")) {
+          $t  = time();
+          $stmt->bind_param("iiiii", $post_data['presentation_id'], $post_data['viewer_id'], $t, $pres->date, $pres->block_id);
+          if($stmt->execute())  {
+            $mysqli_status = $mysqli_status && $stmt->affected_rows > 0;
+          } else{
+            $response['my'] = $this->db->error;
+            $mysqli_status = false;
+          }
+         
+          $stmt->close();
+        } else {
+          echo $this->db->error;
+        }
+        if($stmt = $this->db->prepare("UNLOCK TABLES;")) {
+          $stmt->execute();
+          $stmt->close();
+        } else {
+          $status['erur2'] = $this->db->error;
+        }
+      } else {
+        $status['status'] = false;
+        $status['notenoughroom']= true;
+        //fail not enough room
+      }
+      
+
+    } else {
+      $mysqli_status = false;
+    }
+  }
+  $status['status']  =  $status['status'] && $mysqli_status && $entered;
+
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->get('/registrations/me', function(Request $request, Response $response) {
+  $status = array();
+  $status['status'] = false;
+  if(isset($_SESSION['viewer_id'])) {
+    $data = get_registrations_by_id($this->db, $_SESSION['viewer_id']);
+    if($data) {
+      $status = $data;
+    }
+    //$status['status'] = true;
+    //$status['viewer_id'] = $_SESSION['viewer_id'];
+  }
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->get('/registrations/{viewer_id}', function (Request $request, Response $response) {
+  $data = get_registrations_by_id($this->db, $request->getAttribute('viewer_id'));
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
   return $response;
 });

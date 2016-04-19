@@ -73,6 +73,27 @@ function GetViewersByPresentation($mysqli, $presentation_id, $presentations = fa
   }
   return $final_data;
 }
+
+$app->get('/viewers/me', function(Request $request, Response $response) {
+  $status = array();
+  $status['status'] = false;
+  if(isset($_SESSION['viewer_id'])) {
+    $status['status'] = true;
+    $status['viewer_id'] = $_SESSION['viewer_id'];
+    $data = GetViewer($this->db, $_SESSION['viewer_id']);
+    if($data) {
+      $status['first_name'] = $data->first_name;
+      $status['last_name'] = $data->last_name;
+      $status['house_id'] = $data->house_id;
+      $status['grade_id'] = $data->grade_id;
+      //$status = array_merge($status, $data);
+    }
+    
+  }
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 $app->get('/viewers/', function (Request $request, Response $response) {
   $final_data = array();
   $mysqli = $this->db;
