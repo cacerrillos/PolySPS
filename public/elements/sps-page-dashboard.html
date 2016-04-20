@@ -21,8 +21,20 @@ Example:
       :host {
         display: block;
       }
+      paper-material {
+        margin-top: 20px;
+        padding: 10px;
+      }
     </style>
-    DASHBOARD
+    <div class="container">
+      <div class="row">
+      <div class="12u">
+        <paper-material elevation="1">
+          Registrations allowed: <paper-checkbox checked></paper-checkbox>
+        </paper-material>
+      </div>
+      </div>
+    </div>
   </template>
   <script>
     Polymer({
