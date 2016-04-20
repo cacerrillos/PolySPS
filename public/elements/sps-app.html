@@ -531,6 +531,9 @@ Example:
           if(mainapp.page === "presentations" || mainapp.page === "presentation_details") {
             self.$.presentationData.generateRequest();
           }
+          if(mainapp.page === "viewers") {
+            self.$.viewersAjax.generateRequest();
+          }
         }, 15000);
         setInterval(function() {
           self.$.adminStatusAjax.generateRequest();
