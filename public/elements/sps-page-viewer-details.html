@@ -42,14 +42,15 @@ Example:
       }
     </style>
     <paper-material elevation="1">
-      <h3>[[viewer.last_name]], [[viewer.first_name]]</h3>
+      <h4 style="float: left; padding-right: 8px;">Viewer: </h4><h3>[[viewer.last_name]], [[viewer.first_name]]</h3>
+      <div style="clear: both;"></div>
       <paper-datatable data="[[_filterByViewer(presentations, viewer.presentations)]]">
         <paper-datatable-column header="Date" property="block_id">
           <template>
             <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
           </template>
         </paper-datatable-column>
-        <paper-datatable-column header="Name" property="last_name">
+        <paper-datatable-column header="Presentor" property="last_name">
           <template>
             <div>{{item.last_name}}, {{item.first_name}}</div>
           </template>
@@ -106,14 +107,14 @@ Example:
         }
       },
       _filterByViewer: function(presentations, viewer_id) {
-        console.log(viewer_id);
+        //console.log(viewer_id);
         var arr = this._objectArrayToArray(presentations);
         for(var x = 0; x < arr.length; x++) {
           if($.inArray(arr[x].presentation_id, viewer_id) === -1) {
             delete arr[x];
           }
         }
-        console.log(arr);
+        //console.log(arr);
         return arr;
       },
       _trimDate: function(d) {
