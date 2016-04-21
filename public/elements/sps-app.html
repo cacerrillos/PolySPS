@@ -95,7 +95,7 @@ Example:
           <paper-icon-item on-click="goToPageOnClick" data-page="signup" hidden="{{adminStatus.is_admin}}">
             <iron-icon icon="icons:event-seat" item-icon></iron-icon><span class="noselect">Sign-Up</span>
           </paper-icon-item>
-          <paper-icon-item on-click="goToPageOnClick" data-page="dashboard">
+          <paper-icon-item on-click="goToPageOnClick" data-page="dashboard" hidden="{{!adminStatus.is_admin}}">
             <iron-icon icon="icons:dashboard" item-icon></iron-icon><span class="noselect">Dashboard</span>
           </paper-icon-item>
 

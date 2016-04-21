@@ -26,11 +26,38 @@ Example:
         padding: 10px;
       }
     </style>
+    <iron-ajax
+       auto
+       id="siteAjaxe"
+       url="../api/1.0/settings/enabled11"
+       handle-as="json"
+       content-type="application/json"
+       last-response="{{enabledObjecte}}"></iron-ajax>
+   <iron-ajax
+       auto
+       id="siteAjaxt"
+       url="../api/1.0/settings/enabled12"
+       handle-as="json"
+       content-type="application/json"
+       last-response="{{enabledObjectt}}"></iron-ajax>
+   <iron-ajax
+       id="siteAjaxeE"
+       url="../api/1.0/settings/enabled11"
+       handle-as="json"
+       on-response="logg"
+       content-type="application/json"></iron-ajax>
+   <iron-ajax
+       id="siteAjaxtE"
+       url="../api/1.0/settings/enabled12"
+       handle-as="json"
+       on-response="logg"
+       content-type="application/json"></iron-ajax>
     <div class="container">
       <div class="row">
       <div class="12u">
         <paper-material elevation="1">
-          Registrations allowed: <paper-checkbox checked></paper-checkbox>
+          11th Registrations allowed: <paper-checkbox on-change="enabledTogglee" checked="[[parseBinToBool(enabledObjecte.entry_value)]]"></paper-checkbox>
+          12th Registrations allowed: <paper-checkbox on-change="enabledTogglet" checked="[[parseBinToBool(enabledObjectt.entry_value)]]"></paper-checkbox>
         </paper-material>
       </div>
       </div>
@@ -38,7 +65,51 @@ Example:
   </template>
   <script>
     Polymer({
-      is: 'sps-page-dashboard'
+      is: 'sps-page-dashboard',
+      properties: {
+        enabledObjecte: {
+          type: Object
+        },
+        enabledObjectt: {
+          type: Object
+        }
+      },
+      parseBinToBool: function(str) {
+        return str === "1" ? true : false;
+      },
+      enabledTogglee: function(e) {
+        this.$.siteAjaxeE.method = "PUT";
+        var x = e.target.checked ? "1" : "0";
+        this.$.siteAjaxeE.body = JSON.stringify({ entry_key: "enabled11", entry_value: x });
+        this.$.siteAjaxeE.generateRequest();
+        console.log(e);
+      },
+      enabledTogglet: function(e) {
+        this.$.siteAjaxtE.method = "PUT";
+        var x = e.target.checked ? "1" : "0";
+        this.$.siteAjaxtE.body = JSON.stringify({ entry_key: "enabled12", entry_value: x });
+        console.log(this.$.siteAjaxtE.body);
+        this.$.siteAjaxtE.generateRequest();
+        console.log(e);
+      },
+      logg: function(e) {
+        if(e.detail.response) {
+          if(e.detail.response.status) {
+            this.fire('firetoast', { message: "Updated Registration Status!"});
+          } else {
+            if(e.detail.response.notadmin) {
+              this.fire('firetoast', { message: "You are not an admin!"});
+            } else {
+              this.fire('firetoast', { message: "Unknown DB error!"});
+            }
+          }
+        } else {
+          this.fire('firetoast', { message: "JSON ERROR!"});
+        }
+        
+        console.log(e);
+      }
+      
     });
   </script>
 </dom-module>
