@@ -421,7 +421,7 @@ Example:
         this.$.locationsAjax.generateRequest();
       },
       _doScroll: function(e) {
-        console.log(e);
+        //console.log(e);
         this.$.scrollheader.scroll(e.detail.y-96, true);
       },
       _objectArrayToArray: function(arr) {
@@ -444,8 +444,8 @@ Example:
       },
       _onContextChanged: function(e) {
         this.$.adminStatusAjax.generateRequest();
-        console.log(this.page);
-        console.log(e);
+        //console.log(this.page);
+        //console.log(e);
       },
       goToPageOnClick: function(e) {
         var pageId = "";
@@ -469,7 +469,7 @@ Example:
         page('/viewers/' + grade_id);
       },
       expandGrades: function(e) {
-        console.log(e);
+        //console.log(e);
         this.$.viewersSubmenu.open();
         this.$.outer.selectedItem.open();
         //e.target.open();
