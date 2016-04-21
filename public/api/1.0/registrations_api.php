@@ -26,6 +26,50 @@ function get_registrations_by_id($mysqli, $viewer_id) {
   return $data;
 }
 
+
+$app->get('/registrations/count/{viewer_id}', function(Request $request, Response $response) {
+  $status = array();
+  if($stmt = $this->db->prepare("SELECT COUNT(`viewer`) FROM `registrations` WHERE `viewer` = ?;")) {
+    $stmt->bind_param("i", $request->getAttribute('viewer_id'));
+    $stmt->execute();
+    $stmt->bind_result($count);
+    while($stmt->fetch()) {
+      $status['count'] = $count;
+    }
+    $stmt->close();
+  }
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->get('/registrations/count', function(Request $request, Response $response) {
+  $viewers = array();
+  if($stmt = $this->db->prepare("SELECT DISTINCT `viewer` from `registrations`;")) {
+    $stmt->execute();
+    $stmt->bind_result($viewer_id);
+    while($stmt->fetch()) {
+      array_push($viewers, $viewer_id);
+    }
+    $stmt->close();
+  }
+  $data = array();
+  foreach ($viewers as $key => $value) {
+    if($stmt = $this->db->prepare("SELECT COUNT(`viewer`) FROM `registrations` WHERE `viewer` = ?;")) {
+      $stmt->bind_param("i", $value);
+      $stmt->execute();
+      $stmt->bind_result($count);
+      while($stmt->fetch()) {
+        $data[$value] = array();
+        $data[$value]['viewer_id'] = $value;
+        $data[$value]['count'] = $count;
+      }
+      $stmt->close();
+    }
+  }
+  $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 $app->get('/registrations/distinct', function(Request $request, Response $response) {
   $status = array();
   if($stmt = $this->db->prepare("SELECT DISTINCT `date`, `block_id` FROM `presentations`;")) {
