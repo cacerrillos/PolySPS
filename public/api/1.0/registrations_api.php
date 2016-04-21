@@ -56,7 +56,7 @@ $app->post('/registrations/begin', function (Request $request, Response $respons
                   $stmt->close();
                   $id = -1;
                   if($stmt = $this->db->prepare("INSERT INTO `viewers` (`viewer_id`, `first_name`, `last_name`, `email`, `house_id`, `grade_id`) VALUES (NULL, ?, ?, '', ?, ?);")) {
-                    $stmt->bind_param("ssii", $post_data['first_name'], $post_data['last_name'], $post_data['house_id'], $post_data['grade_id']);
+                    $stmt->bind_param("ssii", trim($post_data['first_name']), trim($post_data['last_name']), $post_data['house_id'], $post_data['grade_id']);
                     if($stmt->execute()) {
                       $id = $stmt->insert_id;
                       $status['status'] = true;
@@ -109,7 +109,7 @@ $app->post('/registrations/begin', function (Request $request, Response $respons
       } else {
         $id = -1;
         if($stmt = $this->db->prepare("INSERT INTO `viewers` (`viewer_id`, `first_name`, `last_name`, `email`, `house_id`, `grade_id`) VALUES (NULL, ?, ?, '', ?, ?);")) {
-          $stmt->bind_param("ssii", $post_data['first_name'], $post_data['last_name'], $post_data['house_id'], $post_data['grade_id']);
+          $stmt->bind_param("ssii", trim($post_data['first_name']), trim($post_data['last_name']), $post_data['house_id'], $post_data['grade_id']);
           if($stmt->execute()) {
             $id = $stmt->insert_id;
             $status['status'] = true;

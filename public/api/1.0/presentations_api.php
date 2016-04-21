@@ -121,7 +121,7 @@ $app->post('/presentations/', function(Request $request, Response $response) {
       //create limits entries
       $presentation_id = -1;
       if($stmt = $mysqli->prepare("INSERT INTO `presentations` (`presentation_id`, `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id`) VALUES (NULL, ?,?,?,?,?,?);")) {
-        $stmt->bind_param("ssiiii", $post_data['first_name'], $post_data['last_name'],
+        $stmt->bind_param("ssiiii", trim($post_data['first_name']), trim($post_data['last_name']),
                           intval($post_data['house_id']), intval($post_data['date']), intval($post_data['block_id']), intval($post_data['location_id']) );
         $stmt->execute();
         $presentation_id = $stmt->insert_id;
