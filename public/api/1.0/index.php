@@ -51,7 +51,21 @@ if(mysqli_connect_errno()) {
 
 // Run app
 
+include("settings_api.php");
 
+$set_tings = array();
+$set_tings['enabled11'] = GetSetting($container['db'], "enabled11");
+$set_tings['enabled12'] = GetSetting($container['db'], "enabled12");
+
+function can_register($grade_id) {
+  global $set_tings;
+  if($grade_id == 1) {
+    return $set_tings['enabled11']->entry_value == "1";
+  } else if($grade_id == 2) {
+    return $set_tings['enabled12']->entry_value == "1";
+  }
+  return false;
+}
 
 include("houses_api.php");
 
