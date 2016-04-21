@@ -109,6 +109,14 @@ Example:
       </paper-datatable>
       </paper-dialog-scrollable>
     </ctech-confirm-dialog>
+    <ctech-confirm-dialog id="confirmFinish" on-ctech-dialog-confirm="doFinish" confirm-text="Finish" valid-color="#2196f3" modal reset-on-dismiss="false">
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Finish?</h2>
+        <div class="flex"></div>
+      </div>
+      <div>You have registered for <b>[[registerProgressRaw]]</b> out of <b>[[distinct.distinct]]</b> presentation slots.</div>
+    </ctech-confirm-dialog>
 
     <div class="row">
     <div class="6u 8u(small) 12u(xxsmall)">
@@ -292,6 +300,9 @@ Example:
         return grade_id === 1;
       },
       doFinishDialog: function() {
+        this.async(function() {this.$.confirmFinish.open(); });
+      },
+      doFinish: function(e) {
         this.$.finishAjax.generateRequest();
       },
       doBegin: function(e) {
