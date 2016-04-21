@@ -132,8 +132,12 @@
         };
       },
       _reloadViewers: function(e) {
-        this.$.dt.deselectAll();
-        this.$.viewersAjax.generateRequest();
+        var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#dt");
+        for(var key in arr) {
+            if(!arr.hasOwnProperty(key)) continue;
+            arr[key].deselectAll();
+        }
+        //this.$.viewersAjax.generateRequest();
       },
       _doAddDialog: function(e) {
         this.$.viewersAddDialog.open();
@@ -148,14 +152,14 @@
         if(e.detail.selected) {
           var o_s = e.detail.selected;
           for (var x = 0; x < o_s.length; x++) {
-            var viewer_id = this.$.dt.get('data.' + o_s[x] + '.viewer_id');
+            var viewer_id = e.target.get('data.' + o_s[x] + '.viewer_id');
             this.selectedViewers[viewer_id] = "";
           }
         }
         if(e.detail.deselected) {
           var o_ds = e.detail.deselected;
           for (var x = 0; x < o_ds.length; x++) {
-            var viewer_id = this.$.dt.get('data.' + o_ds[x] + '.viewer_id');
+            var viewer_id = e.target.get('data.' + o_ds[x] + '.viewer_id');
             delete this.selectedViewers[viewer_id];
           }
         }
@@ -167,9 +171,10 @@
         for (var k in this.selectedViewers) {
           if (this.selectedViewers.hasOwnProperty(k)) count++;
         }
-        this.$.deleteButton.disabled = count > 0 ? false : true;
+        var isAdmin = mainapp.isAdmin();
+        this.$.deleteButton.disabled = count > 0 && isAdmin ? false : true;
         this.$.detailsButton.disabled = count > 0 ? false : true;
-        this.$.editButton.disabled = count == 1 ? false : true;
+        this.$.editButton.disabled = count == 1 && isAdmin ? false : true;
       },
       _trimDate: function(d) {
         return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
