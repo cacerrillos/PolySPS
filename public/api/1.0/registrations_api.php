@@ -26,6 +26,18 @@ function get_registrations_by_id($mysqli, $viewer_id) {
   return $data;
 }
 
+$app->get('/registrations/distinct', function(Request $request, Response $response) {
+  $status = array();
+  if($stmt = $this->db->prepare("SELECT DISTINCT `date`, `block_id` FROM `presentations`;")) {
+    $stmt->execute();
+
+    $stmt->store_result();
+    $status['distinct'] = $stmt->num_rows;
+  }
+  $response->getBody()->write(json_encode($status, JSON_PRETTY_PRINT));
+  return $response;
+});
+
 $app->get('/registrations/finish', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
