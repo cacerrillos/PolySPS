@@ -187,7 +187,7 @@ Polymer({
         'house_id': this.$.houseSelector.selected.house_id,
         'grade_id': this.$.gradeSelector.selected.grade_id
       });
-      console.log(this.$.createAjax.body);
+      //console.log(this.$.createAjax.body);
     this.$.createAjax.generateRequest();
   },
   createResp: function(e){
@@ -210,7 +210,7 @@ Polymer({
       this.fire('firetoast', { message: "FAILED to add viewer! [" + det + "]"});
     }
     
-    console.log(e);
+    //console.log(e);
   },
   resetForm: function(e){
     this.$.firstname.value = "";

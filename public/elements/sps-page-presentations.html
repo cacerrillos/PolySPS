@@ -191,8 +191,8 @@
         'reload-presentations': '_doReloadPresentations'
       },
       test: function(e) {
-        console.log(e);
-        console.log(this.newLimits);
+        //console.log(e);
+        //console.log(this.newLimits);
       },
       _computeDates: function(e) {
         for(var k in e) {
@@ -347,7 +347,7 @@
           if (!this.selectedPres.hasOwnProperty(k)) continue;
           arr.push(k);
         }
-        console.log('/presentations/details/' + arr.join(","));
+        //console.log('/presentations/details/' + arr.join(","));
         page('/presentations/details/' + arr.join(","));
         var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#pirate");
         for(var key in arr) {
@@ -403,7 +403,6 @@
         this.$.deleteDialog.open();
       },
       _selectionChanged: function(e) {
-        console.log(e);
         if(e.detail.selected) {
           var o_s = e.detail.selected;
           for (var x = 0; x < o_s.length; x++) {
@@ -435,7 +434,7 @@
         return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
       },
       log: function(e) {
-        console.log(e);
+        //console.log(e);
       },
       _presentationsDataTable: function(pres, houses, locations, grades, limits) {
         //console.log(pres);
