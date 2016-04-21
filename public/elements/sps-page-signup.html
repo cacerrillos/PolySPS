@@ -103,8 +103,8 @@ Example:
     </ctech-confirm-dialog>
 
     <div class="row">
-    <div class="6u">
-    <paper-material elevation="1" hidden="[[regStatus.status]]">
+    <div class="6u 8u(small) 12u(xxsmall)">
+    <paper-material elevation="3" hidden="[[regStatus.status]]">
       <div class="layout horizontal">
         <div class="flex"></div>
         <h2>Signup!</h2>
@@ -136,7 +136,7 @@ Example:
     <template is="dom-repeat" items="[[_computeDates(dates)]]" as="date">
         
         <template is="dom-repeat" items="[[_objectArrayToArray(blocks)]]" as="block">
-          <paper-material elevation="1">
+          <paper-material elevation="3">
             <h3 style="margin-top: 0;">[[date.date_name]] - [[block.block_name]]</h3>
             <div class="layout vertical">
             <template is="dom-repeat" items="[[_FilterPresMan(presentations, date.date, block.block_id, limitsPub, registrations)]]" as="presentation">
@@ -324,7 +324,9 @@ Example:
           this.$.signupAjax.generateRequest();
           this.doReset();
         } else {
-          if(e.detail.response.claimed) {
+          if(e.detail.response.notenabled) {
+            this.fire('firetoast', { message: "Registrations not enabled!"});
+          } else if(e.detail.response.claimed) {
             this.fire('firetoast', { message: "Presentation already claimed!"});
           } else {
             this.fire('firetoast', { message: "Failed to begin!"});
@@ -445,7 +447,7 @@ Example:
       },
       _onRegistrationsChanged: function(e) {
         if(e) {
-          this.registerProgressRaw = e.length;
+          this.registerProgressRaw = e.length > 0 ? e.length : 0;
           this.registerProgress = e.length / this.registerProgressTotal * 100;
         }
         /*
@@ -644,8 +646,7 @@ Example:
       },
       _doClickRow: function(e) {
         console.log(e);
-        var p_id = e.model.get('presentation.presentation_id');
-        this._doRegisterManual(p_id);
+        //var p_id = e.model.get('presentation.presentation_id');
       },
       _computedFromLimits: function(limits, pres, grade) {
         if(typeof limits[pres] === 'undefined') {
