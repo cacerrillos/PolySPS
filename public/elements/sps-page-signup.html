@@ -17,6 +17,7 @@ Example:
 
 <dom-module id="sps-page-signup">
   <link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+  <link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
   <template>
     <style>
       :host {
@@ -44,6 +45,11 @@ Example:
         color: white;
       }
     </style>
+    <iron-ajax
+       auto
+       url="../api/1.0/registrations/distinct"
+       handle-as="json"
+       last-response="{{distinct}}"></iron-ajax>
     <iron-ajax
        auto
        id="signupAjax"
@@ -92,14 +98,16 @@ Example:
         <div>Grade: <b>[[preGrade.grade_name]]</b></div>
         <div>House: <b>[[preHouse.house_name]]</b></div>
       </div>
+      <paper-dialog-scrollable id="scrollable" class="flex">
       <paper-datatable id="presDT" data="[[_FilterPresGradeHouse(presentations, preHouse.house_id)]]" selectable on-selection-changed="_onDtSelectTG" hidden="[[_isPresentor(preGrade.grade_id)]]">
-        <paper-datatable-column header="Name" property="last_name">
+        <paper-datatable-column header="Name" property="last_name" sortable>
           <template>
             <div>{{item.last_name}}, {{item.first_name}}</div>
           </template>
         </paper-datatable-column>
         <paper-datatable-column header="Topic" property="presentation_text"></paper-datatable-column>
       </paper-datatable>
+      </paper-dialog-scrollable>
     </ctech-confirm-dialog>
 
     <div class="row">
@@ -139,10 +147,15 @@ Example:
           <paper-material elevation="3">
             <h3 style="margin-top: 0;">[[date.date_name]] - [[block.block_name]]</h3>
             <div class="layout vertical">
-            <template is="dom-repeat" items="[[_FilterPresMan(presentations, date.date, block.block_id, limitsPub, registrations)]]" as="presentation">
+            <template is="dom-repeat" items="[[_FilterPres(presentations, date.date, block.block_id, limits, registrations)]]" as="presentation">
               <div class="layout horizontal" style="padding: 10px;">
-                <paper-checkbox on-change="_presSelected" data-presentation="[[presentation.presentation_id]]" checked="[[presentation.is_registered]]" disabled="[[presentation.full]]"></paper-checkbox>
-                <div class="flex">[[presentation.presentation_text]] - [[presentation.is_registered]] - [[presentation.full]]</div>
+                <paper-checkbox noink on-change="_presSelected" data-presentation="[[presentation.presentation_id]]" checked="[[presentation.is_registered]]" disabled="[[_boolOr(presentation.full, presentation.is_registered)]]"></paper-checkbox>
+                <div class="flex-2">[[presentation.last_name]], [[presentation.first_name]]</div>
+                <div class="flex-3">[[presentation.presentation_text]]</div>
+                <template is="dom-repeat" items="[[_objectArrayToArray(gradeLevels)]]" as="grades">
+                  <div class="flex"><b>[[_computedFromLimits(limits, presentation.presentation_id, grades.grade_id)]]</b>/[[_computedFromLimitsMax(limits, presentation.presentation_id, grades.grade_id)]]</div>
+                </template>
+                <div class="flex"><b>[[_computedFromLimitsTotal(limits, presentation.presentation_id)]]</b>/[[_computedFromLimitsTotalMax(limits, presentation.presentation_id)]]</div>
               </div>
             </template>
 
@@ -152,6 +165,7 @@ Example:
 
 
             </div>
+            <!--
             <paper-datatable id="findmedt" data-date="[[date.date]]" data-block="[[block.block_id]]" data="[[_FilterPres(presentations, date.date, block.block_id, limits,  registrations)]]">
               <paper-datatable-column header="Name" property="last_name">
                 <template>
@@ -167,7 +181,7 @@ Example:
                   <div>{{value}}-{{_computedFromObject(locations, value, 'location_name')}}</div>
                 </template>
               </paper-datatable-column>
-              -->
+              ->
               <template is="dom-repeat" items="{{_objectArrayToArray(gradeLevels)}}" as="grades">
                 <paper-datatable-column header="{{grades.grade_name}}" property="presentation_id">
                   <template>
@@ -181,7 +195,7 @@ Example:
                 </template>
               </paper-datatable-column>
             </paper-datatable>
-
+            -->
             <paper-progress value="[[registerProgress]]" style="width: 100%"></paper-progress>
           </paper-material>
           
@@ -195,7 +209,7 @@ Example:
       <div class="layout veritcal">
         <div class="layout horizontal">
           <div class="flex"></div>
-          <div>You have registered for <b>[[registerProgressRaw]]</b> out of <b>[[registerProgressTotal]]</b> presentation slots.</div>
+          <div>You have registered for <b>[[registerProgressRaw]]</b> out of <b>[[distinct.distinct]]</b> presentation slots.</div>
           <div class="flex"></div>
         </div>
         <div class="layout horizontal">
@@ -214,6 +228,9 @@ Example:
     Polymer({
       is: 'sps-page-signup',
       properties: {
+        distinct: {
+          type: Object
+        },
         registerProgressTotal: {
           type: Number,
           value: 0
@@ -249,10 +266,6 @@ Example:
           type: Array,
           observer: '_onRegistrationsChanged'
         },
-        registrationsPrivate: {
-          type: Array,
-          observer: '_onRegistrationsChangedPrivate'
-        },
         limits: {
           type: Object
         },
@@ -282,7 +295,7 @@ Example:
         this.$.finishAjax.generateRequest();
       },
       doBegin: function(e) {
-        console.log(e);
+        //console.log(e);
         if(this.prePresId === -1) {
           this.$.beginAjax.body = JSON.stringify({ first_name: this.preFirstName, last_name: this.preLastName, grade_id: this.preGrade.grade_id, house_id: this.preHouse.house_id });
         } else {
@@ -303,7 +316,7 @@ Example:
         }
       },
       _onDtSelectTG: function(e) {
-        console.log(e);
+        //console.log(e);
         if(e.detail.selected) {
           if(e.detail.selected.length > 0) {
             this.vlad = true;
@@ -318,7 +331,7 @@ Example:
         
       },
       beginAjaxResponse: function(e) {
-        console.log(e.detail.response);
+        //console.log(e.detail.response);
         if(e.detail.response.status) {
           this.fire('firetoast', { message: "Successfully begun!" });
           this.$.signupAjax.generateRequest();
@@ -343,7 +356,9 @@ Example:
         this._validateForm();
       },
       doVerifyBegin: function() {
-        this.$.verifyDialog.open();
+        this.$.scrollable.dialogElement = this.$.verifyDialog.getDialog();
+        this.$.scrollable._ensureTarget();
+        this.async(function() {this.$.verifyDialog.open(); });
         this.validateVerify();
       },
       validateVerify: function () {
@@ -373,11 +388,11 @@ Example:
         this.$.beginButton.disabled = !(this.$.firstname.value.length > 0 && this.$.lastname.value.length > 0 && this.$.houseSelector.selected && this.$.gradeSelector.selected);
       },
       signupAjaxResponse: function(e) {
-        console.log(e);
+        //console.log(e);
         if(e.detail.response.status) {
 
         } else {
-          console.log("FALDDL " + mainapp.page);
+          //console.log("FALDDL " + mainapp.page);
           if(mainapp.page ==="signup") {
             //this.$.preSignupDialog.open();
           }
@@ -387,7 +402,7 @@ Example:
         this.$.regAjax.generateRequest();
       },
       _onContextChanged: function(e) {
-        console.log(e);
+        //console.log(e);
         this._onRegistrationsChanged(null);
         if(this.regStatus) {
           if(mainapp.page === "signup") {
@@ -400,55 +415,25 @@ Example:
         }
       },
       _presSelected: function(e) {
-        console.log(e);
         if(e.target.checked) {
-          console.log("SELECTED");
           this._doRegisterReq(e.target.dataPresentation);
         } else {
-          console.log("DESELECTED");
         }
       },
       _doRegisterReq: function(p_id) {
 
             this.$.ajax.body = JSON.stringify({ presentation_id: p_id, viewer_id:  this.regStatus.viewer_id });
-            console.log(this.$.ajax.body);
+            //console.log(this.$.ajax.body);
             this.$.ajax.generateRequest();
             /*
             this.fire('firetoast', { message: "Already Registered!"});
             this.$.regAjax.generateRequest();
          */
       },
-      _onDtSelect: function(e) {
-        //e.target.selectable =  false;
-        
-        if(e.detail.selected)  {
-          if(e.detail.selected.length == 1) {
-            var dts = Polymer.dom(this.$.mDiv).querySelectorAll("#findmedt");
-            for(var x = 0; x < dts.length; x++) {
-              dts[x].selectable  = false;
-            }
-            var aaa = e.target._getByKey(e.detail.selected[0]);
-            /*if(_computedFromLimits() >= _computedFromLimitsMax()) {
-
-            }
-            */
-            this.$.ajax.body = JSON.stringify({ presentation_id: aaa.presentation_id, viewer_id:  this.regStatus.viewer_id });
-            console.log(this.$.ajax.body);
-            this.$.ajax.generateRequest();
-            console.log(aaa);
-          }
-        } else if(e.detail.deselected) {
-          if(e.detail.deselected.length == 1) {
-            this.fire('firetoast', { message: "Already Registered!"});
-            this.$.regAjax.generateRequest();
-          }
-        }
-        
-      },
       _onRegistrationsChanged: function(e) {
         if(e) {
           this.registerProgressRaw = e.length > 0 ? e.length : 0;
-          this.registerProgress = e.length / this.registerProgressTotal * 100;
+          this.registerProgress = e.length / this.distinct.distinct * 100;
         }
         /*
         var dts = Polymer.dom(this.$.mDiv).querySelectorAll("#findmedt");
@@ -504,7 +489,7 @@ Example:
         return false;
       },
       ajaxResponse: function(e) {
-        console.log(e);
+        //console.log(e);
         this.fire('reload-limits');
         if(e.detail.response) {
           if(e.detail.response.status) {
@@ -525,7 +510,7 @@ Example:
         return;
 
 
-        console.log(e);
+        //console.log(e);
         var r = e.detail.response;
         //var p = this.presentations[p_id];
         var d = r.date;//p.date;
@@ -568,7 +553,7 @@ Example:
           arr[key].disabled = true;
         }
         this.$.ajax.body = JSON.stringify({ date: d, block_id: b_id });
-        console.log(this.$.ajax.body);
+        //console.log(this.$.ajax.body);
         this.$.ajax.generateRequest();
       },
       _computeDates: function(e) {
@@ -587,7 +572,7 @@ Example:
         for(var k in this.blocks) {
           if(this.blocks.hasOwnProperty(k)) d_count++;
         }
-        this.registerProgressTotal = this.dates.length * d_count;
+        //this.registerProgressTotal = this.dates.length * d_count;
         var e = JSON.parse(JSON.stringify(presentations));
         for(var k in e) {
           if(!e.hasOwnProperty(k)) continue;
@@ -609,7 +594,7 @@ Example:
         for(var k in this.blocks) {
           if(this.blocks.hasOwnProperty(k)) d_count++;
         }
-        this.registerProgressTotal = this.dates.length * d_count;
+        //this.registerProgressTotal = this.dates.length * d_count;
 
         var e = JSON.parse(JSON.stringify(presentations));
         for(var k in e) {
@@ -641,11 +626,11 @@ Example:
         return this._objectArrayToArray(e);
       },
       _computedFromObject: function(obj_arr, e, attr) {
-        console.log(obj_arr);
+        //console.log(obj_arr);
         return obj_arr[e][attr];
       },
       _doClickRow: function(e) {
-        console.log(e);
+        //console.log(e);
         //var p_id = e.model.get('presentation.presentation_id');
       },
       _computedFromLimits: function(limits, pres, grade) {
