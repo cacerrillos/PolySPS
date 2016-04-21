@@ -17,6 +17,7 @@ if(!$prod) {
   <script src="bower_components/page/page.js"></script>
   <script src="bower_components/skel/dist/skel.min.js"></script>
   <script src="bower_components/skel/dist/skel-layout.min.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
   <?php
 } else {
 ?>
@@ -24,6 +25,7 @@ if(!$prod) {
   <script src="bower_components/page/page.js"></script>
   <script src="bower_components/skel/dist/skel.min.js"></script>
   <script src="bower_components/skel/dist/skel-layout.min.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 <?php
 }
 ?>
