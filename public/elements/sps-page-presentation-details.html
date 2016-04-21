@@ -59,6 +59,13 @@ Example:
         right: 164px;
       }
     </style>
+    <iron-ajax
+       id="ajax"
+       method="POST"
+       url="../api/1.0/registrations/"
+       handle-as="json"
+      content-type="application/json"
+       on-response="ajaxResponse"></iron-ajax>
     <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Add" valid-color="#2196f3" modal reset-on-dismiss="false">
       <div class="layout vertical">
       <div class="layout horizontal">
@@ -124,6 +131,27 @@ Example:
           type: Object,
           observer: '_onContextChanged'
         }
+      },
+      ajaxResponse: function(e) {
+        //console.log(e);
+        this.fire('reload-limits');
+        if(e.detail.response) {
+          if(e.detail.response.status) {
+             this.fire('firetoast', { message: "Registered!"});
+          } else {
+            if(e.detail.response.notenoughroom) {
+              this.fire('firetoast', { message: "Presentation is Full!"});
+
+            } else {
+              this.fire('firetoast', { message: "Failed to Register!"});
+            }
+            
+          }
+        } else{
+          this.fire('firetoast', { message: "Failed to Register!"});
+        }
+        //this.$.regAjax.generateRequest();
+        this.fire('reload-presentations');
       },
       _getViewersNotInThisPresentation: function(viewers, presentations, presentationId, c) {
 
@@ -249,10 +277,13 @@ Example:
           for(var ki in arr[k]) {
             if(!arr[k].hasOwnProperty(ki)) continue;
             var v_id = ki;
+            this.$.ajax.body = JSON.stringify({ presentation_id: p_id, viewer_id:  v_id });
+            //console.log(this.$.ajax.body);
+            this.$.ajax.generateRequest();
             arr_o.push({ presentation_id: p_id, viewer_id: v_id });
           }
         }
-        this.fire('do-register', arr_o);
+        //this.fire('do-register', arr_o);
         //console.log(this.selectedToAdd);
       },
       _doDetailsPage: function(e) {
@@ -523,12 +554,10 @@ Example:
           observer: '_onPresentationsToViewChanged'
         },
         houses: {
-          type: Object,
-          observer: '_onHousesChanged'
+          type: Object
         },
         grades: {
-          type: Object,
-          observer: '_onGradesChanged'
+          type: Object
         },
         delSelection: {
           type: Array
@@ -648,12 +677,12 @@ Example:
         this.$.swapButton.disabled = !(swapable && is_admin);
       },
       _onHousesChanged: function(e) {
-        console.log("Houses Changed");
-        console.log(e);
+        //console.log("Houses Changed");
+        //console.log(e);
       },
       _onGradesChanged: function(e) {
-        console.log("Grades Changed");
-        console.log(e);
+        //console.log("Grades Changed");
+        //console.log(e);
       },
       _onPresentationsToViewChanged: function(e) {
         //this.fire('reload-presentations');
@@ -702,8 +731,8 @@ Example:
         
       },
       ready: function() {
-        console.log(this.ctx);
-        console.log(this.grades);
+        //console.log(this.ctx);
+        //console.log(this.grades);
         this._refreshActionButtons();
       }
     });
