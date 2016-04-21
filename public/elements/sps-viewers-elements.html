@@ -8,7 +8,7 @@
 
   <template>
     <iron-ajax method="DELETE" id="deleteAjax" url="../api/1.0/viewers/" handle-as="json" on-response="onDeleteResp" content-type="application/json"></iron-ajax>
-    <ctech-confirm-dialog id="dialog" on-ctech-dialog-confirm="_onConfirm" on-ctech-dialog-dismiss="_onDismiss" confirm-text="Delete" valid-color="#c62828" modal>
+    <ctech-confirm-dialog id="dialog" on-ctech-dialog-confirm="_onConfirm" on-ctech-dialog-dismiss="_onDismiss" confirm-text="Delete" valid-color="#c62828" modal reset-on-dismiss="false">
       <h2>Delete The Viewers(s)?</h2>
 
       <paper-datatable id="dt" data="{{_objectArrayToArray(viewers)}}" filter="{{_myFilter}}">
