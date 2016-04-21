@@ -168,7 +168,7 @@ $app->post('/registrations/', function (Request $request, Response $response) {
       $status['c'] = $pres->claimed;
       $status['gid'] = $viewer->grade_id;
       $status['stmt'] = !$pres->claimed && $viewer->grade_id == 2;
-      if($limits[$viewer->grade_id]->total < $limits[$viewer->grade_id]->amount - $claimed_modif) {
+      if(($limits[$viewer->grade_id]->total < $limits[$viewer->grade_id]->amount - $claimed_modif) || $this->is_admin) {
         if($stmt = $this->db->prepare("LOCK TABLE `registrations` WRITE;")) {
           $stmt->execute();
           $stmt->close();
