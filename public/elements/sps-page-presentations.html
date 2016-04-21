@@ -106,9 +106,9 @@
       <h3 style="margin-top: 0px;">[[sorthouse.house_name]]</h3>
       <div class="content">
       <paper-datatable id="pirate" data-house="[[sorthouse.house_id]]" data="{{_presentationsDataTableFilterByHouse(presentations, houses, locations, gradeLevels, limits, sorthouse.house_id)}}" selectable multi-selection on-selection-changed="_selectionChanged">
-        <paper-datatable-column header="Date" property="block_id">
+        <paper-datatable-column header="Date" property="date" sortable>
           <template>
-            <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
+            <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, item.block_id, 'block_name')}}</b></div>
           </template>
         </paper-datatable-column>
         <paper-datatable-column header="Name" property="last_name" sortable>
