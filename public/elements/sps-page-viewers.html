@@ -180,17 +180,17 @@
         return String(d).substr(4, 2) + "/" + String(d).substr(6,2);
       },
       _getHousesFormatted: function(e) {
-        console.log(e);
+        //console.log(e);
         return e;
       },
       log: function(e) {
-        console.log(e);
+        //console.log(e);
       },
       _getHouseId: function(e) {
-        console.log(e);
+        //console.log(e);
       },
       _topicAjaxResponse: function(e) {
-        console.log(e);
+        //console.log(e);
         if(e.detail.response) {
           if(e.detail.response['status']) {
             this.$.presentationData.generateRequest();
@@ -239,13 +239,13 @@
             return {x: lx,y: ly};
         },
       scrollTo: function(e) {
-        console.log("SST");
+        //console.log("SST");
         var arr = Polymer.dom(this.$.mDiv).querySelectorAll("#pirate");
         for(var key in arr) {
             if(!arr.hasOwnProperty(key)) continue;
             if(arr[key].dataGhId == e) {
-              console.log(arr[key].dataGhId);
-              console.log(this.getElementPos(arr[key]));
+              //console.log(arr[key].dataGhId);
+              //console.log(this.getElementPos(arr[key]));
               this.fire('scroll-request', this.getElementPos(arr[key]));
             }
             
