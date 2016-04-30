@@ -65,16 +65,18 @@
         
       },
       onDeleteResp: function(e){
-        if(e.detail.response.status == true){
-          this.fire('firetoast', { message: "Deleted viewer(s)!"});
-          this.fire('reload-viewers');
-        } else {
-          if(e.detail.response.error){
-            if(e.detail.response.error == 1451){
-              this.fire('firetoast', { message: "Failed to delete viewer! FK error"});
-            }
+        if(e.detail.response) {
+          if(e.detail.response.status === true){
+            this.fire('firetoast', { message: "Deleted viewer(s)!"});
+            this.fire('reload-viewers');
           } else {
-            this.fire('firetoast', { message: "Failed to delete viewer!"});
+            if(e.detail.response.error){
+              if(e.detail.response.error == 1451){
+                this.fire('firetoast', { message: "Failed to delete viewer! FK error"});
+              }
+            } else {
+              this.fire('firetoast', { message: "Failed to delete viewer!"});
+            }
           }
         }
       },
