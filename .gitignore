@@ -215,3 +215,4 @@ pip-log.txt
 .mr.developer.cfg
 public/elements/sps-app.vulcanized.html
 *.sublime-project
+*.sublime-workspace
