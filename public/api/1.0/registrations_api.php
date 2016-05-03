@@ -104,6 +104,51 @@ $app->post('/registrations/begin', function (Request $request, Response $respons
         //is senior, attempt to claim accooint
         $pres = GetPresentation($this->db, $post_data['presentation_id']);
         if($pres) {
+
+          if($stmt = $this->db->prepare("INSERT INTO `viewers` (`viewer_id`, `first_name`, `last_name`, `email`, `house_id`, `grade_id`) VALUES (NULL, ?, ?, '', ?, ?);")) {
+            $stmt->bind_param("ssii", trim($post_data['first_name']), trim($post_data['last_name']), $post_data['house_id'], $post_data['grade_id']);
+            if($stmt->execute()) {
+              $id = $stmt->insert_id;
+              $status['status'] = true;
+              $_SESSION['viewer_id'] = $id;
+              $stmt->close();
+              if($stmt = $this->db->prepare("LOCK TABLE `registrations` WRITE;")) {
+                $stmt->execute();
+                $stmt->close();
+              } else {
+                $status['erur'] = $this->db->error;
+              }
+              if($stmt = $this->db->prepare("INSERT INTO `registrations` (`presentation`, `viewer`, `timestamp`, `date`, `block_id`) VALUES (?, ?, ?, ? ,?);")) {
+                $t  = time();
+                $stmt->bind_param("iiiii", $pres->presentation_id, $id, $t, $pres->date, $pres->block_id);
+                if($stmt->execute())  {
+                  $mysqli_status = $mysqli_status && $stmt->affected_rows > 0;
+                  $status['status'] = $stmt->affected_rows > 0;
+                } else{
+                  $response['my'] = $this->db->error;
+                  $mysqli_status = false;
+                }
+               
+                $stmt->close();
+              } else {
+                echo $this->db->error;
+              }
+              if($stmt = $this->db->prepare("UNLOCK TABLES;")) {
+                $stmt->execute();
+                $stmt->close();
+              } else {
+                $status['erur2'] = $this->db->error;
+              }
+
+
+            } else {
+              $stmt->close();
+            }
+            //$stmt->close();
+          } else {
+            $status['inserterror'] = $this->db->error;
+          }
+          /*
           if(!$pres->claimed) {
             if($stmt = $this->db->prepare("UPDATE `presentations` SET `claimed` = '1' WHERE `presentations`.`presentation_id` = ? LIMIT 1;")) {
               $stmt->bind_param("i", $pres->presentation_id);
@@ -111,37 +156,7 @@ $app->post('/registrations/begin', function (Request $request, Response $respons
                 if($stmt->affected_rows == 1) {
                   $stmt->close();
                   $id = -1;
-                  if($stmt = $this->db->prepare("INSERT INTO `viewers` (`viewer_id`, `first_name`, `last_name`, `email`, `house_id`, `grade_id`) VALUES (NULL, ?, ?, '', ?, ?);")) {
-                    $stmt->bind_param("ssii", trim($post_data['first_name']), trim($post_data['last_name']), $post_data['house_id'], $post_data['grade_id']);
-                    if($stmt->execute()) {
-                      $id = $stmt->insert_id;
-                      $status['status'] = true;
-                      $_SESSION['viewer_id'] = $id;
-                      $stmt->close();
-
-                      if($stmt = $this->db->prepare("INSERT INTO `registrations` (`presentation`, `viewer`, `timestamp`, `date`, `block_id`) VALUES (?, ?, ?, ? ,?);")) {
-                        $t  = time();
-                        $stmt->bind_param("iiiii", $pres->presentation_id, $id, $t, $pres->date, $pres->block_id);
-                        if($stmt->execute())  {
-                          $mysqli_status = $mysqli_status && $stmt->affected_rows > 0;
-                          $status['status'] = $stmt->affected_rows > 0;
-                        } else{
-                          $response['my'] = $this->db->error;
-                          $mysqli_status = false;
-                        }
-                       
-                        $stmt->close();
-                      } else {
-                        echo $this->db->error;
-                      }
-
-                    } else {
-                      $stmt->close();
-                    }
-                    //$stmt->close();
-                  } else {
-                    $status['inserterror'] = $this->db->error;
-                  }
+                  
 
                   $status['senior'] = false;
                   $status['pid'] = isset($post_data['presentation_id']);
@@ -159,6 +174,7 @@ $app->post('/registrations/begin', function (Request $request, Response $respons
           } else {
             $status['claimed'] = true;
           }
+          */
         } else {
           $status['nopres'] = true;
         }
