@@ -11,22 +11,30 @@ include('../config.php');
 <title>SPS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <?php
-if(!$prod) {
+if($aws) {
+  ?>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+  <script src="bower_components/page/page.js"></script>
+  <script src="bower_components/skel/dist/skel.min.js"></script>
+  <script src="bower_components/skel/dist/skel-layout.min.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <?
+} else if($prod) {
+  ?>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+  <script src="bower_components/page/page.js"></script>
+  <script src="bower_components/skel/dist/skel.min.js"></script>
+  <script src="bower_components/skel/dist/skel-layout.min.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <?
+} else {
   ?>
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <script src="bower_components/page/page.js"></script>
   <script src="bower_components/skel/dist/skel.min.js"></script>
   <script src="bower_components/skel/dist/skel-layout.min.js"></script>
   <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-  <?php
-} else {
-?>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
-  <script src="bower_components/page/page.js"></script>
-  <script src="bower_components/skel/dist/skel.min.js"></script>
-  <script src="bower_components/skel/dist/skel-layout.min.js"></script>
-  <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-<?php
+  <?
 }
 ?>
 
@@ -84,17 +92,25 @@ skel.on("change", function() {
 });
 </script>
 <?php
-if(!$prod) {
+if($aws) {
+  ?>
+  <link rel="import" href="elements/sps-app.vulcanized.html">
+  <?
+} else if($prod) {
+  ?>
+  <link rel="import" href="elements/sps-app.vulcanized.html">
+  <?
+} else {
   ?>
   <link rel="import" href="elements/sps-app.html">
+  <?
+}
+if(!$prod) {
+  ?>
+  
   <?php
 } else {
 ?>
-  <link rel="import" href="elements/sps-app.vulcanized.html">
-<?php
-}
-?>
-
 
 
 
