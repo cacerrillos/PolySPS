@@ -105,11 +105,6 @@ if($aws) {
   <link rel="import" href="elements/sps-app.html">
   <?
 }
-if(!$prod) {
-  ?>
-  
-  <?php
-} else {
 ?>
 
 
