@@ -22,6 +22,7 @@ $settings = require __DIR__ . '/../src/settings.php';
 include("../../../config.php");
 
 $config['db']['host'] = $db_host;
+$config['db']['port'] = $db_port;
 $config['db']['user'] = $db_user;
 $config['db']['pass'] = $db_pass;
 $config['db']['name'] = $db_name;
@@ -31,8 +32,7 @@ $app = new \Slim\App($settings);
 $container = $app->getContainer();
 
 
-$container['db'] = new mysqli($db_host, $db_user, $db_pass);
-$container['db'] -> select_db($db_name);
+$container['db'] = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
 
 $container['is_admin'] = isset($_SESSION['is_admin']);
 
