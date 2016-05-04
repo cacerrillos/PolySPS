@@ -220,7 +220,7 @@ Example:
           viewers="[[viewers]]"
           presentations="[[presentations]]"
           presentations-to-view="[[presentationsToView]]" houses="[[houses]]" grades="[[grade_levels]]"></sps-page-presentation-details>
-          <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" viewers="[[viewers]]" houses="[[houses]]" grade-levels="[[grade_levels]]"></sps-page-viewers>
+          <sps-page-viewers data-page="viewers" ctx="{{ctx}}" data-grade="[[sGradeId]]" data-attr="[[ghSelected]]" viewers="[[viewers]]" viewers-count="[[viewersCount]]" houses="[[houses]]" grade-levels="[[grade_levels]]"></sps-page-viewers>
           <sps-page-viewer-details data-page="viewer_details" ctx="{{ctx}}"
             viewers-to-view="[[viewersToView]]" houses="[[houses]]" blocks="[[blocks]]" locations="[[locations]]" grades="[[grade_levels]]" viewers="[[viewers]]" presentations="[[presentations]]"></sps-page-viewer-details>
           <sps-page-dates data-page="dates" dates="[[dates]]"></sps-page-dates>
@@ -278,6 +278,12 @@ Example:
            url="../api/1.0/viewers/?presentations"
            handle-as="json"
            last-response="{{viewers}}"></iron-ajax>
+       <iron-ajax
+           auto
+           id="countAjax"
+           url="../api/1.0/viewers/count"
+           handle-as="json"
+           last-response="{{viewersCount}}"></iron-ajax>
            <!--
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
@@ -337,6 +343,9 @@ Example:
           type: Object
         },
         viewers: {
+          type: Object
+        },
+        viewersCount: {
           type: Object
         },
         presentationsToView: {
@@ -404,6 +413,7 @@ Example:
       },
       _doReloadViewers: function(e) {
         this.$.viewersAjax.generateRequest();
+        this.$.countAjax.generateRequest();
       },
       _doReloadLimits: function(e) {
         this.$.getLimits.generateRequest();
