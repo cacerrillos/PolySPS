@@ -69,7 +69,7 @@
             <h3>[[grade_level.grade_name]] - [[house.house_name]]</h3>
             <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels, house.house_id, grade_level.grade_id)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged"
               filter="[[_gradeFilter(grade_level.grade_id, house.house_id)]]">
-              <paper-datatable-column header="Name" property="last_name">
+              <paper-datatable-column header="Name" property="last_name" sortable>
                 <template>
                   <div>{{item.last_name}}, {{item.first_name}}</div>
                 </template>
