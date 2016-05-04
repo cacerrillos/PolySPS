@@ -74,6 +74,45 @@ function GetViewersByPresentation($mysqli, $presentation_id, $presentations = fa
   return $final_data;
 }
 
+function GetCount($mysqli) {
+  $count_out = -1;
+  if($stmt = $mysqli->prepare("SELECT COUNT(`viewers`.`grade_id`) FROM `viewers`;")) {
+    $stmt->bind_param("i", $grade_id);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $count_out = $count;
+    $stmt->close();
+  }
+  return $count_out;
+}
+
+function GetCountByGradeLevel($mysqli, $grade_id) {
+  $count_out = -1;
+  if($stmt = $mysqli->prepare("SELECT COUNT(`viewers`.`grade_id`) FROM `viewers` WHERE `viewers`.`grade_id` = ?;")) {
+    $stmt->bind_param("i", $grade_id);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $count_out = $count;
+    $stmt->close();
+  }
+  return $count_out;
+}
+
+function GetCountByGradeLevelAndHouse($mysqli, $grade_id, $house_id) {
+  $count_out = -1;
+  if($stmt = $mysqli->prepare("SELECT COUNT(`viewers`.`grade_id`) FROM `viewers` WHERE `viewers`.`grade_id` = ? AND `viewers`.`house_id` = ?;")) {
+    $stmt->bind_param("ii", $grade_id, $house_id);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $count_out = $count;
+    $stmt->close();
+  }
+  return $count_out;
+}
+
 $app->get('/viewers/me', function(Request $request, Response $response) {
   $status = array();
   $status['status'] = false;
@@ -131,6 +170,47 @@ $app->get('/viewers/', function (Request $request, Response $response) {
     $final_data[intval($value)] = GetViewer($mysqli, $value, isset($request->getQueryParams()['presentations']));
   }
   $response->getBody()->write(json_encode($final_data, JSON_PRETTY_PRINT));
+  return $response;
+});
+
+$app->get('/viewers/count', function(Request $request, Response $response ) {
+  $result = array();
+
+  $grade_levels = GetGradeLevels($this->db);
+  $houses = GetHouses($this->db);
+
+  $result['count'] = GetCount($this->db);
+  foreach ($grade_levels as $key => $value) {
+    $result[$value->grade_id]['count'] = GetCountByGradeLevel($this->db, $value->grade_id);
+    foreach ($houses as $key_i => $value_i) {
+      $result[$value->grade_id][$value_i->house_id]['count'] = GetCountByGradeLevelAndHouse($this->db, $value->grade_id, $value_i->house_id);
+    }
+  }
+
+  $response->withJson($result, 200, JSON_PRETTY_PRINT);
+  return $response;
+});
+
+$app->get('/viewers/count/{grade_id}', function(Request $request, Response $response ) {
+  $result = array();
+  $result['count'] = GetCountByGradeLevel($this->db, $request->getAttribute('grade_id'));
+  
+  $response->withJson($result, 200, JSON_PRETTY_PRINT);
+  return $response;
+});
+
+$app->get('/viewers/count/{grade_id}/{house_id}', function(Request $request, Response $response ) {
+  $result = array();
+  $result['count'] = -1;
+  if($stmt = $this->db->prepare("SELECT COUNT(`viewers`.`grade_id`) FROM `viewers` WHERE `viewers`.`grade_id` = ? AND `viewers`.`house_id` = ?;")) {
+    $stmt->bind_param("ii", $request->getAttribute('grade_id'), $request->getAttribute('house_id'));
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $result['count'] = $count;
+    $stmt->close();
+  }
+  $response->withJson($result, 200, JSON_PRETTY_PRINT);
   return $response;
 });
 
