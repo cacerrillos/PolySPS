@@ -41,11 +41,25 @@
       }
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
-    
+    <iron-ajax id="ajax" url="../api/1.0/viewers/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
     <sps-viewers-add-dialog id="viewersAddDialog" grades="[[gradeLevels]]" houses="[[houses]]"></sps-viewers-add-dialog>
     <sps-viewers-delete-dialog id="presDeleteDialog" viewers="{{viewers}}" selected="{{selectedViewers}}"></sps-viewers-delete-dialog>
+
+    <ctech-confirm-dialog id="editDialog" on-ctech-dialog-confirm="doEdit" confirm-text="Edit" valid-color="#2196f3" modal>
+      <div class="layout horizontal">
+        <div class="flex"></div>
+        <h2>Edit Viewer</h2>
+        <div class="flex"></div>
+      </div>
+      <div class="layout vertical">
+        <paper-input label="First Name" maxlength="255" char-counter class="ctech-input" value="{{editViewer.first_name}}"></paper-input>
+        <paper-input label="Last Name" maxlength="255" char-counter class="ctech-input" value="{{editViewer.last_name}}"></paper-input>
+        <ctech-dropdown-selector class="ctech-input-selector" id="editgradeSelector" default-text="Select a Grade" items="[[gradeLevels]]" attr-for-selected="grade_id" attr-for-text="grade_name" raised></ctech-dropdown-selector>
+        <ctech-dropdown-selector class="ctech-input-selector" id="edithouseSelector" default-text="Select a House" items="[[houses]]" attr-for-selected="house_id" attr-for-text="house_name" raised></ctech-dropdown-selector>
+      </div>
+    </ctech-confirm-dialog>
 
     <div id="mDiv" class="content container">
       <template id="outerTemplate" is="dom-repeat" items="[[_objectArrayToArray(gradeLevels)]]" as="grade_level">
@@ -70,7 +84,7 @@
       
     </div>
     <paper-fab id="addButton" icon="add" class="add" on-click="_doAddDialog"></paper-fab>
-    <paper-fab id="editButton" icon="create" class="edit"></paper-fab>
+    <paper-fab id="editButton" icon="create" class="edit" on-click="_doEditDialog"></paper-fab>
     <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
   </template>
@@ -139,6 +153,51 @@
         }
         //this.$.viewersAjax.generateRequest();
       },
+      ajaxResponse: function(e){
+        if(e.detail.response.status === true){
+          var action_word = "";
+          switch(e.target.method) {
+            case "DELETE":
+              action_word = "deleted";
+              break;
+            case "POST":
+              action_word = "added";
+              //sthis.$.addDialog.resetForm();
+              break;
+            case "PUT":
+              action_word = "updated";
+              this.$.editDialog.resetForm();
+              break;
+          }
+          this.fire('firetoast', { message: "Viewer " + action_word + "!"});
+          this.fire("reload-viewers", { });
+        } else {
+          //console.log(e)
+          var det = "NO_DETAILS";
+          if(e.detail.response.status_details) {
+            det = e.detail.response.status_details;
+            switch(det) {
+              case 1062:
+                det = "Duplicate House Name";
+                break;
+              default:
+                break;
+            }
+          }
+          var action_word = "";
+          switch(e.target.method) {
+            case "DELETE":
+              action_word = "delete";
+              break;
+            case "POST":
+              action_word = "add";
+              break;
+            case "PUT":
+              action_word = "update";
+          }
+          this.fire('firetoast', { message: "FAILED to " + action_word + " Viewer! [" + det + "]"});
+        }
+      },
       _doAddDialog: function(e) {
         this.$.viewersAddDialog.open();
       },
@@ -158,6 +217,36 @@
             if(!arr.hasOwnProperty(key)) continue;
             arr[key].deselectAll();
         }
+      },
+      doEdit: function(e){
+        var p = this.editViewer;
+        var house_id = this.$.edithouseSelector.selected.house_id;
+        var grade_id = this.$.editgradeSelector.selected.grade_id;
+        this.$.ajax.method = "PUT";
+        this.$.ajax.body =
+          JSON.stringify({
+            'viewer_id': p.viewer_id,
+            'house_id': house_id,
+            'grade_id': grade_id,
+            'last_name': p.last_name,
+            'first_name': p.first_name
+          });
+        this.$.ajax.generateRequest();
+      },
+      _doEditDialog: function(e) {
+        var viewer_id = 0;
+        for (var k in this.selectedViewers) {
+          if (!this.selectedViewers.hasOwnProperty(k)) continue;
+          viewer_id = k;
+        }
+        var p = JSON.parse(JSON.stringify(this.viewers[viewer_id]));
+
+        this.editViewer = p;
+        this.$.edithouseSelector.select(p.house_id);
+        this.$.editgradeSelector.select(p.grade_id);
+        
+        this.$.editDialog.open();
+        this.$.editDialog._validateForm();
       },
       _onViewersAjaxResp: function(e) {
         //this.$.dt.reload();
