@@ -12,6 +12,21 @@ class House {
   }
 }
 
+function GetHouses($mysqli) {
+  $data = array();
+  if($stmt = $mysqli -> prepare("SELECT `house_id`,  `house_name` FROM `houses`;")) {
+    $stmt->execute();
+    $stmt->bind_result($house_id, $house_name);
+    while($stmt->fetch()) {
+      $data[$house_id] = new House($house_id, $house_name);
+    }
+  } else {
+    echo $mysqli->error;
+  }
+
+  return $data;
+}
+
 $app->get('/houses/', function (Request $request, Response $response) {
   $data = array();
   $mysqli = $this->db;
