@@ -42,6 +42,11 @@
     </style>
     <iron-ajax id="editTopicAjax" url="../api/1.0/presentations/" handle-as="json" method="PUT" on-response="_topicAjaxResponse" content-type="application/json"></iron-ajax>
     <iron-ajax id="ajax" url="../api/1.0/viewers/" handle-as="json" on-response="ajaxResponse" content-type="application/json"></iron-ajax>
+    <iron-ajax
+       auto
+       url="../api/1.0/registrations/distinct"
+       handle-as="json"
+       last-response="{{distinct}}"></iron-ajax>
     <sps-select-house-overlay houses="[[houses]]"></sps-select-house-overlay>
 
     <sps-viewers-add-dialog id="viewersAddDialog" grades="[[gradeLevels]]" houses="[[houses]]"></sps-viewers-add-dialog>
