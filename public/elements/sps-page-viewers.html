@@ -71,7 +71,7 @@
         <div id="pirate" data-gh-id="[[grade_level.grade_id]]"></div>
         <template id="innerTemplate" data-grade-id="[[grade_level.grade_id]]" is="dom-repeat" items="[[_objectArrayToArray(houses)]]" as="house">
           <paper-material id="pirate" data-gh-id="[[grade_level.grade_id]]-[[house.house_id]]" elevation="1">
-            <h3>[[grade_level.grade_name]] - [[house.house_name]]</h3>
+            <h3>[[grade_level.grade_name]] - [[house.house_name]] - [[_getViewersCount(grade_level.grade_id, house.house_id, viewersCount)]] Viewers</h3>
             <paper-datatable id="dt" data="{{_viewersDataTable(viewers, houses, gradeLevels, house.house_id, grade_level.grade_id)}}" selectable multi-selection on-cell-tap="log" on-selection-changed="_selectionChanged"
               filter="[[_gradeFilter(grade_level.grade_id, house.house_id)]]">
               <paper-datatable-column header="Name" property="last_name" sortable>
@@ -327,6 +327,14 @@
       },
       _resetTopic: function(e) {
         e.model.set('item.topic_edit', e.model.get('item.presentation_text'));
+      },
+      _getViewersCount: function(grade_id, house_id, obj) {
+        if(obj[grade_id]) {
+          if(obj[grade_id][house_id]) {
+            return obj[grade_id][house_id].count;
+          }
+        }
+        return -1;
       },
       _viewersDataTable: function(pres, houses, grades, house_id, grade_id) {
         //console.log(pres);
