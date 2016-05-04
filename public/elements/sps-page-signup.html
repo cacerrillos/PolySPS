@@ -442,9 +442,11 @@ Example:
          */
       },
       _onRegistrationsChanged: function(e) {
-        if(e) {
-          this.registerProgressRaw = e.length > 0 ? e.length : 0;
-          this.registerProgress = e.length / this.distinct.distinct * 100;
+        if(e && this.distinct) {
+          if(this.distinct.distinct) {
+            this.registerProgressRaw = e.length > 0 ? e.length : 0;
+            this.registerProgress = e.length / this.distinct.distinct * 100;
+          }
         }
         /*
         var dts = Polymer.dom(this.$.mDiv).querySelectorAll("#findmedt");
