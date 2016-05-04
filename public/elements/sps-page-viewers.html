@@ -181,6 +181,7 @@
           }
           this.fire('firetoast', { message: "Viewer " + action_word + "!"});
           this.fire("reload-viewers", { });
+          this._reloadViewers();
         } else {
           //console.log(e)
           var det = "NO_DETAILS";
