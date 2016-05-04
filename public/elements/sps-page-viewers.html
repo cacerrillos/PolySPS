@@ -76,6 +76,11 @@
               </paper-datatable-column>
               <paper-datatable-column header="Grade" property="grade_name"></paper-datatable-column>
               <paper-datatable-column header="House" property="house_name"></paper-datatable-column>
+              <paper-datatable-column header="Presentation Count" property="pres_count" sortable>
+                <template>
+                  <div><b>[[value]]</b>/[[distinct.distinct]]</div>
+                </template>
+              </paper-datatable-column>
             </paper-datatable>
           </paper-material>
         </template>
@@ -327,6 +332,7 @@
             delete pres_arr[key];
             continue;
           }
+          pres_arr[key]['pres_count'] = pres_arr[key].presentations.length;
           pres_arr[key]['topic_edit'] = pres_arr[key]['presentation_text'];
           pres_arr[key]['house_name'] = houses[pres_arr[key]['house_id']].house_name;
           pres_arr[key]['grade_name'] = grades[pres_arr[key]['grade_id']].grade_name;
