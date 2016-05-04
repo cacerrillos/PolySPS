@@ -328,7 +328,7 @@
         var pres_arr = this._objectArrayToArray(pres);
         for (var key in pres_arr) {
           if (!pres_arr.hasOwnProperty(key)) continue;
-          if(pres_arr[key]['house_id'] != house_id && pres_arr[key][grade_id] != grade_id) {
+          if(pres_arr[key]['house_id'] != house_id && pres_arr[key]['grade_id'] != grade_id) {
             delete pres_arr[key];
             continue;
           }
