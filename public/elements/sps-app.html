@@ -205,6 +205,7 @@ Example:
             presentations="[[presentations]]"
             limits="[[limits]]"
             locations="[[locations]]"
+            signups-enabled="[[enabledObject]]"
           ></sps-page-signup>
           <sps-page-dashboard data-page="dashboard"></sps-page-dashboard>
           <sps-page-presentations id="pagePresentations" data-page="presentations" ctx="{{ctx}}" locations="[[locations]]"
@@ -284,6 +285,13 @@ Example:
            url="../api/1.0/viewers/count"
            handle-as="json"
            last-response="{{viewersCount}}"></iron-ajax>
+           <iron-ajax
+       auto
+       id="siteAjaxe"
+       url="../api/1.0/settings/enabled11"
+       handle-as="json"
+       content-type="application/json"
+       last-response="{{enabledObject}}"></iron-ajax>
            <!--
           <template is="dom-repeat" items="{{_objectArrayToArray(limits)}}">
           
@@ -531,6 +539,7 @@ Example:
         setInterval(function() {
           if(mainapp.page === "presentations" || mainapp.page ===  "signup") {
             self.$.getLimits.generateRequest();
+            self.$.siteAjaxe.generateRequest();
           }
           //console.log(self.$.outer.selectedItem);
           //console.log(self.$.outer.items);
