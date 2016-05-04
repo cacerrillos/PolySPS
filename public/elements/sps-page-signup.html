@@ -138,7 +138,7 @@ Example:
       <div>Make sure to click <b>Finish</b> at the bottom when you are completely done!</div>
       <div class="flex"></div>
       </div>
-      <paper-button id="beginButton" raised class="" on-click="doVerifyBegin">Begin!</paper-button>
+      <paper-button id="beginButton" raised class="" on-click="doVerifyBegin">[[buttonText]]</paper-button>
       <paper-button id="resetButton" raised class="" on-click="doReset">Reset!</paper-button>
     </paper-material>
     </div>
@@ -288,6 +288,14 @@ Example:
           type: Object,
           value: {}
         },
+        signupsEnabled: {
+          type: Object,
+          observer: 'onSignupStatus'
+        },
+        buttonText: {
+          type: String,
+          value: "Begin!"
+        },
         ctx: {
           type: Object,
           observer: '_onContextChanged'
@@ -395,8 +403,17 @@ Example:
         }, 3000);
 
       },
+      onSignupStatus: function(e){
+        this._validateForm();
+      },
       _validateForm: function(e) {
-        this.$.beginButton.disabled = !(this.$.firstname.value.length > 0 && this.$.lastname.value.length > 0 && this.$.houseSelector.selected && this.$.gradeSelector.selected);
+        if(this.signupsEnabled) {
+          this.buttonText = this.signupsEnabled.entry_value === "1" ? "Begin!" : "Closed!";
+          this.$.beginButton.disabled = !(this.signupsEnabled.entry_value === "1" && this.$.firstname.value.length > 0 && this.$.lastname.value.length > 0 && this.$.houseSelector.selected && this.$.gradeSelector.selected);
+        } else {
+          this.$.beginButton.disabled = true;
+          this.buttonText = "Fetching Status";
+        }
       },
       signupAjaxResponse: function(e) {
         //console.log(e);
