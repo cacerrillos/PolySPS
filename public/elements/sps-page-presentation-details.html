@@ -58,6 +58,11 @@ Example:
         bottom: -28px;
         right: 164px;
       }
+      paper-fab.print-specific {
+        position: absolute;
+        bottom: -28px;
+        right: 236px;
+      }
     </style>
     <iron-ajax
        id="ajax"
@@ -66,6 +71,7 @@ Example:
        handle-as="json"
       content-type="application/json"
        on-response="ajaxResponse"></iron-ajax>
+
     <ctech-confirm-dialog id="addDialog" on-ctech-dialog-confirm="doAdd" confirm-text="Add" valid-color="#2196f3" modal reset-on-dismiss="false">
       <div class="layout vertical">
       <div class="layout horizontal">
@@ -101,6 +107,7 @@ Example:
         <paper-fab id="addButton" icon="add" class="add-specific" on-click="_doAddDialog"></paper-fab>
         <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details-specific" on-click="_doDetailsPage"></paper-fab>
         <paper-fab id="deleteButton" icon="delete" class="remove-specific" on-click="_doRemoveDialog"></paper-fab>
+        <paper-fab id="printPageButton" icon="icons:print" class="print-specific" on-click="_doPrint"></paper-fab>
       </paper-material>
   </template>
   <script>
@@ -131,6 +138,11 @@ Example:
           type: Object,
           observer: '_onContextChanged'
         }
+      },
+      _doPrint: function(e) {
+        var url = "../api/1.0/presentations/" + this.presentationId + "/print";
+        var win = window.open(url, '_blank');
+        win.focus();
       },
       ajaxResponse: function(e) {
         //console.log(e);
@@ -481,16 +493,21 @@ Example:
         --paper-fab-background: var(--paper-blue-800);
         position: fixed;
         bottom: 24px;
-        right: 92px;
+        right: 24px;
       }
       paper-fab.details {
         --paper-fab-background: var(--paper-blue-800);
         position: fixed;
         bottom: 24px;
-        right: 160px;
+        right: 92px;
       }
       paper-fab.remove {
         --paper-fab-background: var(--paper-red-800);
+        position: fixed;
+        bottom: 24px;
+        right: 160px;
+      }
+      paper-fab.print {
         position: fixed;
         bottom: 24px;
         right: 228px;
@@ -532,6 +549,7 @@ Example:
       <pres-details-card ctx="[[ctx]]" presentations="[[presentations]]" viewers="[[viewers]]" presentation-id="[[presentation_id]]" grades="[[grades]]" houses="[[houses]]"></pres-details-card>
     </template>
     <presentation-swap-dialog id="swapDialog" presentations="[[presentations]]" global-selection="[[globalSelection]]"></presentation-swap-dialog>
+    <paper-fab id="printButton" icon="icons:print" class="print" on-click="_doPrint"></paper-fab>
     <paper-fab id="swapButton" icon="icons:swap-vert" class="edit" on-click="_doSwapDialog"></paper-fab>
     <paper-fab id="detailsButton" icon="image:remove-red-eye" class="details" on-click="_doDetailsPage"></paper-fab>
     <paper-fab id="deleteButton" icon="delete" class="remove" on-click="_doDeleteDialog"></paper-fab>
@@ -626,6 +644,12 @@ Example:
           out.push({ viewer_id: k, first_name: pres[p_id]['viewers'][k].first_name, last_name: pres[p_id]['viewers'][k].last_name });
         }
         return out;
+      },
+      _doPrint: function(e) {
+        var url = "../api/1.0/presentations/" + this.presentationsToView.join(",") + "/print";
+        var win = window.open(url, '_blank');
+        win.focus();
+        //console.log(this.prese)
       },
       _computedFromObject: function(obj_arr, id, attr) {//pres only
           if(typeof obj_arr[id] === "undefined") {
