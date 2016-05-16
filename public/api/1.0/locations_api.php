@@ -12,6 +12,22 @@ class Location {
   }
 }
 
+function GetLocations($mysqli) {
+  $data = array();
+
+  if($stmt = $mysqli -> prepare("SELECT `location_id`, `location_name` FROM `locations`;")) {
+    $stmt->execute();
+    $stmt->bind_result($location_id, $location_name);
+    while($stmt->fetch()) {
+      $data[$location_id] = new Location($location_id, $location_name);
+    }
+    $stmt->close();
+  } else {
+    echo $mysqli->error;
+  }
+  return $data;
+}
+
 function GetLocation($mysqli, $location_id) {
   $data = null;
 
