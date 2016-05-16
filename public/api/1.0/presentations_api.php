@@ -257,4 +257,79 @@ $app->get('/presentations/{presentation_id}', function (Request $request, Respon
   return $response;
 });
 
+$app->get('/presentations/{presentation_id}/print', function (Request $request, Response $response) {
+  $data = array();
+  $raw_str = $request->getAttribute('presentation_id');
+  if(strpos($raw_str, ',') !== false) {
+    $pres_id_arr = explode(",", $raw_str);
+    for($x = 0; $x < count($pres_id_arr); $x++) {
+      $data[$pres_id_arr[$x]] = GetPresentation($this->db, $pres_id_arr[$x], true, true);
+    }
+    
+  } else {
+    $data[intval($request->getAttribute('presentation_id'))] = GetPresentation($this->db, $request->getAttribute('presentation_id'), true, true);
+  }
+  $grade_levels = GetGradeLevels($this->db);
+  $houses = GetHouses($this->db);
+  $locations = GetLocations($this->db);
+  $blocks = GetBlocks($this->db);
+  ?>
+  <?
+  foreach ($data as $key => $value) {
+    ?>
+    <h3 style="margin-bottom: 0px;"><?= date("M jS", strtotime($value->date)); ?>, <?= $blocks[$value->block_id]->block_name ?> Block - <?= $value->last_name ?>, <?= $value->first_name ?> [<?= $houses[$value->house_id]->house_name ?>]</h3>
+    <h3 style="margin-top: 0px; margin-bottom: 0px;"><?= $value->presentation_text ?></h3>
+    <h3 style="margin-top: 0px; margin-bottom: 0px;">Location: <?= $locations[$value->location_id]->location_name ?> - <?= count($value->viewers); ?> Viewers</h3>
+    <?
+    foreach ($grade_levels as $grade_key => $grade_value) {
+      $is_viewers = false;
+      ?>
+      <div style="float: left; padding-right: 20px;">
+      <h4><?= $grade_value->grade_name ?></h4>
+      <table>
+      <tr>
+        <td>Name</td>
+        <td>House</td>
+      </tr>
+      <?
+      foreach ($value->viewers as $viewer_key => $viewer) {
+        if($viewer->grade_id != $grade_value->grade_id) {
+          continue;
+        }
+        $is_viewers = true;
+        ?>
+        <tr>
+        <td><?= $viewer->last_name ?>, <?= $viewer->first_name ?></td>
+        <td><?= $houses[$viewer->house_id]->house_name ?></td>
+        </tr>
+        <?
+      }
+      ?>
+      </table>
+      <? if(!$is_viewers) {
+
+        ?>
+        <h4>No Viewers...</h4>
+      <?
+      }
+      ?>
+      </div>
+      <?
+    }
+    ?>
+    <div style="clear: left;"></div>
+
+    <div style="display: block; page-break-before: always;"></div>
+    <?
+  }
+  ?>
+  <script type="text/javascript">
+  window.print();
+  </script>
+  <?
+  //$response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+
+  return $response;
+});
+
 ?>
