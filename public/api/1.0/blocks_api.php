@@ -12,6 +12,22 @@ class Block {
   }
 }
 
+function GetBlocks($mysqli) {
+  $data = array();
+  
+  if($stmt = $mysqli -> prepare("SELECT `block_id`, `block_name` FROM `blocks`;")) {
+    $stmt->execute();
+    $stmt->bind_result($block_id, $block_name);
+    while($stmt->fetch()) {
+      $data[$block_id] = new Block($block_id, $block_name);
+    }
+    $stmt->close();
+  } else {
+  }
+
+  return $data;
+}
+
 $app->get('/blocks/', function (Request $request, Response $response) {
   $data = array();
   $mysqli = $this->db;
