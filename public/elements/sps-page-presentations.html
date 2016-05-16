@@ -103,7 +103,7 @@
     <template is="dom-repeat" items="[[_objectToArray(houses)]]" as="sorthouse">
     
     <paper-material elevation="1">
-      <h3 style="margin-top: 0px;">[[sorthouse.house_name]]</h3>
+      <h3 style="margin-top: 0px;">[[sorthouse.house_name]] <paper-icon-button icon="icons:print" on-click="_doPrint"></paper-icon-button></h3> 
       <div class="content">
       <paper-datatable id="pirate" data-house="[[sorthouse.house_id]]" data="{{_presentationsDataTableFilterByHouse(presentations, houses, locations, gradeLevels, limits, sorthouse.house_id)}}" selectable multi-selection on-selection-changed="_selectionChanged">
         <paper-datatable-column header="Date" property="date" sortable>
@@ -193,6 +193,20 @@
       test: function(e) {
         //console.log(e);
         //console.log(this.newLimits);
+      },
+      _doPrint: function(e) {
+        var house_id = e.model.get('sorthouse.house_id');
+        var arr = [];
+        for(var k in this.presentations) {
+          if(!this.presentations.hasOwnProperty(k)) continue;
+          if(this.presentations[k].house_id === house_id) {
+            arr.push(this.presentations[k].presentation_id);
+          }
+          
+        }
+        var url = "../api/1.0/presentations/" + arr.join(",") + "/print";
+        var win = window.open(url, '_blank');
+        win.focus();
       },
       _computeDates: function(e) {
         for(var k in e) {
