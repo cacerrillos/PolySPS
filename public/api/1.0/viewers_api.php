@@ -77,7 +77,6 @@ function GetViewersByPresentation($mysqli, $presentation_id, $presentations = fa
 function GetCount($mysqli) {
   $count_out = -1;
   if($stmt = $mysqli->prepare("SELECT COUNT(`viewers`.`grade_id`) FROM `viewers`;")) {
-    $stmt->bind_param("i", $grade_id);
     $stmt->execute();
     $stmt->bind_result($count);
     $stmt->fetch();
