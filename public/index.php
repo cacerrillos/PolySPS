@@ -114,7 +114,7 @@ if($aws) {
     font-family: Roboto;
   }
   :root {
-    --dark-primary-color:       #1976D2;77777777u
+    --dark-primary-color:       #1976D2;
     --default-primary-color:    #2196F3;
     --light-primary-color:      #BBDEFB;
     --text-primary-color:       #FFFFFF;
@@ -124,6 +124,9 @@ if($aws) {
     --secondary-text-color:     #727272;
     --disabled-text-color:      #BDBDBD;
     --divider-color:            #B6B6B6;
+
+    --paper-toolbar-color: #FFFFFF;
+    --paper-toolbar-background: #2196F3;
     
     
     /* Components */
