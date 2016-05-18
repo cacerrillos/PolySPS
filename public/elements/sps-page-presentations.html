@@ -105,8 +105,8 @@
     <paper-material elevation="1">
       <h3 style="margin-top: 0px;">[[sorthouse.house_name]] <paper-icon-button icon="icons:print" on-click="_doPrint"></paper-icon-button></h3> 
       <div class="content">
-      <paper-datatable id="pirate" data-house="[[sorthouse.house_id]]" data="{{_presentationsDataTableFilterByHouse(presentations, houses, locations, gradeLevels, limits, sorthouse.house_id)}}" selectable multi-selection on-selection-changed="_selectionChanged">
-        <paper-datatable-column header="Date" property="date" sortable>
+      <paper-datatable id="pirate" data-house="[[sorthouse.house_id]]" data="{{_presentationsDataTableFilterByHouse(presentations, houses, locations, gradeLevels, limits, sorthouse.house_id, blocks)}}" selectable multi-selection on-selection-changed="_selectionChanged">
+        <paper-datatable-column header="Date" property="date_block" sortable sorted>
           <template>
             <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, item.block_id, 'block_name')}}</b></div>
           </template>
@@ -462,7 +462,7 @@
         //console.log(pres_arr);
         return pres_arr;
       },
-      _presentationsDataTableFilterByHouse: function(pres, houses, locations, grades, limits, house_id) {
+      _presentationsDataTableFilterByHouse: function(pres, houses, locations, grades, limits, house_id, blocks) {
         //console.log(pres);
         var pres_arr = this._objectArrayToArray(pres);
         for (var key in pres_arr) {
@@ -474,6 +474,7 @@
           var obj = pres_arr[key];
           obj['topic_edit'] = obj['presentation_text'];
           obj['house_name'] = houses[obj['house_id']].house_name;
+          obj['date_block'] = obj['date'] + "_" + blocks[obj['block_id']]['block_name'];
         }
         //console.log(pres_arr);
         return pres_arr;

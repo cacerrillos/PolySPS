@@ -44,10 +44,10 @@ Example:
     <paper-material elevation="1">
       <h4 style="float: left; padding-right: 8px;">Viewer: </h4><h3>[[viewer.last_name]], [[viewer.first_name]]</h3>
       <div style="clear: both;"></div>
-      <paper-datatable data="[[_filterByViewer(presentations, viewer.presentations)]]">
-        <paper-datatable-column header="Date" property="block_id">
+      <paper-datatable data="[[_filterByViewer(presentations, viewer.presentations, blocks)]]">
+        <paper-datatable-column header="Date" property="date_block" sortable sorted>
           <template>
-            <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, value, 'block_name')}}</b></div>
+            <div>{{_trimDate(item.date)}}-<b>{{_computedFromObject(blocks, item.block_id, 'block_name')}}</b></div>
           </template>
         </paper-datatable-column>
         <paper-datatable-column header="Presentor" property="last_name">
@@ -106,12 +106,14 @@ Example:
           type: Object
         }
       },
-      _filterByViewer: function(presentations, viewer_id) {
+      _filterByViewer: function(presentations, viewer_id, blocks) {
         //console.log(viewer_id);
         var arr = this._objectArrayToArray(presentations);
         for(var x = 0; x < arr.length; x++) {
           if($.inArray(arr[x].presentation_id, viewer_id) === -1) {
             delete arr[x];
+          } else {
+            arr[x]['date_block'] = arr[x]['date'] + "_" + blocks[arr[x]['block_id']]['block_name'];
           }
         }
         //console.log(arr);
