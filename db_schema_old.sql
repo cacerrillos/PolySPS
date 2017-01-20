@@ -2,7 +2,7 @@
 -- version 4.1.14.8
 -- http://www.phpmyadmin.net
 --
--- Host: ***REMOVED***
+-- Host: db571817431.db.1and1.com
 -- Generation Time: Mar 20, 2016 at 04:26 PM
 -- Server version: 5.1.73-log
 -- PHP Version: 5.4.45-0+deb7u2
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Database: `***REMOVED***`
+-- Database: `db571817431`
 --
 
 -- --------------------------------------------------------

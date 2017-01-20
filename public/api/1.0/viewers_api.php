@@ -304,8 +304,143 @@ $app->delete('/viewers/', function (Request $request, Response $response) {
 });
 
 $app->get('/viewers/{viewer_id}', function (Request $request, Response $response) {
-  $data = GetViewer($this->db, $request->getAttribute('viewer_id'), isset($request->getQueryParams()['presentations']));
+  $raw_str = $request->getAttribute('viewer_id');
+  if(strpos($raw_str, ',') !== false) {
+    $viewer_id_arr = explode(",", $raw_str);
+    for($x = 0; $x < count($viewer_id_arr); $x++) {
+      $data[$viewer_id_arr[$x]] = GetViewer($this->db, $viewer_id_arr[$x], isset($request->getQueryParams()['presentations']));
+    }
+    
+  } else {
+    $data = GetViewer($this->db, $request->getAttribute('viewer_id'), isset($request->getQueryParams()['presentations']));
+  }
   $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT));
+
+  return $response;
+});
+
+$app->get('/viewers/{viewer_id}/print', function (Request $request, Response $response) {
+  $raw_str = $request->getAttribute('viewer_id');
+  if(strpos($raw_str, ',') !== false) {
+    $viewer_id_arr = explode(",", $raw_str);
+    for($x = 0; $x < count($viewer_id_arr); $x++) {
+      $data[$viewer_id_arr[$x]] = GetViewer($this->db, $viewer_id_arr[$x], true);
+    }
+    
+  } else {
+    $data = GetViewer($this->db, $request->getAttribute('viewer_id'), true);
+  }
+  $presentations = GetPresentations($this->db, true, true);
+  $blocks = GetBlocks($this->db);
+  $locations = GetLocations($this->db);
+
+  foreach ($data as $key => $viewer) {
+    ?>
+    <h3><?= $viewer->last_name ?>, <?= $viewer->first_name ?></h3>
+    <table cellpadding="4">
+      <tr>
+        <td>Date</td>
+        <td>Location</td>
+        <td>Presentor</td>
+        <td>Topic</td>
+      </tr>
+      <?
+      $date_block = array();
+      foreach ($viewer->presentations as $key => $presentation_id) {
+        $presentation = $presentations[$presentation_id];
+        $date_block[$key] = $presentation->date . preg_replace("/[^0-9]/", "", $blocks[$presentation->block_id]->block_name);
+      }
+      array_multisort($date_block, SORT_ASC, SORT_REGULAR , $viewer->presentations);
+      foreach ($viewer->presentations as $key => $presentation_id) {
+        $presentation = $presentations[$presentation_id];
+        ?>
+        <tr>
+          <td><?= date("M jS", strtotime($presentation->date)) ?> - <?= $blocks[$presentation->block_id]->block_name ?></td>
+          <td><?= $locations[$presentation->location_id]->location_name ?></td>
+          <td><?= $presentation->first_name ?> <?= $presentation->last_name?></td>
+          <td><?= $presentation->presentation_text ?></td>
+        </tr>
+        <?
+      }
+      ?>
+    </table>
+    <div style="display: block; page-break-before: always;"></div>
+    <?
+  }
+  ?>
+  <script type="text/javascript">
+  window.print();
+  </script>
+  <?
+
+  return $response;
+});
+
+$app->get('/viewers/{grade_id}/{house_id}/print', function (Request $request, Response $response) {
+  $grade_id = $request->getAttribute('grade_id');
+  $house_id = $request->getAttribute('house_id');
+  echo $grade_id . " <br>";
+  echo $house_id . " <br>";
+  $presentation_ids = array();
+  if($stmt = $this->db->prepare("SELECT `viewer_id` FROM `viewers` WHERE `grade_id` = ? AND `house_id` = ?;")) {
+    $stmt->bind_param("ii", $grade_id, $house_id);
+    $stmt->execute();
+    $stmt->bind_result($viewer_id);
+    while($stmt->fetch()) {
+      array_push($presentation_ids, $viewer_id);
+      echo $viewer_id . " <br>";
+    }
+    $stmt->close();
+  }
+  $data = array();
+  foreach ($presentation_ids as $key => $value) {
+    $data[$value] = GetViewer($this->db, $value, true);
+  }
+
+  $presentations = GetPresentations($this->db, true, true);
+  $blocks = GetBlocks($this->db);
+  $locations = GetLocations($this->db);
+
+
+
+  foreach ($data as $key => $viewer) {
+    ?>
+    <h3><?= $viewer->last_name ?>, <?= $viewer->first_name ?></h3>
+    <table cellpadding="4">
+      <tr>
+        <td>Date</td>
+        <td>Location</td>
+        <td>Presentor</td>
+        <td>Topic</td>
+      </tr>
+      <?
+      $date_block = array();
+      foreach ($viewer->presentations as $key => $presentation_id) {
+        $presentation = $presentations[$presentation_id];
+        $date_block[$key] = $presentation->date . preg_replace("/[^0-9]/", "", $blocks[$presentation->block_id]->block_name);
+      }
+      array_multisort($date_block, SORT_ASC, SORT_REGULAR , $viewer->presentations);
+      foreach ($viewer->presentations as $key => $presentation_id) {
+        $presentation = $presentations[$presentation_id];
+        ?>
+        <tr>
+          <td><?= date("M jS", strtotime($presentation->date)) ?> - <?= $blocks[$presentation->block_id]->block_name ?></td>
+          <td><?= $locations[$presentation->location_id]->location_name ?></td>
+          <td><?= $presentation->first_name ?> <?= $presentation->last_name?></td>
+          <td><?= $presentation->presentation_text ?></td>
+        </tr>
+        <?
+      }
+      ?>
+    </table>
+    <div style="display: block; page-break-before: always;"></div>
+    <?
+  }
+  ?>
+  <script type="text/javascript">
+  //window.print();
+  </script>
+  <?
 
   return $response;
 });

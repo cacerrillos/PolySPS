@@ -18,6 +18,53 @@ class Presentation {
   }
 }
 
+function GetPresentations($mysqli, $text = false, $viewers = false) {
+
+  $data = array();
+
+  if($stmt = $mysqli -> prepare("SELECT `presentation_id`, `first_name`, `last_name`, `house_id`, `date`, `block_id`, `location_id`, `claimed` FROM `presentations`;")) {
+    $stmt->execute();
+    $stmt->bind_result($presentation_id, $first_name, $last_name, $house_id, $date, $block_id, $location_id, $claimed);
+    while($stmt->fetch()) {
+      $data[$presentation_id] = new Presentation();
+      $data[$presentation_id]->presentation_id = intval($presentation_id);
+      $data[$presentation_id]->first_name = $first_name;
+      $data[$presentation_id]->last_name = $last_name;
+      $data[$presentation_id]->house_id = $house_id;
+      $data[$presentation_id]->date = $date;
+      $data[$presentation_id]->block_id = $block_id;
+      $data[$presentation_id]->location_id = $location_id;
+      $data[$presentation_id]->claimed = $claimed == 1 ? true : false;
+    }
+    $stmt->close();
+    foreach ($data as $key => $presentation) {
+      if($text) {
+        if($stmt = $mysqli -> prepare("SELECT `presentation_text` FROM `presentation_text` WHERE `presentation_id` = ? LIMIT 1;")) {
+          $stmt->bind_param("i", $presentation->presentation_id);
+          $stmt->execute();
+          $stmt->bind_result($presentation_text);
+          while($stmt->fetch()) {
+            $presentation->presentation_text = $presentation_text;
+          }
+          $stmt->close();
+        }
+      } else {
+        echo $mysqli->error;
+      }
+      if($viewers) {
+        $presentation->viewers = array();
+        $presentation->viewers = GetViewersByPresentation($mysqli, $presentation->presentation_id);
+      } else {
+        echo $mysqli->error;
+      }
+    }
+  } else {
+    echo $mysqli->error;
+  }
+    
+  return $data;
+}
+
 function GetPresentation($mysqli, $presentation_id, $text = false, $viewers = false) {
 
   $pres = null;
